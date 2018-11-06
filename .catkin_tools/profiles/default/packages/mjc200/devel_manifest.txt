@@ -1,0 +1,4 @@
+mjc200
+/home/aykut/Development/cito/devel/.private/mjc200/share/mjc200/cmake/mjc200Config-version.cmake /home/aykut/Development/cito/devel/share/mjc200/cmake/mjc200Config-version.cmake
+/home/aykut/Development/cito/devel/.private/mjc200/share/mjc200/cmake/mjc200Config.cmake /home/aykut/Development/cito/devel/share/mjc200/cmake/mjc200Config.cmake
+/home/aykut/Development/cito/devel/.private/mjc200/lib/pkgconfig/mjc200.pc /home/aykut/Development/cito/devel/lib/pkgconfig/mjc200.pc
