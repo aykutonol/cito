@@ -1,0 +1,20 @@
+MuJoCo Pro Personal license activation key, number 52318, type 6.
+
+Issued to Aykut Onol <onol.a@husky.neu.edu>.
+
+Expires August 1, 2019.
+
+This file activates MuJoCo Pro on a single computer with id:
+LINUX_PJG9OSmN9D87a_R201SBBsg358uX0F57HS0nS193
+
+Do not modify this file. Its entire content, including the
+plain text section, is used by the activation manager.
+
+b801565a247e50f52dda570e020aed3f2685e988b292c622601baad8555f630d
+9f3b9f56e7440ca5c0e98716f88bd9008ff5c06373e896f7d86a73de4337cc92
+ac5e624f9a3db5c8bf54f17d850f3a9db369c6b6162006eaf26a2d041c99e183
+d5223ab639c893361b86321ec9ad486843ce0efff27cd0474de83e9762c41afd
+785e37449a0ec76c6f7f7fc65176a0198c09344e5ff8643570e054a901618e0a
+3e7d9fd8e4776624101084fa4b5e942a879d10b1a4eadce66bfafb69137d9a56
+dac4b4a0396f08ef31e289cf8a2c3875d55dac455c6e8d76b5d4dbb24a201b65
+1b18e3cf9837b1c94d814ed3027d506df7222b67f1feab92a01f47b49d4ff813
