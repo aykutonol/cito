@@ -2,4 +2,5 @@ devel/
 build/
 logs/
 .catkin_tools/
+MUJOCO_LOG.TXT
 
