@@ -3,9 +3,8 @@ project(cito)
 
 add_compile_options(-std=c++11)
 
-find_package(catkin  REQUIRED)
-find_package(Eigen3  REQUIRED)
-find_package(Threads REQUIRED)
+find_package(catkin REQUIRED)
+find_package(Eigen3 REQUIRED)
 
 ###################################
 ## catkin specific configuration ##rosrun 
@@ -26,9 +25,10 @@ include_directories(
 )
 
 ## Declare a C++ library
-#add_library(${PROJECT_NAME}
-# src/cito_cont.cpp
-#)
+add_library(${PROJECT_NAME}
+ src/cito_cont.cpp
+)
+#add_library(cito_cont src/cito_cont.cpp)
 
 ################
 ## Node names ##
@@ -46,6 +46,8 @@ target_link_libraries(${NODE_NAME1} ${PROJECT_SOURCE_DIR}/bin/libmujoco200.so ${
 
 add_executable(${NODE_NAME2} src/flymanoid.cpp)
 # mujoco w/o rendering
-target_link_libraries(${NODE_NAME2} ${PROJECT_SOURCE_DIR}/bin/libmujoco200nogl.so)
-target_link_libraries(${NODE_NAME2} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(${NODE_NAME2} ${PROJECT_SOURCE_DIR}/bin/libmujoco200nogl.so
+				    pthread
+				    ${PROJECT_NAME}
+)
 

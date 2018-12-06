@@ -25,7 +25,7 @@ private:
 
 public:
   void setControl(mjData* d, const ctrlVec_t u);
-  Eigen::Matrix<double, 6*params::nfree, 1> contactModel(const mjData* d, Eigen::Matrix<double, params::npair, 1> kcon);
+  Eigen::Matrix<double, 6*params::nfree, 1> contactModel(const mjData* d, const ctrlVec_t u);
 };
 
-#endif
+#endif //CITO_CONT

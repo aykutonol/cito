@@ -20,25 +20,20 @@ void CitoCont::setControl(mjData* d, const ctrlVec_t u)
     {
       d->ctrl[i] = u[i] + d->qfrc_bias[params::jact[i]];
     }
-    // get kcon from the control input
-    for( int i=0; i<params::npair; i++ )
-    {
-      kcon[i] = u[params::nact+i];
-    }
     // contact model
-    hcon = this->contactModel(d, kcon);
+    hcon = this->contactModel(d, u);
     // set external forces on the free bodies
     for( int i=0; i<params::nfree; i++ )
     {
       for( int j=0; j<6; j++ )
       {
-        d->xfrc_applied[params::jfree[i]*6+j] = hcon[i*6+j];
+        d->xfrc_applied[params::bfree[i]*6+j] = hcon[i*6+j];
       }
     }
 }
 
 // contactModel: returns contact wrench given kcon
-Eigen::Matrix<double, 6*params::nfree, 1> CitoCont::contactModel(const mjData* d, Eigen::Matrix<double, params::npair, 1> kcon)
+Eigen::Matrix<double, 6*params::nfree, 1> CitoCont::contactModel(const mjData* d, const ctrlVec_t u)
 {
     h.setZero();
     // loop for each contact pair
@@ -58,7 +53,7 @@ Eigen::Matrix<double, 6*params::nfree, 1> CitoCont::contactModel(const mjData* d
         zeta  = tanh(params::phi_r*phi_e);                  // semisphere based on the Euclidean distance
         phi_c = zeta*phi_e + (1-zeta)*phi_n;                // combined distance
         // normal force in the contact frame
-        fn = kcon[p_i]*exp(-params::acon[p_i]*phi_c);
+        fn = u[params::nact+p_i]*exp(-params::acon[p_i]*phi_c);
         // contact generalized in the world frame
         lambda = fn*n_cs;
         // loop for each free body

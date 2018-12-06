@@ -20,7 +20,7 @@
 // PARAMS **********************************************************************
 namespace params
 {
-  const double tf = 2.00;           // [s] final time
+  const double tf = 1.00;           // [s] final time
   const double tc = 1e-1;           // [s] control sampling period
   const double dt = 2e-3;           // [s] dynamic sampling period
   const int ncts  = floor(tf/tc);   // number of control time steps
@@ -37,14 +37,15 @@ namespace params
 
   // specific indices
   const int jact[nact]    = {6,7,8,9,10,11,12,13};  // actuated dof indices
-  const int jfree[nfree]  = {0};                    // index of the free body
+  const int jfree[nfree]  = {0};                    // index of the free joint
+  const int bfree[nfree]  = {5};                    // index of the free body
   const int spair1[npair] = {4,4,5,5,6,6,7,7};      // indices of the sites on the robot
   const int spair2[npair] = {1,3,0,2,1,3,0,2};      // corresponding indices of the sites in the environment
 
   // initial pose of the robot and controls
   Eigen::Matrix<mjtNum, nact, 1> qpos0;
   double kcon0[npair] = {10,10,10,10,10,10,10,10};
-  double acon[npair]  = {20,20,20,20,20,20,20,20};
+  double acon[npair]  = {10,10,10,10,10,10,10,10};
   double phi_r = 200;     // radius of the distance sphere for zeta
 
   // contact surface normals for each pair
