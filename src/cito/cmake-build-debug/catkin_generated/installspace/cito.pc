@@ -1,0 +1,8 @@
+prefix=/usr/local
+
+Name: cito
+Description: Description of cito
+Version: 0.0.0
+Cflags: -I/usr/local/include -I/usr/include/eigen3
+Libs: -L/usr/local/lib 
+Requires: 

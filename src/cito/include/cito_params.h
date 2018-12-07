@@ -75,4 +75,4 @@ typedef std::vector<ctrlVec_t,  Eigen::aligned_allocator<ctrlVec_t>>  ctrlVecThr
 typedef std::vector<ctrlMat_t,  Eigen::aligned_allocator<ctrlMat_t>>  ctrlMatThread;
 
 
-#endif //CITO_PARAMS
+#endif //CITO_PARAMS_H

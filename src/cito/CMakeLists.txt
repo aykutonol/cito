@@ -26,7 +26,7 @@ include_directories(
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
- src/cito_cont.cpp
+ src/cito_control.cpp
 )
 #add_library(cito_cont src/cito_cont.cpp)
 

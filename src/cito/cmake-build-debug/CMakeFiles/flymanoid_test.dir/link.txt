@@ -1,0 +1,1 @@
+/usr/bin/c++  -g  -rdynamic CMakeFiles/flymanoid_test.dir/src/flymanoid_test.cpp.o  -o devel/lib/cito/flymanoid_test  -L/home/aykut/Development/cito/src/cito/bin -Wl,-rpath,/home/aykut/Development/cito/src/cito/bin -lmujoco200 -lglew ../bin/libglfw.so.3 -lGL 

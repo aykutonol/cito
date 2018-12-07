@@ -3,17 +3,60 @@
 // =============================== //
 
 // ***** DESCRIPTION ***********************************************************
-// CITO_CONT class consists of functions for calculating and setting control-
+// CITO_CONTROl class consists of functions for calculating and setting control-
 // and contact-related variables such as joint torques and external forces on
 // the bodies.
 
 // ***** CLASS TYPE ************************************************************
-// Robot, environment, and physics engine specific
+// Physics engine specific
 
-#include "cito_cont.h"
+#include "cito_control.h"
+
+// ***** CONSTRUCTOR ***********************************************************
+
+
+// ***** FUNCTIONS *************************************************************
+// void CitoControl::takeFullStep(const mjModel* m, mjData* dmain, const ctrlVec_t ui, mjtNum* dXd)
+// {
+//     mjData* d;
+//     d = mj_makeData(m);
+//     // copy state and control from dmain to thread-specific d
+//     d->time = dmain->time;
+//     mju_copy(d->qpos, dmain->qpos, m->nq);
+//     mju_copy(d->qvel, dmain->qvel, m->nv);
+//     mju_copy(d->qacc, dmain->qacc, m->nv);
+//     mju_copy(d->qacc_warmstart, dmain->qacc_warmstart, m->nv);
+//     mju_copy(d->qfrc_applied, dmain->qfrc_applied, m->nv);
+//     mju_copy(d->xfrc_applied, dmain->xfrc_applied, 6*m->nbody);
+//     mju_copy(d->ctrl, dmain->ctrl, m->nu);
+//     // mju_copy(d->userdata, dmain->userdata, m->nuserdata);
+//
+//     // run full computation at center point (usually faster than copying dmain)
+//     mj_forward(m, d);
+//     sc.setControl(m, d, ui);
+//
+//     // take tc/dt steps
+//     for( int j=0; j<ndpc; j++ )
+//     {
+//       // initialize the step
+//       mj_step1(m, d);
+//       // set ctrl and xfrc
+//       sc.setControl(m, d, ui);
+//       // complete the step
+//       mj_step2(m, d);
+//     }
+//
+//     // get new state
+//     stateVec_t dXtemp; dXtemp.setZero();
+//     dXtemp = this->getState(m, d);
+//     mju_copy(dXd, dXtemp.data(), 2*m->nv);
+//
+//     // delete data
+//     mj_deleteData(d);
+// }
 
 //setControl: sets generalized forces on joints and free bodies
-void CitoCont::setControl(mjData* d, const ctrlVec_t u)
+void CitoControl::setControl(mjData* d, const ctrlVec_t u)
 {
     // set control given the control input
     for( int i=0; i<params::nact; i++ )
@@ -33,7 +76,7 @@ void CitoCont::setControl(mjData* d, const ctrlVec_t u)
 }
 
 // contactModel: returns contact wrench given kcon
-Eigen::Matrix<double, 6*params::nfree, 1> CitoCont::contactModel(const mjData* d, const ctrlVec_t u)
+Eigen::Matrix<double, 6*params::nfree, 1> CitoControl::contactModel(const mjData* d, const ctrlVec_t u)
 {
     h.setZero();
     // loop for each contact pair

@@ -3,16 +3,16 @@
 // =============================== //
 
 // ***** DESCRIPTION ***********************************************************
-// CITO_CONT class consists of functions for calculating and setting control-
+// CITO_CONTROL class consists of functions for calculating and setting control-
 // and contact-related variables such as joint torques and external forces on
 // the bodies.
 
 #include "cito_params.h"
 
-#ifndef CITO_CONT_H
-#define CITO_CONT_H
+#ifndef CITO_CONTROL_H
+#define CITO_CONTROL_H
 
-class CitoCont
+class CitoControl
 {
 private:
   // control variables
@@ -28,4 +28,4 @@ public:
   Eigen::Matrix<double, 6*params::nfree, 1> contactModel(const mjData* d, const ctrlVec_t u);
 };
 
-#endif //CITO_CONT
+#endif //CITO_CONTROL_H
