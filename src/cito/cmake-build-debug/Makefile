@@ -363,6 +363,33 @@ src/cito_control.cpp.s:
 	$(MAKE) -f CMakeFiles/cito.dir/build.make CMakeFiles/cito.dir/src/cito_control.cpp.s
 .PHONY : src/cito_control.cpp.s
 
+src/cito_numdiff.o: src/cito_numdiff.cpp.o
+
+.PHONY : src/cito_numdiff.o
+
+# target to build an object file
+src/cito_numdiff.cpp.o:
+	$(MAKE) -f CMakeFiles/cito.dir/build.make CMakeFiles/cito.dir/src/cito_numdiff.cpp.o
+.PHONY : src/cito_numdiff.cpp.o
+
+src/cito_numdiff.i: src/cito_numdiff.cpp.i
+
+.PHONY : src/cito_numdiff.i
+
+# target to preprocess a source file
+src/cito_numdiff.cpp.i:
+	$(MAKE) -f CMakeFiles/cito.dir/build.make CMakeFiles/cito.dir/src/cito_numdiff.cpp.i
+.PHONY : src/cito_numdiff.cpp.i
+
+src/cito_numdiff.s: src/cito_numdiff.cpp.s
+
+.PHONY : src/cito_numdiff.s
+
+# target to generate assembly for a file
+src/cito_numdiff.cpp.s:
+	$(MAKE) -f CMakeFiles/cito.dir/build.make CMakeFiles/cito.dir/src/cito_numdiff.cpp.s
+.PHONY : src/cito_numdiff.cpp.s
+
 src/flymanoid.o: src/flymanoid.cpp.o
 
 .PHONY : src/flymanoid.o
@@ -446,6 +473,9 @@ help:
 	@echo "... src/cito_control.o"
 	@echo "... src/cito_control.i"
 	@echo "... src/cito_control.s"
+	@echo "... src/cito_numdiff.o"
+	@echo "... src/cito_numdiff.i"
+	@echo "... src/cito_numdiff.s"
 	@echo "... src/flymanoid.o"
 	@echo "... src/flymanoid.i"
 	@echo "... src/flymanoid.s"

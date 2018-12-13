@@ -1,5 +1,6 @@
 file(REMOVE_RECURSE
   "CMakeFiles/cito.dir/src/cito_control.cpp.o"
+  "CMakeFiles/cito.dir/src/cito_numdiff.cpp.o"
   "devel/lib/libcito.pdb"
   "devel/lib/libcito.so"
 )

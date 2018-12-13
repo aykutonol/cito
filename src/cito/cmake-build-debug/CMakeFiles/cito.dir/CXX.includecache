@@ -10,6 +10,10 @@
 cito_params.h
 ../include/cito_params.h
 
+../include/cito_numdiff.h
+cito_control.h
+../include/cito_control.h
+
 ../include/cito_params.h
 mujoco.h
 ../include/mujoco.h
@@ -45,6 +49,12 @@ mjui.h
 /home/aykut/Development/cito/src/cito/src/cito_control.cpp
 cito_control.h
 /home/aykut/Development/cito/src/cito/src/cito_control.h
+
+/home/aykut/Development/cito/src/cito/src/cito_numdiff.cpp
+cito_numdiff.h
+/home/aykut/Development/cito/src/cito/src/cito_numdiff.h
+iostream
+-
 
 /usr/include/eigen3/Eigen/Cholesky
 Core

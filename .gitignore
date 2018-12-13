@@ -3,4 +3,6 @@ build/
 logs/
 .catkin_tools/
 MUJOCO_LOG.TXT
+src/cito/.idea/
+src/cito/cmake-build-debug/
 

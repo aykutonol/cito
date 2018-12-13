@@ -523,6 +523,9 @@
 		<Unit filename="/home/aykut/Development/cito/src/cito/src/cito_control.cpp">
 			<Option target="cito"/>
 		</Unit>
+		<Unit filename="/home/aykut/Development/cito/src/cito/src/cito_numdiff.cpp">
+			<Option target="cito"/>
+		</Unit>
 		<Unit filename="/home/aykut/Development/cito/src/cito/src/flymanoid.cpp">
 			<Option target="flymanoid"/>
 		</Unit>

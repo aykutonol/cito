@@ -3,6 +3,7 @@
 
 CMakeFiles/flymanoid.dir/src/flymanoid.cpp.o
  ../include/cito_control.h
+ ../include/cito_numdiff.h
  ../include/cito_params.h
  ../include/mujoco/mjdata.h
  ../include/mujoco/mjmodel.h

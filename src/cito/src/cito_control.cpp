@@ -13,58 +13,21 @@
 #include "cito_control.h"
 
 // ***** CONSTRUCTOR ***********************************************************
-
+CitoControl::CitoControl(const mjModel* model) : m(model)
+{
+}
 
 // ***** FUNCTIONS *************************************************************
-// void CitoControl::takeFullStep(const mjModel* m, mjData* dmain, const ctrlVec_t ui, mjtNum* dXd)
-// {
-//     mjData* d;
-//     d = mj_makeData(m);
-//     // copy state and control from dmain to thread-specific d
-//     d->time = dmain->time;
-//     mju_copy(d->qpos, dmain->qpos, m->nq);
-//     mju_copy(d->qvel, dmain->qvel, m->nv);
-//     mju_copy(d->qacc, dmain->qacc, m->nv);
-//     mju_copy(d->qacc_warmstart, dmain->qacc_warmstart, m->nv);
-//     mju_copy(d->qfrc_applied, dmain->qfrc_applied, m->nv);
-//     mju_copy(d->xfrc_applied, dmain->xfrc_applied, 6*m->nbody);
-//     mju_copy(d->ctrl, dmain->ctrl, m->nu);
-//     // mju_copy(d->userdata, dmain->userdata, m->nuserdata);
-//
-//     // run full computation at center point (usually faster than copying dmain)
-//     mj_forward(m, d);
-//     sc.setControl(m, d, ui);
-//
-//     // take tc/dt steps
-//     for( int j=0; j<ndpc; j++ )
-//     {
-//       // initialize the step
-//       mj_step1(m, d);
-//       // set ctrl and xfrc
-//       sc.setControl(m, d, ui);
-//       // complete the step
-//       mj_step2(m, d);
-//     }
-//
-//     // get new state
-//     stateVec_t dXtemp; dXtemp.setZero();
-//     dXtemp = this->getState(m, d);
-//     mju_copy(dXd, dXtemp.data(), 2*m->nv);
-//
-//     // delete data
-//     mj_deleteData(d);
-// }
-
 //setControl: sets generalized forces on joints and free bodies
-void CitoControl::setControl(mjData* d, const ctrlVec_t u)
+void CitoControl::setControl(mjData* d, const ctrlVec_t umain)
 {
     // set control given the control input
     for( int i=0; i<params::nact; i++ )
     {
-      d->ctrl[i] = u[i] + d->qfrc_bias[params::jact[i]];
+      d->ctrl[i] = umain[i] + d->qfrc_bias[params::jact[i]];
     }
     // contact model
-    hcon = this->contactModel(d, u);
+    hcon = this->contactModel(d, umain);
     // set external forces on the free bodies
     for( int i=0; i<params::nfree; i++ )
     {
@@ -117,4 +80,43 @@ Eigen::Matrix<double, 6*params::nfree, 1> CitoControl::contactModel(const mjData
         }
     }
     return h;
+}
+
+// getState function converts free joints' quaternions to Euler angles so that
+// the dimensionality of the state vector is 2*nv instead of nq+nv
+stateVec_t CitoControl::getState(const mjData* d)
+{
+    x.setZero();
+    int free_count = 0;
+    if ( m->nq != NV )
+    {
+        for ( int i=0; i<m->nq; i++ )
+        {
+            int jid = m->dof_jntid[i];
+            if( m->jnt_type[jid]==mjJNT_FREE )
+            {
+                mju_copy(x.block<3,1>(i,0).data(), d->qpos + i, 3);
+
+                mju_copy(obj_q.data(), d->qpos + i + 3, 4);
+                // calculate the Euler angles from the quaternion
+                x(i+3) = atan2(2*(obj_q[0]*obj_q[1]+obj_q[2]*obj_q[3]), 1-2*(pow(obj_q[1],2)+pow(obj_q[2],2)));
+                x(i+4) =  asin(2*(obj_q[0]*obj_q[2]-obj_q[3]*obj_q[1]));
+                x(i+5) = atan2(2*(obj_q[0]*obj_q[3]+obj_q[1]*obj_q[2]), 1-2*(pow(obj_q[2],2)+pow(obj_q[3],2)));
+                i += 6;             // proceed to next joint
+                free_count += 1;    // free joint counter
+            }
+            else
+            {
+                x[i-free_count] = d->qpos[i];
+            }
+        }
+    }
+    else
+    {
+        mju_copy(x.data(), d->qpos, m->nq);
+    }
+    // get the velocities
+    mju_copy(x.data() + NV, d->qvel, NV);
+
+    return x;
 }

@@ -1,22 +1,22 @@
 Determining if the pthread_create exist failed with the following output:
 Change Dir: /home/aykut/Development/cito/src/cito/cmake-build-debug/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_e7f95/fast"
-/usr/bin/make -f CMakeFiles/cmTC_e7f95.dir/build.make CMakeFiles/cmTC_e7f95.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_467ce/fast"
+/usr/bin/make -f CMakeFiles/cmTC_467ce.dir/build.make CMakeFiles/cmTC_467ce.dir/build
 make[1]: Entering directory '/home/aykut/Development/cito/src/cito/cmake-build-debug/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_e7f95.dir/CheckSymbolExists.c.o
-/usr/bin/cc    -o CMakeFiles/cmTC_e7f95.dir/CheckSymbolExists.c.o   -c /home/aykut/Development/cito/src/cito/cmake-build-debug/CMakeFiles/CMakeTmp/CheckSymbolExists.c
-Linking C executable cmTC_e7f95
-/home/aykut/Development/clion-2018.3.1/bin/cmake/linux/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e7f95.dir/link.txt --verbose=1
-/usr/bin/cc      -rdynamic CMakeFiles/cmTC_e7f95.dir/CheckSymbolExists.c.o  -o cmTC_e7f95 
-CMakeFiles/cmTC_e7f95.dir/CheckSymbolExists.c.o: In function `main':
+Building C object CMakeFiles/cmTC_467ce.dir/CheckSymbolExists.c.o
+/usr/bin/cc    -o CMakeFiles/cmTC_467ce.dir/CheckSymbolExists.c.o   -c /home/aykut/Development/cito/src/cito/cmake-build-debug/CMakeFiles/CMakeTmp/CheckSymbolExists.c
+Linking C executable cmTC_467ce
+/home/aykut/Development/clion-2018.3.1/bin/cmake/linux/bin/cmake -E cmake_link_script CMakeFiles/cmTC_467ce.dir/link.txt --verbose=1
+/usr/bin/cc      -rdynamic CMakeFiles/cmTC_467ce.dir/CheckSymbolExists.c.o  -o cmTC_467ce 
+CMakeFiles/cmTC_467ce.dir/CheckSymbolExists.c.o: In function `main':
 CheckSymbolExists.c:(.text+0x16): undefined reference to `pthread_create'
 collect2: error: ld returned 1 exit status
-CMakeFiles/cmTC_e7f95.dir/build.make:86: recipe for target 'cmTC_e7f95' failed
-make[1]: *** [cmTC_e7f95] Error 1
+CMakeFiles/cmTC_467ce.dir/build.make:86: recipe for target 'cmTC_467ce' failed
+make[1]: *** [cmTC_467ce] Error 1
 make[1]: Leaving directory '/home/aykut/Development/cito/src/cito/cmake-build-debug/CMakeFiles/CMakeTmp'
-Makefile:121: recipe for target 'cmTC_e7f95/fast' failed
-make: *** [cmTC_e7f95/fast] Error 2
+Makefile:121: recipe for target 'cmTC_467ce/fast' failed
+make: *** [cmTC_467ce/fast] Error 2
 
 File /home/aykut/Development/cito/src/cito/cmake-build-debug/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
 /* */
@@ -36,20 +36,20 @@ int main(int argc, char** argv)
 Determining if the function pthread_create exists in the pthreads failed with the following output:
 Change Dir: /home/aykut/Development/cito/src/cito/cmake-build-debug/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_55c00/fast"
-/usr/bin/make -f CMakeFiles/cmTC_55c00.dir/build.make CMakeFiles/cmTC_55c00.dir/build
+Run Build Command:"/usr/bin/make" "cmTC_6be67/fast"
+/usr/bin/make -f CMakeFiles/cmTC_6be67.dir/build.make CMakeFiles/cmTC_6be67.dir/build
 make[1]: Entering directory '/home/aykut/Development/cito/src/cito/cmake-build-debug/CMakeFiles/CMakeTmp'
-Building C object CMakeFiles/cmTC_55c00.dir/CheckFunctionExists.c.o
-/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_55c00.dir/CheckFunctionExists.c.o   -c /home/aykut/Development/clion-2018.3.1/bin/cmake/linux/share/cmake-3.13/Modules/CheckFunctionExists.c
-Linking C executable cmTC_55c00
-/home/aykut/Development/clion-2018.3.1/bin/cmake/linux/bin/cmake -E cmake_link_script CMakeFiles/cmTC_55c00.dir/link.txt --verbose=1
-/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=pthread_create    -rdynamic CMakeFiles/cmTC_55c00.dir/CheckFunctionExists.c.o  -o cmTC_55c00 -lpthreads 
+Building C object CMakeFiles/cmTC_6be67.dir/CheckFunctionExists.c.o
+/usr/bin/cc   -DCHECK_FUNCTION_EXISTS=pthread_create   -o CMakeFiles/cmTC_6be67.dir/CheckFunctionExists.c.o   -c /home/aykut/Development/clion-2018.3.1/bin/cmake/linux/share/cmake-3.13/Modules/CheckFunctionExists.c
+Linking C executable cmTC_6be67
+/home/aykut/Development/clion-2018.3.1/bin/cmake/linux/bin/cmake -E cmake_link_script CMakeFiles/cmTC_6be67.dir/link.txt --verbose=1
+/usr/bin/cc  -DCHECK_FUNCTION_EXISTS=pthread_create    -rdynamic CMakeFiles/cmTC_6be67.dir/CheckFunctionExists.c.o  -o cmTC_6be67 -lpthreads 
 /usr/bin/ld: cannot find -lpthreads
 collect2: error: ld returned 1 exit status
-CMakeFiles/cmTC_55c00.dir/build.make:86: recipe for target 'cmTC_55c00' failed
-make[1]: *** [cmTC_55c00] Error 1
+CMakeFiles/cmTC_6be67.dir/build.make:86: recipe for target 'cmTC_6be67' failed
+make[1]: *** [cmTC_6be67] Error 1
 make[1]: Leaving directory '/home/aykut/Development/cito/src/cito/cmake-build-debug/CMakeFiles/CMakeTmp'
-Makefile:121: recipe for target 'cmTC_55c00/fast' failed
-make: *** [cmTC_55c00/fast] Error 2
+Makefile:121: recipe for target 'cmTC_6be67/fast' failed
+make: *** [cmTC_6be67/fast] Error 2
 
 
