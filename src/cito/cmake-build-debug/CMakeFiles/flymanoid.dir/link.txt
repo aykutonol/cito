@@ -1,1 +1,0 @@
-/usr/bin/c++  -g  -rdynamic CMakeFiles/flymanoid.dir/src/flymanoid.cpp.o  -o devel/lib/cito/flymanoid  -L/home/aykut/Development/cito/src/cito/bin -Wl,-rpath,/home/aykut/Development/cito/src/cito/bin:/home/aykut/Development/cito/src/cito/cmake-build-debug/devel/lib -lmujoco200nogl -lpthread devel/lib/libcito.so 

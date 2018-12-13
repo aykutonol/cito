@@ -1,1 +1,0 @@
-/usr/bin/c++ -fPIC -g  -shared -Wl,-soname,libcito.so -o devel/lib/libcito.so CMakeFiles/cito.dir/src/cito_control.cpp.o CMakeFiles/cito.dir/src/cito_numdiff.cpp.o 
