@@ -112,7 +112,7 @@ void CitoNumDiff::hardWorker(const mjData* dmain, const ctrlVec_t umain, mjtNum*
         // compute column i of dx/dqpos
         for( int j=0; j<N; j++ )
         {
-            deriv[i*N + j] = (newXp[j] - newXn[j])/(2*eps);
+            deriv[i + j*NV] = (newXp[j] - newXn[j])/(2*eps);
         }
     }
     // finite-difference over velocities
@@ -133,7 +133,7 @@ void CitoNumDiff::hardWorker(const mjData* dmain, const ctrlVec_t umain, mjtNum*
         // compute column i of dx/dqvel
         for( int j=0; j<N; j++ )
         {
-            deriv[N*NV + i*N + j] = (newXp[j] - newXn[j])/(2*eps);
+            deriv[N*NV + i + j*NV] = (newXp[j] - newXn[j])/(2*eps);
         }
     }
     // finite-difference over control variables
@@ -154,7 +154,7 @@ void CitoNumDiff::hardWorker(const mjData* dmain, const ctrlVec_t umain, mjtNum*
         // compute column i of dx/du
         for( int j=0; j<N; j++ )
         {
-            deriv[N*N + i*N + j] = (newXp[j] - newXn[j])/(2*eps);
+            deriv[N*N + i + j*M] = (newXp[j] - newXn[j])/(2*eps);
         }
     }
     // delete data
