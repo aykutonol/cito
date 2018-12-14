@@ -21,20 +21,31 @@ CitoControl::~CitoControl()
 {
     delete []qpos_lb;       delete []qpos_ub;
     delete []tau_lb;        delete []tau_ub;
-    delete []isJFree;     delete []isAFree;
+    delete []isJFree;       delete []isAFree;
 }
 
 // ***** FUNCTIONS *************************************************************
-//setControl: sets generalized forces on joints and free bodies
-void CitoControl::setControl(mjData* d, const ctrlVec_t umain)
+// takeStep: takes a full control step given a control input
+void CitoControl::takeStep(mjData*d, const ctrlVec_t u)
+{
+    for( int i=0; i<params::ndpc; i++ )
+    {
+        mj_step1(m, d);
+        this->setControl(d, u);
+        mj_step2(m, d);
+    }
+}
+
+// setControl: sets generalized forces on joints and free bodies
+void CitoControl::setControl(mjData* d, const ctrlVec_t u)
 {
     // set control given the control input
     for( int i=0; i<NU; i++ )
     {
-      d->ctrl[i] = umain[i] + d->qfrc_bias[params::jact[i]];
+      d->ctrl[i] = u[i] + d->qfrc_bias[params::jact[i]];
     }
     // contact model
-    hcon = this->contactModel(d, umain);
+    hcon = this->contactModel(d, u);
     // set external forces on the free bodies
     for( int i=0; i<params::nfree; i++ )
     {
@@ -144,13 +155,23 @@ void CitoControl::getBounds(double *qpos_lb, double *qpos_ub, double *tau_lb, do
         else
         {
             isJFree[i]  = 1;
-            qpos_lb[i] = 0;  // to be replaced by infBnd in the initial guess
-            qpos_ub[i] = 0;  // to be replaced by infBnd in the initial guess
+            qpos_lb[i] = 0;  // to be replaced by -infBnd in the initial guess
+            qpos_ub[i] = 0;  // to be replaced by +infBnd in the initial guess
         }
     }
     for( int i=0; i<NU; i++ )
     {
-        tau_lb[i]  = m->actuator_ctrlrange[i*2];
-        tau_ub[i]  = m->actuator_ctrlrange[i*2+1];
+        if( m->actuator_ctrllimited[i] )
+        {
+            isAFree[i] = 0;
+            tau_lb[i]  = m->actuator_ctrlrange[i*2];
+            tau_ub[i]  = m->actuator_ctrlrange[i*2+1];
+        }
+        else
+        {
+            isAFree[i] = 1;
+            tau_lb[i]  = 0; // to be replaced by -infBnd in the initial guess
+            tau_ub[i]  = 0; // to be replaced by +infBnd in the initial guess
+        }
     }
 }

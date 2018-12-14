@@ -10,7 +10,6 @@
 // Physics engine specific
 
 #include "cito_numdiff.h"
-#include <iostream>
 
 // ***** CONSTRUCTOR ***********************************************************
 CitoNumDiff::CitoNumDiff(const mjModel* model) : m(model), cc(model)
@@ -18,7 +17,7 @@ CitoNumDiff::CitoNumDiff(const mjModel* model) : m(model), cc(model)
 }
 
 // ***** FUNCTIONS *************************************************************
-void CitoNumDiff::copyTakeStep(const mjData* dmain, const ctrlVec_t u, mjtNum* newXd)
+void CitoNumDiff::copyTakeStep(const mjData* dmain, const ctrlVec_t u, mjtNum* newX)
 {
     // create new data
     mjData* d;
@@ -36,16 +35,11 @@ void CitoNumDiff::copyTakeStep(const mjData* dmain, const ctrlVec_t u, mjtNum* n
     mj_forward(m, d);
     cc.setControl(d, u);
     // take a full control step (i.e., tc/dt steps)
-    for( int j=0; j<params::ndpc; j++ )
-    {
-      mj_step1(m, d);
-      cc.setControl(d, u);
-      mj_step2(m, d);
-    }
+    cc.takeStep(d, u);
     // get new state
     newXtemp.setZero();
     newXtemp = cc.getState(d);
-    mju_copy(newXd, newXtemp.data(), N);
+    mju_copy(newX, newXtemp.data(), N);
     // delete data
     mj_deleteData(d);
 }
@@ -112,7 +106,7 @@ void CitoNumDiff::hardWorker(const mjData* dmain, const ctrlVec_t umain, mjtNum*
         // compute column i of dx/dqpos
         for( int j=0; j<N; j++ )
         {
-            deriv[i + j*NV] = (newXp[j] - newXn[j])/(2*eps);
+            deriv[i*N + j] = (newXp[j] - newXn[j])/(2*eps);
         }
     }
     // finite-difference over velocities
@@ -133,7 +127,7 @@ void CitoNumDiff::hardWorker(const mjData* dmain, const ctrlVec_t umain, mjtNum*
         // compute column i of dx/dqvel
         for( int j=0; j<N; j++ )
         {
-            deriv[N*NV + i + j*NV] = (newXp[j] - newXn[j])/(2*eps);
+            deriv[N*NV + i*N + j] = (newXp[j] - newXn[j])/(2*eps);
         }
     }
     // finite-difference over control variables
@@ -154,7 +148,7 @@ void CitoNumDiff::hardWorker(const mjData* dmain, const ctrlVec_t umain, mjtNum*
         // compute column i of dx/du
         for( int j=0; j<N; j++ )
         {
-            deriv[N*N + i + j*M] = (newXp[j] - newXn[j])/(2*eps);
+            deriv[N*N + i*N + j] = (newXp[j] - newXn[j])/(2*eps);
         }
     }
     // delete data

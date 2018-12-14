@@ -145,6 +145,9 @@ int main(int argc, const char** argv)
     // make data
     d = mj_makeData(m);
 
+    // initial qpos = keyframe
+    mju_copy(d->qpos, m->key_qpos, m->nq);
+
     // init GLFW
     if( !glfwInit() )
         mju_error("Could not initialize GLFW");

@@ -98,4 +98,8 @@
         <pair geom1="rbar0" geom2="right_arm_link1" />
         <pair geom1="rbar1" geom2="right_arm_link1" />
     </contact>
+
+    <keyframe>
+      <key name="init_qpos" qpos="0 0 0 1 0 0 0 0 0 0 0 0 0 0 0" />
+    </keyframe>
 </mujoco>

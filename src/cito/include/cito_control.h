@@ -41,6 +41,7 @@ public:
     CitoControl(const mjModel* model);
     ~CitoControl();
     // functions
+    void takeStep(mjData*d, const ctrlVec_t u);
     void setControl(mjData* d, const ctrlVec_t u);
     stateVec_t getState(const mjData* d);
     void getBounds(double *qpos_lb, double *qpos_ub, double *tau_lb, double *tau_ub,

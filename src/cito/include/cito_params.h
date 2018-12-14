@@ -59,9 +59,9 @@ const int NTS = params::ncts;           // number of control time steps
 
 // TYPES ***********************************************************************
 // instantaneous eigen+mujoco types
-typedef Eigen::Matrix<mjtNum, N, N, Eigen::RowMajor> stateMat_t;
+typedef Eigen::Matrix<mjtNum, N, N, Eigen::ColMajor> stateMat_t;
 typedef Eigen::Matrix<mjtNum, N, 1>                  stateVec_t;
-typedef Eigen::Matrix<mjtNum, N, M, Eigen::RowMajor> ctrlMat_t;
+typedef Eigen::Matrix<mjtNum, N, M, Eigen::ColMajor> ctrlMat_t;
 typedef Eigen::Matrix<mjtNum, M, 1>                  ctrlVec_t;
 
 
