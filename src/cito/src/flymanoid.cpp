@@ -33,7 +33,7 @@ int main(int argc, char const *argv[]) {
     {
         U[i].setZero();
         for (int j = 0; j < params::npair; j++) {
-            U[i][params::nact + j] = params::kcon0[j];
+            U[i][NU + j] = params::kcon0[j];
         }
     }
     // ********* simulation *****************************************************/

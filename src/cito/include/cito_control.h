@@ -26,14 +26,25 @@ private:
     // variables for getState
     stateVec_t x;
     Eigen::Matrix<mjtNum, 4, 1> obj_q;
-    // internal functions
+    // functions
     Eigen::Matrix<double, 6*params::nfree, 1> contactModel(const mjData* d, const ctrlVec_t u);
 
 public:
+    // position & torque limits
+    double *qpos_lb = new double[NV];
+    double *qpos_ub = new double[NV];
+    double *tau_lb  = new double[NU];
+    double *tau_ub  = new double[NU];
+    int    *isJFree = new int[NV];
+    int    *isAFree = new int[NU];
+    // constructor & destructor
     CitoControl(const mjModel* model);
-    ~CitoControl() {}
+    ~CitoControl();
+    // functions
     void setControl(mjData* d, const ctrlVec_t u);
     stateVec_t getState(const mjData* d);
+    void getBounds(double *qpos_lb, double *qpos_ub, double *tau_lb, double *tau_ub,
+                   int *isJFree, int *isAFree);
 };
 
 #endif //CITO_CONTROL_H

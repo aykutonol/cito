@@ -17,12 +17,19 @@ CitoControl::CitoControl(const mjModel* model) : m(model)
 {
 }
 
+CitoControl::~CitoControl()
+{
+    delete []qpos_lb;       delete []qpos_ub;
+    delete []tau_lb;        delete []tau_ub;
+    delete []isJFree;     delete []isAFree;
+}
+
 // ***** FUNCTIONS *************************************************************
 //setControl: sets generalized forces on joints and free bodies
 void CitoControl::setControl(mjData* d, const ctrlVec_t umain)
 {
     // set control given the control input
-    for( int i=0; i<params::nact; i++ )
+    for( int i=0; i<NU; i++ )
     {
       d->ctrl[i] = umain[i] + d->qfrc_bias[params::jact[i]];
     }
@@ -59,7 +66,7 @@ Eigen::Matrix<double, 6*params::nfree, 1> CitoControl::contactModel(const mjData
         zeta  = tanh(params::phi_r*phi_e);                  // semisphere based on the Euclidean distance
         phi_c = zeta*phi_e + (1-zeta)*phi_n;                // combined distance
         // normal force in the contact frame
-        fn = u[params::nact+p_i]*exp(-params::acon[p_i]*phi_c);
+        fn = u[NU+p_i]*exp(-params::acon[p_i]*phi_c);
         // contact generalized in the world frame
         lambda = fn*n_cs;
         // loop for each free body
@@ -119,4 +126,31 @@ stateVec_t CitoControl::getState(const mjData* d)
     mju_copy(x.data() + NV, d->qvel, NV);
 
     return x;
+}
+
+// getBounds: gets bounds on joint positions, actuator forces from the model
+void CitoControl::getBounds(double *qpos_lb, double *qpos_ub, double *tau_lb, double *tau_ub,
+                            int *isJFree, int *isAFree)
+{
+    for( int i=0; i<NV; i++ )
+    {
+        int jid =  m->dof_jntid[i];
+        if( m->jnt_limited[jid] )
+        {
+            isJFree[i]  = 0;
+            qpos_lb[i] = m->jnt_range[jid*2];
+            qpos_ub[i] = m->jnt_range[jid*2+1];
+        }
+        else
+        {
+            isJFree[i]  = 1;
+            qpos_lb[i] = 0;  // to be replaced by infBnd in the initial guess
+            qpos_ub[i] = 0;  // to be replaced by infBnd in the initial guess
+        }
+    }
+    for( int i=0; i<NU; i++ )
+    {
+        tau_lb[i]  = m->actuator_ctrlrange[i*2];
+        tau_ub[i]  = m->actuator_ctrlrange[i*2+1];
+    }
 }

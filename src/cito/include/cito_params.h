@@ -51,10 +51,11 @@ namespace params
 }
 
 // constant variables for types
-const int NV  = params::nact + 6*params::nfree;     // degrees of freedom
-const int N   = 2*NV;                               // dimensionality of states
-const int M   = params::nact + params::npair;       // dimensionality of controls
-const int NTS = params::ncts;                       // number of control time steps
+const int NU  = params::nact;           // number of actuated joints
+const int NV  = NU + 6*params::nfree;   // degrees of freedom
+const int N   = 2*NV;                   // dimensionality of states
+const int M   = NU + params::npair;     // dimensionality of controls
+const int NTS = params::ncts;           // number of control time steps
 
 // TYPES ***********************************************************************
 // instantaneous eigen+mujoco types
