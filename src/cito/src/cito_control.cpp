@@ -140,21 +140,20 @@ stateVec_t CitoControl::getState(const mjData* d)
 }
 
 // getBounds: gets bounds on joint positions, actuator forces from the model
-void CitoControl::getBounds(double *qpos_lb, double *qpos_ub, double *tau_lb, double *tau_ub,
-                            int *isJFree, int *isAFree)
+void CitoControl::getBounds()
 {
     for( int i=0; i<NV; i++ )
     {
         int jid =  m->dof_jntid[i];
         if( m->jnt_limited[jid] )
         {
-            isJFree[i]  = 0;
+            isJFree[i] = 0;
             qpos_lb[i] = m->jnt_range[jid*2];
             qpos_ub[i] = m->jnt_range[jid*2+1];
         }
         else
         {
-            isJFree[i]  = 1;
+            isJFree[i] = 1;
             qpos_lb[i] = 0;  // to be replaced by -infBnd in the initial guess
             qpos_ub[i] = 0;  // to be replaced by +infBnd in the initial guess
         }

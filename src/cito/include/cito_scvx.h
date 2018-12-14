@@ -35,6 +35,7 @@ private:
     // custom objects
     CitoControl cc;
     CitoNumDiff nd;
+    CitoSQOPT   sq;
 
 public:
     CitoSCvx();

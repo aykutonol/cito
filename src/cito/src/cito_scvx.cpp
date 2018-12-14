@@ -55,27 +55,19 @@ void CitoControl::runSimulation(const ctrlMatThread U)
     X[NTS].setZero();   XL[NTS].setZero();  dX[NTS].setZero();
     // make mjData
     d = mj_makeData(m);
-    // initialize
+    // initialize d
     mju_copy(d->qpos, m->key_qpos, m->nq);
     mj_forward(m, d);
-    this->setControl(m, d, U[0]);
+    cc.setControl(m, d, U[0]);
     // rollout and linearize the dynamics
     for( int i=0; i<NTS; i++ )
     {
         // get the current state values
         X[i] = this->getState(m, d);
-        //linearization
+        // linearization
         nd.linDyn(Fx[i].data(), Fu[i].data(), m, d, U[i]);
         // take tc/dt steps
-        for( int j=0; j<ndpc; j++ )
-        {
-            // initialize the step
-            mj_step1(m, d);
-            // set ctrl and xfrc
-            sc.setControl(m, d, U[i]);
-            // complete the step
-            mj_step2(m, d);
-        }
+        cc.takeStep(d, U[i]);
     }
     X[NTS] = nd.getState(m, d);
     // delete data
@@ -90,7 +82,7 @@ void CitoSCvx::solve()
         // simulation ==========================================================
 
         // get the nonlinear cost if first iteration
-        if( iter == 0 ) { J[iter] = sc.getCost(X, U, po_d, ru); }
+        if( iter == 0 ) { J[iter] = this->getCost(X, U, po_d, ru); }
         // optimization ========================================================
         // fresh start
         int    *indA  = new int[neA];
@@ -112,17 +104,9 @@ void CitoSCvx::solve()
             if( i>=n ) { pi[i-n] = 0.0; }
         }
         // *********** set linear constraints and bounds **********************/
-        sc.setA(valA, indA, locA, Fx, Fu);
-        sc.setBounds(bl, bu, qpos_lb, qpos_ub, tau_lb, tau_ub, isObj, n, nc, X, U, r[iter]);
-        int less_counter = 0, iMove = 0;
-        for( int i=0; i<nnH; i++ )
-        {
-            if( i>0 && indMove[i]<indMove[i-1] ) { less_counter += 1; }
-            iMove = indMove[i]+less_counter;
+        sq.setA(valA, indA, locA, Fx, Fu);
+        sq.setBounds(bl, bu, cc.qpos_lb, cc.qpos_ub, cc.tau_lb, cc.tau_ub, cc.isJFree, cc.isAFree, n, nc, X, U, r[iter]);
 
-            sc.moveColA(valA, indA, locA, iMove, neA, n);
-            sc.moveRowBounds(bl, bu, iMove);
-        }
         // *********** set weights ********************************************/
         // ru[0] = ru[0];
         // cvxProb.setUserR(ru, lenru);
@@ -195,14 +179,14 @@ void CitoSCvx::solve()
                 mj_step2(m, d);
             }
         }
-        X[NTS] = nd.getState(m, d);
+        X[NTS] = cc.getState(m, d);
         std::cout << "\n\nIteration " << iter << ":" << '\n';
         std::cout << "X:  " << X[NTS].transpose() << "\n";
         std::cout << "XL: " << XL[NTS].transpose() << "\n";
         std::cout << "dX: " << dX[NTS].transpose() << "\n\n";
         // get the linear and nonlinear costs
-        L[iter]     = sc.getCost(XL, Utemp, po_d, ru);
-        Jtemp[iter] = sc.getCost(X,  Utemp, po_d, ru);
+        L[iter]     = this->getCost(XL, Utemp, po_d, ru);
+        Jtemp[iter] = this->getCost(X,  Utemp, po_d, ru);
         // *********** similarity measure *************************************/
         dJ[iter] = J[iter] - Jtemp[iter];
         dL[iter] = J[iter] - L[iter];
