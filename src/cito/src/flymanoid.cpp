@@ -32,12 +32,13 @@ int main(int argc, char const *argv[]) {
     for (int i = 0; i < NTS; i++)
     {
         U[i].setZero();
-        for (int j = 0; j < params::npair; j++) {
+        for (int j = 0; j < NPAIR; j++) {
             U[i][NU + j] = params::kcon0[j];
         }
     }
     // ********* simulation *****************************************************/
-    for (int i = 0; i < NTS; i++) {
+    for (int i = 0; i < NTS; i++)
+    {
         for (int j = 0; j < params::ndpc; j++)
         {
             mj_step1(m, d);
@@ -53,10 +54,11 @@ int main(int argc, char const *argv[]) {
         std::cout << "\t\t torso pose: ";
         mju_printMat(d->qpos + params::jfree[0], 1, 7);
         std::cout << "X: " << X[i].transpose() << '\n';
-        nd.linDyn(d, U[i], Fx[i].data(), Fu[i].data());
-        std::cout << "Fx:\n" << Fx[i] << '\n';
-        std::cout << "Fu:\n" << Fu[i] << '\n';
+//        nd.linDyn(d, U[i], Fx[i].data(), Fu[i].data());
+//        std::cout << "Fx:\n" << Fx[i] << '\n';
+//        std::cout << "Fu:\n" << Fu[i] << '\n';
     }
+    std::cout << "NTS: " << NTS << ", N: " << N << ", M: " << M << ", NU: " << NU << ", NPAIR: " << NPAIR << "\n";
     // ********* mujoco shut down ***********************************************/
     mj_deleteData(d);
     mj_deleteModel(m);

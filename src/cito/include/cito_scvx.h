@@ -29,8 +29,9 @@ private:
     stateVecThread X, dX, XL;   ctrlVecThread  U, dU, Utemp;
     stateMatThread Fx;          ctrlMatThread  Fu;
     // getCost
-    Eigen::VectorXd po_f(6);
-    Eigen::Matrix<double, NTS, params::npair> k;
+    Eigen::VectorXd finalPose(6);
+    kconVecThread Kcon;
+    double KconSN;
     double Jt, Ji, J;
     // custom objects
     CitoControl cc;

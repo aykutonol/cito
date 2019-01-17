@@ -56,12 +56,12 @@ void CitoControl::setControl(mjData* d, const ctrlVec_t u)
     }
 }
 
-// contactModel: returns contact wrench given kcon
+// contactModel: returns contact wrench given finalPose
 Eigen::Matrix<double, 6*params::nfree, 1> CitoControl::contactModel(const mjData* d, const ctrlVec_t u)
 {
     h.setZero();
     // loop for each contact pair
-    for( int p_i=0; p_i<params::npair; p_i++ )
+    for( int p_i=0; p_i<NPAIR; p_i++ )
     {
         // vectors in the world frame
         for( int i=0; i<3; i++ )
@@ -113,15 +113,15 @@ stateVec_t CitoControl::getState(const mjData* d)
             int jid = m->dof_jntid[i];
             if( m->jnt_type[jid]==mjJNT_FREE )
             {
-                mju_copy(x.block<3,1>(i,0).data(), d->qpos + i, 3);
+                mju_copy(x.block<3,1>(i,0).data(), d->qpos+i, 3);
 
-                mju_copy(obj_q.data(), d->qpos + i + 3, 4);
+                mju_copy(jfree_quat.data(), d->qpos+i+3, 4);
                 // calculate the Euler angles from the quaternion
-                x(i+3) = atan2(2*(obj_q[0]*obj_q[1]+obj_q[2]*obj_q[3]), 1-2*(pow(obj_q[1],2)+pow(obj_q[2],2)));
-                x(i+4) =  asin(2*(obj_q[0]*obj_q[2]-obj_q[3]*obj_q[1]));
-                x(i+5) = atan2(2*(obj_q[0]*obj_q[3]+obj_q[1]*obj_q[2]), 1-2*(pow(obj_q[2],2)+pow(obj_q[3],2)));
+                x(i+3) = atan2(2*(jfree_quat[0]*jfree_quat[1]+jfree_quat[2]*jfree_quat[3]), 1-2*(pow(jfree_quat[1],2)+pow(jfree_quat[2],2)));
+                x(i+4) =  asin(2*(jfree_quat[0]*jfree_quat[2]-jfree_quat[3]*jfree_quat[1]));
+                x(i+5) = atan2(2*(jfree_quat[0]*jfree_quat[3]+jfree_quat[1]*jfree_quat[2]), 1-2*(pow(jfree_quat[2],2)+pow(jfree_quat[3],2)));
                 i += 6;             // proceed to next joint
-                free_count += 1;    // free joint counter
+                free_count++;       // free joint counter
             }
             else
             {

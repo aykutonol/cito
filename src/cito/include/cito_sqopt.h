@@ -12,13 +12,17 @@
 #ifndef CITO_SQOPT_H
 #define CITO_SQOPT_H
 
+#include "snoptProblem.hpp"
+
 class CitoSQOPT
 {
 private:
+    // SQOPT object
+    sqoptProblem cvxProb;
     // solver parameters
-    int nnH     = 6 + NTS;      // number of non-zero elements of the Hessian
-    int lencObj = 6 + NTS;      // number of non-zero elements of the linear term
-    int lenru   = 3;            // number of weights
+    int nnH     = 6 + NTS*NPAIR;    // number of non-zero elements of the Hessian
+    int lencObj = 6 + NTS;          // number of non-zero elements of the linear term
+    int lenru   = 3;                // number of weights
     double *cObj = new double[lencObj]; double *ru   = new double[lenru];
     int neA = NTS*N*N + (NTS+1)*N + NTS*N*M + ((NTS+1)*N+NTS*M)*5;
     int n   = ((NTS+1)*N + NTS*M)*2;    // *2 is for auxiliary variables for l1-norm
@@ -28,15 +32,21 @@ private:
     double ObjAdd  = 0, sInf = 0, objective;
     double infBnd = 1.0e20;
     int Cold = 0, Basis = 1, Warm = 2;
+    // setCost parameters
+    Eigen::Matrix<double, 6, 1> dPose;
+    kconVecThread dKcon;
+    double dKconSN;
+    // sort parameters
+    int  nMove = nnH;
+    int *indMove = new int[nMove];
+    double xtemp[n];
     // setBounds parameters
     int dU_offset = (NTS+1)*N;
     int aux_offset  = (NTS+1)*N+NTS*M;
-    // sortX parameters
-    double xtemp[n];
 
 public:
-    CitoSQOPT()  {}
-    ~CitoSQOPT() {}
+    CitoSQOPT();
+    ~CitoSQOPT();
 };
 
 #endif //CITO_SQOPT_H

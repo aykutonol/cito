@@ -17,7 +17,6 @@ class CitoControl
 private:
     const mjModel* m;
     // control variables
-    Eigen::Matrix<double, params::npair, 1>   kcon;
     Eigen::Matrix<double, 6*params::nfree, 1> hcon;
     // contact model variables
     double phi_e, phi_n, zeta, phi_c, fn;
@@ -25,7 +24,7 @@ private:
     Eigen::Matrix<double, 6*params::nfree, 1> h;
     // variables for getState
     stateVec_t x;
-    Eigen::Matrix<mjtNum, 4, 1> obj_q;
+    Eigen::Matrix<mjtNum, 4, 1> jfree_quat;
     // functions
     Eigen::Matrix<double, 6*params::nfree, 1> contactModel(const mjData* d, const ctrlVec_t u);
 

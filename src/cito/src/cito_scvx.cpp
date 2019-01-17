@@ -14,45 +14,40 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cc(model), nd(model)
     r[0] = r0;
     X.resize(NTS+1);    dX.resize(NTS+1);   XL.resize(NTS+1);
     U.resize(NTS);      dU.resize(NTS);     Utemp.resize(NTS);
-    Fx.resize(NTS);     Fu.resize(NTS);
+    Fx.resize(NTS);     Fu.resize(NTS);     Kcon.resize(NTS);
 }
 
 // getCost: returns the nonlinear cost given state matrix X
-double CitoSCvx::getCost(const stateVecThread X, const ctrlVecThread U, const Eigen::VectorXd po_d, const double *w)
+double CitoSCvx::getCost(const stateVecThread X, const ctrlVecThread U, const Eigen::VectorXd linFlag, const double *w)
 {
     // terminal cost
     for( int i=0; i<6; i++ )
     {
-        po_f[i] = X[NTS](i);
+        finalPose[i] = X[NTS](i);
     }
-    Jt = 0.5*(w[0]*(po_d.block<2,1>(0,0)-po_f.block<2,1>(0,0)).squaredNorm()+
-              w[1]*(po_d.block<4,1>(2,0)-po_f.block<4,1>(2,0)).squaredNorm());
+    Jt = 0.5*(w[0]*(desiredPose.block<2,1>(0,0)-finalPose.block<2,1>(0,0)).squaredNorm()+
+              w[1]*(desiredPose.block<4,1>(2,0)-finalPose.block<4,1>(2,0)).squaredNorm());
     // integrated cost
-    k.setZero();
+    KconSN = 0;
     for( int i=0; i<NTS; i++ )
     {
-        for( int j=0; j<params::npair; j++ )
+        Kcon[i].setZero();
+        for( int j=0; j<NPAIR; j++ )
         {
-            k[i,j] = U[i](j);
+            Kcon[i][j] = U[i][NU+j];
         }
+        KconSN += Kcon[i].squaredNorm();
     }
-    Ji = 0.5*w[2]*k.squaredNorm();
+    Ji = 0.5*w[2]*KconSN;
     // total cost
     J = Jt + Ji;
 
     return J;
 }
 
-// runSimulation: runs forward simulation given a control trajectory
-void CitoControl::runSimulation(const ctrlMatThread U)
+// runSimulation: rollouts and linearizes the dynamics given a control trajectory
+void CitoSCvx::runSimulation(const ctrlMatThread U, bool linearize)
 {
-    // clean state and linearization matrices
-    for( int i=0; i<NTS; i++ )
-    {
-        X[i].setZero();   XL[i].setZero();  dX[i].setZero();
-        Fx[i].setZero();  Fu[i].setZero();  dU[i].setZero(); Utemp[i].setZero();
-    }
-    X[NTS].setZero();   XL[NTS].setZero();  dX[NTS].setZero();
     // make mjData
     d = mj_makeData(m);
     // initialize d
@@ -63,131 +58,61 @@ void CitoControl::runSimulation(const ctrlMatThread U)
     for( int i=0; i<NTS; i++ )
     {
         // get the current state values
-        X[i] = this->getState(m, d);
+        X[i].setZero();
+        X[i] = cc.getState(d);
         // linearization
-        nd.linDyn(Fx[i].data(), Fu[i].data(), m, d, U[i]);
+        if( linearize )
+        {
+            Fx[i].setZero(); Fu[i].setZero();
+            nd.linDyn(d, U[i], Fx[i].data(), Fu[i].data());
+        }
         // take tc/dt steps
         cc.takeStep(d, U[i]);
     }
-    X[NTS] = nd.getState(m, d);
+    X[NTS].setZero();
+    X[NTS] = cc.getState(d);
     // delete data
     mj_deleteData(d);
 }
 
-void CitoSCvx::solve()
+void CitoSCvx::solve(const ctrlMatThread U)
 {
     int iter = 0;
     while( stop == 0 )
     {
         // simulation ==========================================================
-
-        // get the nonlinear cost if first iteration
+        this->runSimulation(U, true);
+        // get the nonlinear cost if the first iteration
         if( iter == 0 ) { J[iter] = this->getCost(X, U, po_d, ru); }
-        // optimization ========================================================
-        // fresh start
-        int    *indA  = new int[neA];
-        int    *locA  = new int[n+1];
-        double *valA  = new double[neA];
-        double *x     = new double[n+nc];
-        double *bl    = new double[n+nc];
-        double *bu    = new double[n+nc];
-        double *pi    = new double[nc];
-        double *rc    = new double[n+nc];
-        int    *hs    = new    int[n+nc];
-        int    *eType = new    int[n+nc];
-        // *********** initial guess ******************************************/
-        for( int i=0; i<n+nc; i++ )
-        {
-            x[i]  = 0.0;
-            bl[i] = -infBnd;  bu[i] = +infBnd;
-            hs[i] = 0;  eType[i] = 0;  rc[i] = 0.0;
-            if( i>=n ) { pi[i-n] = 0.0; }
-        }
-        // *********** set linear constraints and bounds **********************/
-        sq.setA(valA, indA, locA, Fx, Fu);
-        sq.setBounds(bl, bu, cc.qpos_lb, cc.qpos_ub, cc.tau_lb, cc.tau_ub, cc.isJFree, cc.isAFree, n, nc, X, U, r[iter]);
-
-        // *********** set weights ********************************************/
-        // ru[0] = ru[0];
-        // cvxProb.setUserR(ru, lenru);
-        // *********** set linear and constant objective terms ****************/
-        for( int i=0; i<6; i++ )
-        {
-            dpo_d[i] = po_d[i] - X[NTS](i);
-        }
-        for( int i=0; i<2; i++ )
-        {
-            cObj[i] = -ru[0]*dpo_d[i];
-        }
-        for( int i=2; i<6; i++ )
-        {
-            cObj[i] = -ru[1]*dpo_d[i];
-        }
-        // kcon terms
-        for( int i=0; i<NTS; i++ )
-        {
-            dkcon_d[i] = -U[i](ndof);
-            cObj[6+i] = -ru[2]*dkcon_d[i];
-        }
-        ObjAdd = 0.5*(ru[0]*dpo_d.block<2,1>(0,0).squaredNorm() +
-                      ru[1]*dpo_d.block<4,1>(2,0).squaredNorm() +
-                      ru[2]*dkcon_d.squaredNorm());
-        // *********** sqopt solve ********************************************/
-        cvxProb.solve(Cold, qpHx, nc, n, neA, lencObj, nnH, iObj,
-                      ObjAdd, valA, indA, locA, bl, bu, cObj,
-                      eType, hs, x, pi, rc, nS, nInf, sInf, objective);
-        // *********** sort solution*******************************************/
-        sc.sortX(x, indMove, nMove, n);
-        // *********** linear cost ********************************************/
+        // convex optimization =================================================
+        // solve for the optimal change in trajectory
+        double *dTraj = new double[NTRAJ];
+        sq.solveCVX(dTraj, r[iter], X, U, Fx, Fu, qpos_lb, qpos_ub, tau_lb, tau_ub, isJFree, isAFree);
+        // apply the change
         for( int i=0; i<NTS+1; i++ )
         {
+            dX[i].setZero(); XL[i].setZero();
             for( int j=0; j<N; j++ )
             {
-                dX[i](j) = x[i*N+j];
+                dX[i][j] = dTraj[i*N+j];
             }
             if( i < NTS )
             {
+                dU[i].setZero(); Utemp[i].setZero();
                 for( int j=0; j<M; j++ )
                 {
-                    dU[i](j) = x[(NTS+1)*N+i*M+j];
+                    dU[i][j] = dTraj[(NTS+1)*N+i*M+j];
                 }
+                Utemp[i] = U[i] + dU[i];
             }
             XL[i] = X[i] + dX[i];
         }
-        // *********** nonlinear cost *****************************************/
-        // make mjData
-        d = mj_makeData(m);
-        // set initial pose
-        mju_copy(d->qpos+nobj*7, qpos0.data(), ndof);
-        mj_forward(m, d);
-        sc.setControl(m, d, U[0]);
-        // rollout the dynamics with the optimal change in controls
-        for( int i=0; i<NTS; i++ )
-        {
-            // get the current state values
-            X[i] = nd.getState(m, d);
-            // temporary new control
-            Utemp[i] = U[i]+dU[i];
-            // take tc/dt dynamic steps
-            for( int j=0; j<ndpc; j++ )
-            {
-                // initialize the step
-                mj_step1(m, d);
-                // set ctrl and xfrc
-                sc.setControl(m, d, Utemp[i]);
-                // complete the step
-                mj_step2(m, d);
-            }
-        }
-        X[NTS] = cc.getState(m, d);
-        std::cout << "\n\nIteration " << iter << ":" << '\n';
-        std::cout << "X:  " << X[NTS].transpose() << "\n";
-        std::cout << "XL: " << XL[NTS].transpose() << "\n";
-        std::cout << "dX: " << dX[NTS].transpose() << "\n\n";
+        // evaluate the dynamics for the change and get the cost values ========
+        this->runSimulation(Utemp, false);
         // get the linear and nonlinear costs
-        L[iter]     = this->getCost(XL, Utemp, po_d, ru);
-        Jtemp[iter] = this->getCost(X,  Utemp, po_d, ru);
-        // *********** similarity measure *************************************/
+        L[iter]     = this->getCost(XL, Utemp, desiredPose, ru);
+        Jtemp[iter] = this->getCost(X,  Utemp, desiredPose, ru);
+        // similarity measure ==================================================
         dJ[iter] = J[iter] - Jtemp[iter];
         dL[iter] = J[iter] - L[iter];
         rho[iter] = dJ[iter]/dL[iter];
@@ -195,7 +120,7 @@ void CitoSCvx::solve()
         {
             dLTolMet = 1;
         }
-        // *********** accept/reject solution *********************************/
+        // accept or reject the solution =======================================
         if( rho[iter]<=rho0 || (dL[iter]<0 && dJ[iter]<0) || std::isnan(rho[iter]) )
         {
             accept[iter] = 0;
@@ -220,16 +145,9 @@ void CitoSCvx::solve()
         // bound r
         r[iter+1] = std::max(r[iter+1], rMin);  // lower bound
         r[iter+1] = std::min(r[iter+1], rMax);  // upper bound
-        // *********** temporary clean up *************************************/
-        // sqopt
-        delete []indA;  delete []locA; delete []valA;
-        delete []x;     delete []bl;   delete []bu;
-        delete []pi;    delete []rc;   delete []hs;   delete[]eType;
-        // delete data
-        mj_deleteData(d);
-        // *********** next iteration *****************************************/
-        iter += 1;
-        // *********** stop condition *****************************************/
+        // next iteration ======================================================
+        iter++;
+        // stopping criteria check =============================================
         if( iter == maxIter )
         {
             stop = 1;
@@ -240,8 +158,13 @@ void CitoSCvx::solve()
             stop = 1;
             std::cout << "\n\n\tWARNING: dL<dLTol\n\n";
         }
+        // screen output for the iteration =====================================
+        std::cout << "\n\nIteration " << iter << ":" << '\n';
+        std::cout << "X:  " << X[NTS].transpose() << "\n";
+        std::cout << "XL: " << XL[NTS].transpose() << "\n";
+        std::cout << "dX: " << dX[NTS].transpose() << "\n\n";
     }
-    // *********** print iteration details ************************************/
+    // *********** screen output for the whole process ************************/
     std::cout << "\n\nSCVX Summary\nJ0=" << J[0] << "\n\n";
     for( int i=0; i<iter; i++ )
     {
