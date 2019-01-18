@@ -58,6 +58,13 @@ int main(int argc, char const *argv[]) {
 //        std::cout << "Fx:\n" << Fx[i] << '\n';
 //        std::cout << "Fu:\n" << Fu[i] << '\n';
     }
+    cc.getBounds();
+    std::cout << "qpos_lb: ";
+    for( int i=0; i<NV; i++ )
+    {
+        std::cout << cc.qpos_lb[i] << " ";
+    }
+    std::cout << "\n";
     std::cout << "NTS: " << NTS << ", N: " << N << ", M: " << M << ", NU: " << NU << ", NPAIR: " << NPAIR << "\n";
     // ********* mujoco shut down ***********************************************/
     mj_deleteData(d);

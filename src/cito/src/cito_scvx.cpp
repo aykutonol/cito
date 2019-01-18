@@ -3,7 +3,7 @@
 // =============================== //
 
 // ***** DESCRIPTION ***********************************************************
-// CITO_SCVX class consists of functions that setup the successive
+// CITO_SCVX class consists of functions that setup and execute the successive
 // convexification algorithm.
 
 #include "cito_scvx.h"
@@ -15,18 +15,20 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cc(model), nd(model)
     X.resize(NTS+1);    dX.resize(NTS+1);   XL.resize(NTS+1);
     U.resize(NTS);      dU.resize(NTS);     Utemp.resize(NTS);
     Fx.resize(NTS);     Fu.resize(NTS);     Kcon.resize(NTS);
+    cc.getBounds();
 }
 
+// ***** FUNCTIONS *************************************************************
 // getCost: returns the nonlinear cost given state matrix X
-double CitoSCvx::getCost(const stateVecThread X, const ctrlVecThread U, const Eigen::VectorXd linFlag, const double *w)
+double CitoSCvx::getCost(const stateVecThread X, const ctrlVecThread U)
 {
     // terminal cost
     for( int i=0; i<6; i++ )
     {
         finalPose[i] = X[NTS](i);
     }
-    Jt = 0.5*(w[0]*(desiredPose.block<2,1>(0,0)-finalPose.block<2,1>(0,0)).squaredNorm()+
-              w[1]*(desiredPose.block<4,1>(2,0)-finalPose.block<4,1>(2,0)).squaredNorm());
+    Jf = 0.5*(w1*(desiredPose.block<2,1>(0,0)-finalPose.block<2,1>(0,0)).squaredNorm()+
+              w2*(desiredPose.block<4,1>(2,0)-finalPose.block<4,1>(2,0)).squaredNorm());
     // integrated cost
     KconSN = 0;
     for( int i=0; i<NTS; i++ )
@@ -38,22 +40,23 @@ double CitoSCvx::getCost(const stateVecThread X, const ctrlVecThread U, const Ei
         }
         KconSN += Kcon[i].squaredNorm();
     }
-    Ji = 0.5*w[2]*KconSN;
+    Ji = 0.5*w3*KconSN;
     // total cost
-    J = Jt + Ji;
+    Jt = Jf + Ji;
 
-    return J;
+    return Jt;
 }
 
 // runSimulation: rollouts and linearizes the dynamics given a control trajectory
 void CitoSCvx::runSimulation(const ctrlMatThread U, bool linearize)
 {
     // make mjData
+    mjData* d = NULL;
     d = mj_makeData(m);
     // initialize d
     mju_copy(d->qpos, m->key_qpos, m->nq);
     mj_forward(m, d);
-    cc.setControl(m, d, U[0]);
+    cc.setControl(d, U[0]);
     // rollout and linearize the dynamics
     for( int i=0; i<NTS; i++ )
     {
@@ -75,7 +78,8 @@ void CitoSCvx::runSimulation(const ctrlMatThread U, bool linearize)
     mj_deleteData(d);
 }
 
-void CitoSCvx::solve(const ctrlMatThread U)
+// solveSCvx: executes the successive convexification algorithm
+void CitoSCvx::solveSCvx(const ctrlMatThread U)
 {
     int iter = 0;
     while( stop == 0 )
@@ -83,11 +87,12 @@ void CitoSCvx::solve(const ctrlMatThread U)
         // simulation ==========================================================
         this->runSimulation(U, true);
         // get the nonlinear cost if the first iteration
-        if( iter == 0 ) { J[iter] = this->getCost(X, U, po_d, ru); }
+        if( iter == 0 ) { J[iter] = this->getCost(X, U); }
         // convex optimization =================================================
         // solve for the optimal change in trajectory
         double *dTraj = new double[NTRAJ];
-        sq.solveCVX(dTraj, r[iter], X, U, Fx, Fu, qpos_lb, qpos_ub, tau_lb, tau_ub, isJFree, isAFree);
+        sq.solveCVX(dTraj, r[iter], X, U, Fx, Fu, cc.qpos_lb, cc.qpos_ub, cc.tau_lb,
+                    cc.tau_ub, cc.isJFree, cc.isAFree);
         // apply the change
         for( int i=0; i<NTS+1; i++ )
         {
@@ -110,8 +115,8 @@ void CitoSCvx::solve(const ctrlMatThread U)
         // evaluate the dynamics for the change and get the cost values ========
         this->runSimulation(Utemp, false);
         // get the linear and nonlinear costs
-        L[iter]     = this->getCost(XL, Utemp, desiredPose, ru);
-        Jtemp[iter] = this->getCost(X,  Utemp, desiredPose, ru);
+        L[iter]     = this->getCost(XL, Utemp);
+        Jtemp[iter] = this->getCost(X,  Utemp);
         // similarity measure ==================================================
         dJ[iter] = J[iter] - Jtemp[iter];
         dL[iter] = J[iter] - L[iter];

@@ -22,12 +22,16 @@ include_directories(
  include
  include/mujoco
  ${EIGEN3_INCLUDE_DIR}
+ /home/aykut/Development/snopt-interface/include
 )
 
 ## Declare a C++ library
 add_library(${PROJECT_NAME}
  	src/cito_control.cpp
 	src/cito_numdiff.cpp
+	src/cito_scvx.cpp
+	src/cito_sqopt.cpp
+	/home/aykut/Development/snopt-interface/lib/libsnopt7_cpp.so
 )
 #add_library(cito_cont src/cito_cont.cpp)
 

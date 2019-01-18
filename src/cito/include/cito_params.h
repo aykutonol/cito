@@ -17,11 +17,16 @@
 #ifndef CITO_PARAMS_H
 #define CITO_PARAMS_H
 
+// PARAMETERS ******************************************************************
 // properties of the joint(s) to be controlled
-const double desiredPose[6] = {1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+const double desiredPoseInput[6] = {1.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+const Eigen::Matrix<double, 6, 1> desiredPose(desiredPoseInput);
 const int controlJointPos0 = 0;   // index of the first element of the joint position
-
-// PARAMS **********************************************************************
+// cost function weights
+const double w1   = 1e3;    // weight on deviations in x and y directions
+const double w2   = 1e0;    // weight on deviations in z and orientation
+const double w3   = 2e-2;   // weight on virtual stiffness
+// simulation- and model-related parameters
 namespace params
 {
   const double tf = 0.20;           // [s] final time
@@ -31,29 +36,24 @@ namespace params
   const int ndpc  = floor(tc/dt);   // number of dynamic time steps per a control step
   const int nact  = 8;              // number of actuated dof
   const int nfree = 1;              // number of free joints
-
   // contact related
   const int ncrbt = 4;              // number of contact candidates on the robot (end effectors)
   const int ncenv = 4;              // number of contact candidates in the environment
   const int nsite = ncrbt + ncenv;  // number of sites
   const int npair = 8;              // number of contact pairs (4 for each side)
-
   // specific indices
   const int jact[nact]    = {6,7,8,9,10,11,12,13};  // actuated dof indices
   const int jfree[nfree]  = {0};                    // index of the free joint
   const int bfree[nfree]  = {5};                    // index of the free body
   const int spair1[npair] = {4,4,5,5,6,6,7,7};      // indices of the sites on the robot
   const int spair2[npair] = {1,3,0,2,1,3,0,2};      // corresponding indices of the sites in the environment
-
   // initial pose of the robot and controls
   const double kcon0[npair] = {10,10,10,10,10,10,10,10};
   const double acon[npair]  = {10,10,10,10,10,10,10,10};
   const double phi_r = 200;     // parameter for the radius of the distance sphere (200 ~ 1 cm)
-
   // contact surface normals for each pair
   const double csn[npair*3] = {0,1,0, 0,1,0, 0,1,0, 0,1,0, 0,1,0, 0,1,0, 0,1,0, 0,1,0};
 }
-
 // constant variables for types
 const int NU    = params::nact;           // number of actuated joints
 const int NPAIR = params::npair;          // number of contact pairs
@@ -63,7 +63,7 @@ const int M     = NU + NPAIR;             // dimensionality of controls
 const int NTS   = params::ncts;           // number of control time
 const int NTRAJ = (NTS+1)*N + NTS*M;      // number of trajectory variables
 
-// TYPES ***********************************************************************
+// ***** TYPES *****************************************************************
 // instantaneous eigen+mujoco types
 typedef Eigen::Matrix<mjtNum, N, N, Eigen::ColMajor> stateMat_t;
 typedef Eigen::Matrix<mjtNum, N, 1>                  stateVec_t;
@@ -76,6 +76,5 @@ typedef std::vector<stateMat_t, Eigen::aligned_allocator<stateMat_t>> stateMatTh
 typedef std::vector<ctrlVec_t,  Eigen::aligned_allocator<ctrlVec_t>>  ctrlVecThread;
 typedef std::vector<ctrlMat_t,  Eigen::aligned_allocator<ctrlMat_t>>  ctrlMatThread;
 typedef std::vector<kconVec_t,  Eigen::aligned_allocator<kconVec_t>>  kconVecThread;
-
 
 #endif //CITO_PARAMS_H

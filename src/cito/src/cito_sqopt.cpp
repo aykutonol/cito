@@ -29,30 +29,38 @@ CitoSQOPT::CitoSQOPT()
     {
         indMove[nnH-1-i] = NTS*N + controlJointPos0 + i;
     }
-    // weights
-    ru[0] = 1e3;
-    ru[1] = 1e0;
-    ru[2] = 2e-2;
-    // initialize & set options for sqopt
+    // initialize & set options for SQOPT
     cvxProb.initialize("", 1);
-    // set weights
+    // set the weights
+    ru[0] = w1; ru[1] = w2; ru[2] = w3;
     cvxProb.setUserR(ru, lenru);
 }
-
-CitoSQOPT::~CitoSQOPT()
-{
-    delete []indA;  delete []locA; delete []valA;
-    delete []x;     delete []bl;   delete []bu;
-    delete []pi;    delete []rc;   delete []hs;   delete[]eType;
-}
 // ***** FUNCTIONS *************************************************************
+// qpHx: sets Hx to the H*x part of the quadratic cost to be multiplied by x'
+void qpHx(int *nnH, double x[], double Hx[], int *nState,
+          char cu[], int *lencu, int iu[], int *leniu,
+          double ru[], int *lenru)
+{
+    // final position of object
+    for( int i=0; i<2; i++ )
+    {
+        Hx[i] = ru[0]*x[i];
+    }
+    for( int i=2; i<6; i++ )
+    {
+        Hx[i] = ru[1]*x[i];
+    }
+    // kcon terms
+    for( int i=6; i<6+NTS*NPAIR; i++ )
+    {
+        Hx[i] = ru[2]*x[i];
+    }
+}
+
 // solveCvx: solves the convex subproblem
-void CitoSQOPT::solveCvx(double *xTraj, double r,
-                         const stateVecThread X,  const ctrlVecThread U,
-                         const stateMatThread Fx, const ctrlMatThread Fu,
-                         double *qpos_lb, double *qpos_ub,
-                         double *tau_lb,  double *tau_ub,
-                         int *isJFree,    int *isAFree)
+void CitoSQOPT::solveCvx(double *xTraj, double r, const stateVecThread X, const ctrlVecThread U,
+                         const stateMatThread Fx, const ctrlMatThread Fu, int *isJFree, int *isAFree,
+                         double *qpos_lb, double *qpos_ub, double *tau_lb, double *tau_ub)
 {
     // fresh start
     int    *indA  = new int[neA];
@@ -75,49 +83,31 @@ void CitoSQOPT::solveCvx(double *xTraj, double r,
     }
     // set linear constraints and bounds
     this->setA(valA, indA, locA, Fx, Fu);
-    this->setBounds(r, X, U, bl, bu, qpos_lb, qpos_ub, tau_lb, tau_ub, isJFree, isAFree);
+    this->setBounds(r, X, U, bl, bu, isJFree, isAFree, qpos_lb, qpos_ub, tau_lb, tau_ub);
     // sort A and bounds w.r.t. the order in qpHX
     this->sortToMatch(valA, indA, locA, indMove, bl, bu);
     // set linear and constant cost terms
-    this->setCost(stateVecThread X, ctrlVecThread U, ru, lenru, cObj, ObjAdd);
+    this->setCost(X, U, ru, cObj, ObjAdd);
     // solve the convex subproblem
     cvxProb.solve(Cold, qpHx, nc, n, neA, lencObj, nnH, iObj,
                   ObjAdd, valA, indA, locA, bl, bu, cObj,
                   eType, hs, x, pi, rc, nS, nInf, sInf, objective);
     // sort x to regular form
-    sc.sortX(x, indMove, nMove, n);
-    // set xtraj
+    this->sortX(x, indMove);
+    // set only the trajectory-related variables (X and U)
     for( int i=0; i<NTRAJ; i++ )
     {
         xTraj[i] = x[i];
     }
-}
-
-// qpHx: sets Hx to the H*x part of the quadratic cost to be multiplied by x'
-void CitoSQOPT::qpHx(int *nnH, double x[], double Hx[], int *nState,
-                     char   cu[], int   *lencu,
-                     int    iu[], int   *leniu,
-                     double ru[], int   *lenru)
-{
-    // final position of object
-    for( int i=0; i<2; i++ )
-    {
-        Hx[i] = ru[0]*x[i];
-    }
-    for( int i=2; i<6; i++ )
-    {
-        Hx[i] = ru[1]*x[i];
-    }
-    // kcon terms
-    for( int i=6; i<6+NTS*NPAIR; i++ )
-    {
-        Hx[i] = ru[2]*x[i];
-    }
+    // cleaning
+    delete []indA;  delete []locA; delete []valA;
+    delete []x;     delete []bl;   delete []bu;
+    delete []pi;    delete []rc;   delete []hs;   delete[]eType;
 }
 
 // setCost: sets linear and constant cost terms
 void CitoSQOPT::setCost(const stateVecThread X, const ctrlVecThread U,
-                        double ru, int *lenru, double *cObj, double *ObjAdd)
+                        double *ru, double *cObj, double& ObjAdd)
 {
     // set weights
      cvxProb.setUserR(ru, lenru);
@@ -158,8 +148,8 @@ void CitoSQOPT::setCost(const stateVecThread X, const ctrlVecThread U,
 
 // setBounds: sets bounds of dX, dU, and constraints (dynamics, trust region, etc.)
 void CitoSQOPT::setBounds(double r, const stateVecThread X, const ctrlVecThread U,
-                          double *bl, double *bu, double *qpos_lb, double *qpos_ub,
-                          double *tau_lb, double *tau_ub, int *isJFree, int *isAFree)
+                          double *bl, double *bu, int *isJFree, int *isAFree,
+                          double *qpos_lb, double *qpos_ub, double *tau_lb, double *tau_ub)
 {
     // decision variables
     // * states
@@ -191,8 +181,8 @@ void CitoSQOPT::setBounds(double r, const stateVecThread X, const ctrlVecThread 
             // ** change in virtual stiffness
             for( int j=0; j< NPAIR; j++ )
             {
-                bl[dU_offset+i*M+NU] = 0 - U[i](NU+j);
-                bu[dU_offset+i*M+NU] = kcon0[j] - U[i](NU+j);
+                bl[dU_offset+i*M+NU+j] = 0 - U[i](NU+j);
+                bu[dU_offset+i*M+NU+j] = params::kcon0[j] - U[i](NU+j);
             }
         }
     }
@@ -313,14 +303,14 @@ void CitoSQOPT::setA(double *valA, int *indA, int *locA,
 }
 
 // sortToMatch: modifies A and the bounds such that non-zero elements in H come first
-void CitoSQOPT::sortToMatch(double *valA, int *indA, int *locA, int *indMove, double *bl, double *bu)
+void CitoSQOPT::sortToMatch(double *valA, int *indA, int *locA, int *moveIndices, double *bl, double *bu)
 {
     int less_counter = 0, iMove = 0;
     for( int i=0; i<nnH; i++ )
     {
-        if( i>0 && indMove[i]<indMove[i-1] ) { less_counter++; }
-        iMove = indMove[i]+less_counter;
-        this->moveColA(valA, indA, locA, iMove, neA, n);
+        if( i>0 && moveIndices[i]<moveIndices[i-1] ) { less_counter++; }
+        iMove = moveIndices[i]+less_counter;
+        this->moveColA(valA, indA, locA, iMove);
         this->moveRowBounds(bl, bu, iMove);
     }
 }
@@ -375,7 +365,7 @@ void CitoSQOPT::moveRowBounds(double *bl, double *bu, int iMove)
 }
 
 // sortX: sorts decision variables back to original
-void CitoSQOPT::sortX(double *x, int *indMove)
+void CitoSQOPT::sortX(double *x, int *moveIndices)
 {
     int k = 0;
     for( int i=0; i<n; i++ )
@@ -383,9 +373,9 @@ void CitoSQOPT::sortX(double *x, int *indMove)
         xtemp[i] = x[nnH+k];
         for( int j=0; j<nnH; j++ )
         {
-            if( i == indMove[j] )
+            if( i == moveIndices[j] )
             {
-                xtemp[indMove[j]] = x[nnH-j-1];
+                xtemp[moveIndices[j]] = x[nnH-j-1];
                 k = k - 1;
             }
         }

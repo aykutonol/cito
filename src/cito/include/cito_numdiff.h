@@ -13,25 +13,26 @@
 
 class CitoNumDiff
 {
+public:
+    // ***** CONSTRUCTOR/DESTRUCTOR ************************************************
+    CitoNumDiff(const mjModel* model);
+    ~CitoNumDiff() {}
+    // ***** FUNCTIONS *************************************************************
+    void linDyn(const mjData* dmain, const ctrlVec_t umain, mjtNum* Fxd, mjtNum* Fud);
+
 private:
-    const mjModel*  m;
-    const mjData*   dmain;
-    const ctrlVec_t umain;
+    // ***** FUNCTIONS *************************************************************
+    void copyTakeStep(const mjData* dmain, const ctrlVec_t u, mjtNum* newXd);
+    void hardWorker(const mjData* dmain, const ctrlVec_t umain, mjtNum* deriv);
+    // ***** PARAMETERS ************************************************************
+    const mjModel* m;
     // perturbation
     double eps = 1e-6;
     // variables for differentiation
     stateVec_t newXtemp, newXp, newXn;
     ctrlVec_t  utemp;
-    // custom objects
+    // ***** OBJECTS ***************************************************************
     CitoControl cc;
-    // internal functions
-    void copyTakeStep(const mjData* dmain, const ctrlVec_t u, mjtNum* newXd);
-    void hardWorker(const mjData* dmain, const ctrlVec_t umain, mjtNum* deriv);
-
-public:
-    CitoNumDiff(const mjModel* model);
-    ~CitoNumDiff() {}
-    void linDyn(const mjData* dmain, const ctrlVec_t umain, mjtNum* Fxd, mjtNum* Fud);
 };
 
 #endif //CITO_NUMDIFF_H

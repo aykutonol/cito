@@ -13,9 +13,7 @@
 #include "cito_control.h"
 
 // ***** CONSTRUCTOR ***********************************************************
-CitoControl::CitoControl(const mjModel* model) : m(model)
-{
-}
+CitoControl::CitoControl(const mjModel* model) : m(model) {}
 
 CitoControl::~CitoControl()
 {
@@ -114,7 +112,6 @@ stateVec_t CitoControl::getState(const mjData* d)
             if( m->jnt_type[jid]==mjJNT_FREE )
             {
                 mju_copy(x.block<3,1>(i,0).data(), d->qpos+i, 3);
-
                 mju_copy(jfree_quat.data(), d->qpos+i+3, 4);
                 // calculate the Euler angles from the quaternion
                 x(i+3) = atan2(2*(jfree_quat[0]*jfree_quat[1]+jfree_quat[2]*jfree_quat[3]), 1-2*(pow(jfree_quat[1],2)+pow(jfree_quat[2],2)));

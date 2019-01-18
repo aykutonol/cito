@@ -14,9 +14,11 @@
 // ***** CONSTRUCTOR ***********************************************************
 CitoNumDiff::CitoNumDiff(const mjModel* model) : m(model), cc(model)
 {
+
 }
 
 // ***** FUNCTIONS *************************************************************
+// copyTakeStep: sets Xnew to the integration of dmain given a control input
 void CitoNumDiff::copyTakeStep(const mjData* dmain, const ctrlVec_t u, mjtNum* newX)
 {
     // create new data
@@ -44,7 +46,7 @@ void CitoNumDiff::copyTakeStep(const mjData* dmain, const ctrlVec_t u, mjtNum* n
     mj_deleteData(d);
 }
 
-// hardWorker: for full, slow finite difference computation
+// hardWorker: for full, slow finite-difference computation
 void CitoNumDiff::hardWorker(const mjData* dmain, const ctrlVec_t umain, mjtNum* deriv)
 {
     // create data

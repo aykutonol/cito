@@ -15,10 +15,21 @@
 
 class CitoSCvx
 {
+public:
+    // ***** CONSTRUCTOR/DESTRUCTOR ************************************************
+    CitoSCvx(const mjModel* model);
+    ~CitoSCvx() {}
+    // ***** FUNCTIONS *************************************************************
+    double getCost(const stateVecThread X, const ctrlVecThread U);
+    void runSimulation(const ctrlMatThread U, bool linearize);
+    void solveSCvx(const ctrlMatThread U);
+
 private:
+    // ***** PARAMETERS ************************************************************
+    const mjModel* m;
     // SCvx parameters
-    int maxIter = 25;  // maximum number of iterations
-    double r0 = 1e2;   // initial trust region radius
+    static const int maxIter = 25;  // maximum number of iterations
+    double r0 = 1e2;                // initial trust region radius
     double Jtemp[maxIter+1], J[maxIter+1], L[maxIter+1];
     double r[maxIter+1], rho[maxIter+1], dL[maxIter+1], dJ[maxIter+1];
     double dLTol = 1e-4;
@@ -29,18 +40,14 @@ private:
     stateVecThread X, dX, XL;   ctrlVecThread  U, dU, Utemp;
     stateMatThread Fx;          ctrlMatThread  Fu;
     // getCost
-    Eigen::VectorXd finalPose(6);
+    Eigen::Matrix<double, 6, 1> finalPose;
     kconVecThread Kcon;
     double KconSN;
-    double Jt, Ji, J;
-    // custom objects
+    double Jf, Ji, Jt;      // final, integrated, and total cost values
+    // ***** OBJECTS ***************************************************************
     CitoControl cc;
     CitoNumDiff nd;
     CitoSQOPT   sq;
-
-public:
-    CitoSCvx();
-    ~CitoSCvx() {}
 };
 
 #endif //CITO_SCVX_H
