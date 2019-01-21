@@ -31,9 +31,7 @@ add_library(${PROJECT_NAME}
 	src/cito_numdiff.cpp
 	src/cito_scvx.cpp
 	src/cito_sqopt.cpp
-	/home/aykut/Development/snopt-interface/lib/libsnopt7_cpp.so
 )
-#add_library(cito_cont src/cito_cont.cpp)
 
 ################
 ## Node names ##
@@ -54,5 +52,6 @@ add_executable(${NODE_NAME2} src/flymanoid.cpp)
 target_link_libraries(${NODE_NAME2} ${PROJECT_SOURCE_DIR}/bin/libmujoco200nogl.so
 				    pthread
 				    ${PROJECT_NAME}
+				    /home/aykut/Development/snopt-interface/lib/libsnopt7_cpp.so
 )
 

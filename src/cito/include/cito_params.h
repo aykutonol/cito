@@ -29,7 +29,7 @@ const double w3   = 2e-2;   // weight on virtual stiffness
 // simulation- and model-related parameters
 namespace params
 {
-  const double tf = 0.20;           // [s] final time
+  const double tf = 0.50;           // [s] final time
   const double tc = 1e-1;           // [s] control sampling period
   const double dt = 2e-3;           // [s] dynamic sampling period
   const int ncts  = floor(tf/tc);   // number of control time steps
@@ -65,10 +65,10 @@ const int NTRAJ = (NTS+1)*N + NTS*M;      // number of trajectory variables
 
 // ***** TYPES *****************************************************************
 // instantaneous eigen+mujoco types
-typedef Eigen::Matrix<mjtNum, N, N, Eigen::ColMajor> stateMat_t;
 typedef Eigen::Matrix<mjtNum, N, 1>                  stateVec_t;
-typedef Eigen::Matrix<mjtNum, N, M, Eigen::ColMajor> ctrlMat_t;
+typedef Eigen::Matrix<mjtNum, N, N, Eigen::ColMajor> stateMat_t;
 typedef Eigen::Matrix<mjtNum, M, 1>                  ctrlVec_t;
+typedef Eigen::Matrix<mjtNum, N, M, Eigen::ColMajor> ctrlMat_t;
 typedef Eigen::Matrix<mjtNum, NPAIR, 1>              kconVec_t;
 // threaded types for multiple time steps
 typedef std::vector<stateVec_t, Eigen::aligned_allocator<stateVec_t>> stateVecThread;

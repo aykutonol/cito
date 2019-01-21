@@ -12,20 +12,20 @@
 CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cc(model), nd(model)
 {
     r[0] = r0;
-    X.resize(NTS+1);    dX.resize(NTS+1);   XL.resize(NTS+1);
-    U.resize(NTS);      dU.resize(NTS);     Utemp.resize(NTS);
+    Xs.resize(NTS+1);   dX.resize(NTS+1);   Xl.resize(NTS+1);
+    Us.resize(NTS);     dU.resize(NTS);     Utemp.resize(NTS);
     Fx.resize(NTS);     Fu.resize(NTS);     Kcon.resize(NTS);
     cc.getBounds();
 }
 
 // ***** FUNCTIONS *************************************************************
 // getCost: returns the nonlinear cost given state matrix X
-double CitoSCvx::getCost(const stateVecThread X, const ctrlVecThread U)
+double CitoSCvx::getCost(stateVec_t Xfinal, const ctrlVecThread U)
 {
     // terminal cost
     for( int i=0; i<6; i++ )
     {
-        finalPose[i] = X[NTS](i);
+        finalPose[i] = Xfinal[controlJointPos0 + i];
     }
     Jf = 0.5*(w1*(desiredPose.block<2,1>(0,0)-finalPose.block<2,1>(0,0)).squaredNorm()+
               w2*(desiredPose.block<4,1>(2,0)-finalPose.block<4,1>(2,0)).squaredNorm());
@@ -48,7 +48,7 @@ double CitoSCvx::getCost(const stateVecThread X, const ctrlVecThread U)
 }
 
 // runSimulation: rollouts and linearizes the dynamics given a control trajectory
-void CitoSCvx::runSimulation(const ctrlMatThread U, bool linearize)
+void CitoSCvx::runSimulation(const ctrlVecThread U, bool linearize, bool save)
 {
     // make mjData
     mjData* d = NULL;
@@ -61,8 +61,8 @@ void CitoSCvx::runSimulation(const ctrlMatThread U, bool linearize)
     for( int i=0; i<NTS; i++ )
     {
         // get the current state values
-        X[i].setZero();
-        X[i] = cc.getState(d);
+        Xs[i].setZero();
+        Xs[i] = cc.getState(d);
         // linearization
         if( linearize )
         {
@@ -71,36 +71,51 @@ void CitoSCvx::runSimulation(const ctrlMatThread U, bool linearize)
         }
         // take tc/dt steps
         cc.takeStep(d, U[i]);
+        std::cout << "U" << i << ": " << U[i].transpose() << "\n";
+        std::cout << "X" << i << ": " << Xs[i].transpose() << "\n";
     }
-    X[NTS].setZero();
-    X[NTS] = cc.getState(d);
+    Xs[NTS].setZero();
+    Xs[NTS] = cc.getState(d);
+    std::cout << "X" << NTS << ": " << Xs[NTS].transpose() << "\n";
     // delete data
     mj_deleteData(d);
 }
 
 // solveSCvx: executes the successive convexification algorithm
-void CitoSCvx::solveSCvx(const ctrlMatThread U)
+void CitoSCvx::solveSCvx(const ctrlVecThread U0)
 {
+    // copy U to Us
+    for( int i=0; i<NTS; i++ ) { Us[i] = U0[i]; }
+    // start the SCvx algorithm
     int iter = 0;
     while( stop == 0 )
     {
         // simulation ==========================================================
-        this->runSimulation(U, true);
+        this->runSimulation(Us, true, false);
+        std::cout << "after runSimulation:\n";
+        for( int i=0; i<NTS; i++ )
+        {
+            std::cout << "U" << i << ": " << Us[i].transpose() << "\n";
+            std::cout << "X" << i << ": " << Xs[i].transpose() << "\n";
+        }
+        std::cout << "X" << NTS << ": " << Xs[NTS].transpose() << "\n\n\n";
         // get the nonlinear cost if the first iteration
-        if( iter == 0 ) { J[iter] = this->getCost(X, U); }
+        if( iter == 0 ) { J[iter] = this->getCost(Xs[NTS], Us); }
         // convex optimization =================================================
-        // solve for the optimal change in trajectory
         double *dTraj = new double[NTRAJ];
-        sq.solveCVX(dTraj, r[iter], X, U, Fx, Fu, cc.qpos_lb, cc.qpos_ub, cc.tau_lb,
-                    cc.tau_ub, cc.isJFree, cc.isAFree);
+        sq.solveCvx(dTraj, r[iter], Xs, Us, Fx, Fu, cc.isJFree, cc.isAFree,
+                    cc.qpos_lb, cc.qpos_ub, cc.tau_lb, cc.tau_ub);
         // apply the change
         for( int i=0; i<NTS+1; i++ )
         {
-            dX[i].setZero(); XL[i].setZero();
+            // states
+            dX[i].setZero(); Xl[i].setZero();
             for( int j=0; j<N; j++ )
             {
                 dX[i][j] = dTraj[i*N+j];
             }
+            Xl[i] = Xs[i] + dX[i];
+            // controls
             if( i < NTS )
             {
                 dU[i].setZero(); Utemp[i].setZero();
@@ -108,15 +123,14 @@ void CitoSCvx::solveSCvx(const ctrlMatThread U)
                 {
                     dU[i][j] = dTraj[(NTS+1)*N+i*M+j];
                 }
-                Utemp[i] = U[i] + dU[i];
+                Utemp[i] = Us[i] + dU[i];
             }
-            XL[i] = X[i] + dX[i];
         }
         // evaluate the dynamics for the change and get the cost values ========
-        this->runSimulation(Utemp, false);
+        this->runSimulation(Utemp, false, false);
         // get the linear and nonlinear costs
-        L[iter]     = this->getCost(XL, Utemp);
-        Jtemp[iter] = this->getCost(X,  Utemp);
+        L[iter]     = this->getCost(Xl[NTS], Utemp);
+        Jtemp[iter] = this->getCost(Xs[NTS], Utemp);
         // similarity measure ==================================================
         dJ[iter] = J[iter] - Jtemp[iter];
         dL[iter] = J[iter] - L[iter];
@@ -138,7 +152,7 @@ void CitoSCvx::solveSCvx(const ctrlMatThread U)
             J[iter+1] = Jtemp[iter];
             for( int i=0; i<NTS; i++ )
             {
-                U[i] = Utemp[i];
+                Us[i] = Utemp[i];
             }
             if( rho[iter] < rho1 )
             { r[iter+1] = r[iter]/alpha;  }
@@ -165,8 +179,8 @@ void CitoSCvx::solveSCvx(const ctrlMatThread U)
         }
         // screen output for the iteration =====================================
         std::cout << "\n\nIteration " << iter << ":" << '\n';
-        std::cout << "X:  " << X[NTS].transpose() << "\n";
-        std::cout << "XL: " << XL[NTS].transpose() << "\n";
+        std::cout << "X:  " << Xs[NTS].transpose() << "\n";
+        std::cout << "XL: " << Xl[NTS].transpose() << "\n";
         std::cout << "dX: " << dX[NTS].transpose() << "\n\n";
     }
     // *********** screen output for the whole process ************************/
