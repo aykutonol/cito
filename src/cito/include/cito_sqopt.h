@@ -23,7 +23,7 @@ public:
     ~CitoSQOPT() {}
     // ***** FUNCTIONS *************************************************************
     void solveCvx(double *xTraj, double r, const stateVecThread X, const ctrlVecThread U,
-                  const stateMatThread Fx, const ctrlMatThread Fu, int *isJFree, int *isAFree,
+                  const stateDerThread Fx, const ctrlDerThread Fu, int *isJFree, int *isAFree,
                   double *qpos_lb, double *qpos_ub, double *tau_lb, double *tau_ub);
 private:
     // ***** FUNCTIONS *************************************************************
@@ -33,7 +33,7 @@ private:
                    double *bl, double *bu, int *isJFree, int *isAFree,
                    double *qpos_lb, double *qpos_ub, double *tau_lb, double *tau_ub);
     void setA(double *valA, int *indA, int *locA,
-              const stateMatThread Fx, const ctrlMatThread Fu);
+              const stateDerThread Fx, const ctrlDerThread Fu);
     void sortToMatch(double *valA, int *indA, int *locA, int *indMove, double *bl, double *bu);
     void moveColA(double *valA, int *indA, int *locA, int iMove);
     void moveRowBounds(double *bl, double *bu, int iMove);

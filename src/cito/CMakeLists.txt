@@ -31,27 +31,41 @@ add_library(${PROJECT_NAME}
 	src/cito_numdiff.cpp
 	src/cito_scvx.cpp
 	src/cito_sqopt.cpp
+	src/mj_savelog.cpp
 )
 
 ################
 ## Node names ##
 ################
-set(NODE_NAME1 flymanoid_test)
-set(NODE_NAME2 flymanoid)
+set(NODE_NAME1 main)
+set(NODE_NAME2 playlog)
+set(NODE_NAME3 model_test)
 
 #################
 ## Executables ##
 #################
-add_executable(${NODE_NAME1} src/flymanoid_test.cpp)
-# mujoco w/ rendering
-target_link_libraries(${NODE_NAME1} ${PROJECT_SOURCE_DIR}/bin/libmujoco200.so ${PROJECT_SOURCE_DIR}/bin/libglew.so ${PROJECT_SOURCE_DIR}/bin/libglfw.so.3 GL)
-
-
-add_executable(${NODE_NAME2} src/flymanoid.cpp)
-# mujoco w/o rendering
-target_link_libraries(${NODE_NAME2} ${PROJECT_SOURCE_DIR}/bin/libmujoco200nogl.so
+# main: runs successive convexification w/ SQOPT and numerical differentiation in MuJoCo
+add_executable(${NODE_NAME1} src/main.cpp)
+### mujoco w/o rendering
+target_link_libraries(${NODE_NAME1} ${PROJECT_SOURCE_DIR}/bin/libmujoco200nogl.so
 				    pthread
 				    ${PROJECT_NAME}
 				    /home/aykut/Development/snopt-interface/lib/libsnopt7_cpp.so
+)
+# playlog: shows motions generated
+add_executable(${NODE_NAME2} src/mj_playlog.cpp)
+### mujoco w/ rendering
+target_link_libraries(${NODE_NAME2} ${PROJECT_SOURCE_DIR}/bin/libmujoco200.so
+				    ${PROJECT_SOURCE_DIR}/bin/libglew.so
+				    ${PROJECT_SOURCE_DIR}/bin/libglfw.so.3
+				    GL
+)
+# model_test: to analyze a model and to run random tests
+add_executable(${NODE_NAME3} src/model_test.cpp)
+### mujoco w/ rendering
+target_link_libraries(${NODE_NAME3} ${PROJECT_SOURCE_DIR}/bin/libmujoco200.so
+				    ${PROJECT_SOURCE_DIR}/bin/libglew.so
+				    ${PROJECT_SOURCE_DIR}/bin/libglfw.so.3
+				    GL
 )
 

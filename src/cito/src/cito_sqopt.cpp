@@ -27,12 +27,12 @@ CitoSQOPT::CitoSQOPT()
     // *** pose variables for the control joint
     for( int i=0; i<6; i++ )
     {
-        indMove[nnH-1-i] = NTS*N + controlJointPos0 + i;
+        indMove[nnH-1-i] = NTS*N + task::controlJointPos0 + i;
     }
     // initialize & set options for SQOPT
     cvxProb.initialize("", 1);
     // set the weights
-    ru[0] = w1; ru[1] = w2; ru[2] = w3;
+    ru[0] = task::w1; ru[1] = task::w2; ru[2] = task::w3;
     cvxProb.setUserR(ru, lenru);
 }
 // ***** FUNCTIONS *************************************************************
@@ -59,7 +59,7 @@ void qpHx(int *nnH, double x[], double Hx[], int *nState,
 
 // solveCvx: solves the convex subproblem
 void CitoSQOPT::solveCvx(double *xTraj, double r, const stateVecThread X, const ctrlVecThread U,
-                         const stateMatThread Fx, const ctrlMatThread Fu, int *isJFree, int *isAFree,
+                         const stateDerThread Fx, const ctrlDerThread Fu, int *isJFree, int *isAFree,
                          double *qpos_lb, double *qpos_ub, double *tau_lb, double *tau_ub)
 {
     // fresh start
@@ -116,7 +116,7 @@ void CitoSQOPT::setCost(const stateVecThread X, const ctrlVecThread U,
     dPose.setZero();
     for( int i=0; i<6; i++ )
     {
-        dPose[i] = desiredPose[i] - X[NTS][controlJointPos0+i];
+        dPose[i] = task::desiredPose[i] - X[NTS][task::controlJointPos0+i];
     }
     // position
     for( int i=0; i<2; i++ )
@@ -211,7 +211,7 @@ void CitoSQOPT::setBounds(double r, const stateVecThread X, const ctrlVecThread 
 // setA: creates the sparse A matrix for linearized dynamics, auxiliary
 // variables, and trust region constraints
 void CitoSQOPT::setA(double *valA, int *indA, int *locA,
-                     const stateMatThread Fx, const ctrlMatThread Fu)
+                     const stateDerThread Fx, const ctrlDerThread Fu)
 {
     int colNo = 0, indNo = 0, indTS = 0;
 

@@ -9,7 +9,7 @@
 #include "cito_scvx.h"
 
 // ***** CONSTRUCTOR ***********************************************************
-CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cc(model), nd(model)
+CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cc(model), nd(model), sl(model)
 {
     r[0] = r0;
     Xs.resize(NTS+1);   dX.resize(NTS+1);   Xl.resize(NTS+1);
@@ -25,10 +25,10 @@ double CitoSCvx::getCost(stateVec_t Xfinal, const ctrlVecThread U)
     // terminal cost
     for( int i=0; i<6; i++ )
     {
-        finalPose[i] = Xfinal[controlJointPos0 + i];
+        finalPose[i] = Xfinal[task::controlJointPos0 + i];
     }
-    Jf = 0.5*(w1*(desiredPose.block<2,1>(0,0)-finalPose.block<2,1>(0,0)).squaredNorm()+
-              w2*(desiredPose.block<4,1>(2,0)-finalPose.block<4,1>(2,0)).squaredNorm());
+    Jf = 0.5*(task::w1*(task::desiredPose.block<2,1>(0,0)-finalPose.block<2,1>(0,0)).squaredNorm()+
+              task::w2*(task::desiredPose.block<4,1>(2,0)-finalPose.block<4,1>(2,0)).squaredNorm());
     // integrated cost
     KconSN = 0;
     for( int i=0; i<NTS; i++ )
@@ -40,7 +40,7 @@ double CitoSCvx::getCost(stateVec_t Xfinal, const ctrlVecThread U)
         }
         KconSN += Kcon[i].squaredNorm();
     }
-    Ji = 0.5*w3*KconSN;
+    Ji = 0.5*task::w3*KconSN;
     // total cost
     Jt = Jf + Ji;
 
@@ -48,8 +48,10 @@ double CitoSCvx::getCost(stateVec_t Xfinal, const ctrlVecThread U)
 }
 
 // runSimulation: rollouts and linearizes the dynamics given a control trajectory
-void CitoSCvx::runSimulation(const ctrlVecThread U, bool linearize, bool save)
+trajectory CitoSCvx::runSimulation(const ctrlVecThread U, bool linearize, bool save)
 {
+    // initialize save
+//    if( save ) { MjSaveLog sl(m); }
     // make mjData
     mjData* d = NULL;
     d = mj_makeData(m);
@@ -57,9 +59,10 @@ void CitoSCvx::runSimulation(const ctrlVecThread U, bool linearize, bool save)
     mju_copy(d->qpos, m->key_qpos, m->nq);
     mj_forward(m, d);
     cc.setControl(d, U[0]);
-    // rollout and linearize the dynamics
+    // rollout (and linearize) the dynamics
     for( int i=0; i<NTS; i++ )
     {
+        if( save ) { sl.writeData(d); }
         // get the current state values
         Xs[i].setZero();
         Xs[i] = cc.getState(d);
@@ -71,18 +74,26 @@ void CitoSCvx::runSimulation(const ctrlVecThread U, bool linearize, bool save)
         }
         // take tc/dt steps
         cc.takeStep(d, U[i]);
-        std::cout << "U" << i << ": " << U[i].transpose() << "\n";
-        std::cout << "X" << i << ": " << Xs[i].transpose() << "\n";
+//        std::cout << "U" << i << ": " << U[i].transpose() << "\n";
+//        std::cout << "X" << i << ": " << Xs[i].transpose() << "\n";
     }
+    if( save ) { sl.writeData(d); }
     Xs[NTS].setZero();
     Xs[NTS] = cc.getState(d);
-    std::cout << "X" << NTS << ": " << Xs[NTS].transpose() << "\n";
+//    std::cout << "X" << NTS << ": " << Xs[NTS].transpose() << "\n";
     // delete data
     mj_deleteData(d);
+    // build trajectory
+    traj.X = Xs; traj.U = U;
+    if( linearize )
+    {
+        traj.Fx = Fx; traj.Fu = Fu;
+    }
+    return traj;
 }
 
 // solveSCvx: executes the successive convexification algorithm
-void CitoSCvx::solveSCvx(const ctrlVecThread U0)
+ctrlVecThread CitoSCvx::solveSCvx(const ctrlVecThread U0)
 {
     // copy U to Us
     for( int i=0; i<NTS; i++ ) { Us[i] = U0[i]; }
@@ -95,10 +106,10 @@ void CitoSCvx::solveSCvx(const ctrlVecThread U0)
         std::cout << "after runSimulation:\n";
         for( int i=0; i<NTS; i++ )
         {
-            std::cout << "U" << i << ": " << Us[i].transpose() << "\n";
-            std::cout << "X" << i << ": " << Xs[i].transpose() << "\n";
+//            std::cout << "U" << i << ": " << Us[i].transpose() << "\n";
+//            std::cout << "X" << i << ": " << Xs[i].transpose() << "\n";
         }
-        std::cout << "X" << NTS << ": " << Xs[NTS].transpose() << "\n\n\n";
+//        std::cout << "X" << NTS << ": " << Xs[NTS].transpose() << "\n\n\n";
         // get the nonlinear cost if the first iteration
         if( iter == 0 ) { J[iter] = this->getCost(Xs[NTS], Us); }
         // convex optimization =================================================
@@ -195,4 +206,5 @@ void CitoSCvx::solveSCvx(const ctrlVecThread U0)
         printf("%-12d%-12.6g%-12.6g%-12.3g%-12.3g%-12.3g%-12.3g%-12d\n",
                i,L[i],Jtemp[i],dL[i],dJ[i],rho[i],r[i],accept[i]);
     }
+    return Us;
 }

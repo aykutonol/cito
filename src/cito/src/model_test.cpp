@@ -135,7 +135,7 @@ void scroll(GLFWwindow* window, double xoffset, double yoffset)
 int main(int argc, const char** argv)
 {
     // activate software
-    mj_activate("/home/aykut/Development/cito/src/cito/bin/mjkey.txt");
+    mj_activate("/home/aykut/Development/mujoco200_linux/bin/mjkey.txt");
 
     // load xml model
     m = mj_loadXML("/home/aykut/Development/cito/src/cito/model/flymanoid.xml", 0, 0, 0);
