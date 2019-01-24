@@ -14,7 +14,7 @@
 // ***** CONSTRUCTOR & DESTRUCTOR **********************************************
 CitoSQOPT::CitoSQOPT()
 {
-    dKcon.resize(NTS);
+    dKCon.resize(NTS);
     // indices to move
     // *** virtual stiffness variables
     for( int i=0; i < NTS; i ++ )
@@ -50,7 +50,7 @@ void qpHx(int *nnH, double x[], double Hx[], int *nState,
     {
         Hx[i] = ru[1]*x[i];
     }
-    // kcon terms
+    // kCon terms
     for( int i=6; i<6+NTS*NPAIR; i++ )
     {
         Hx[i] = ru[2]*x[i];
@@ -60,7 +60,7 @@ void qpHx(int *nnH, double x[], double Hx[], int *nState,
 // solveCvx: solves the convex subproblem
 void CitoSQOPT::solveCvx(double *xTraj, double r, const stateVecThread X, const ctrlVecThread U,
                          const stateDerThread Fx, const ctrlDerThread Fu, int *isJFree, int *isAFree,
-                         double *qpos_lb, double *qpos_ub, double *tau_lb, double *tau_ub)
+                         double *qposLB, double *qposUB, double *tauLB, double *tauUB)
 {
     // fresh start
     int    *indA  = new int[neA];
@@ -83,7 +83,7 @@ void CitoSQOPT::solveCvx(double *xTraj, double r, const stateVecThread X, const 
     }
     // set linear constraints and bounds
     this->setA(valA, indA, locA, Fx, Fu);
-    this->setBounds(r, X, U, bl, bu, isJFree, isAFree, qpos_lb, qpos_ub, tau_lb, tau_ub);
+    this->setBounds(r, X, U, bl, bu, isJFree, isAFree, qposLB, qposUB, tauLB, tauUB);
     // sort A and bounds w.r.t. the order in qpHX
     this->sortToMatch(valA, indA, locA, indMove, bl, bu);
     // set linear and constant cost terms
@@ -129,27 +129,27 @@ void CitoSQOPT::setCost(const stateVecThread X, const ctrlVecThread U,
         cObj[i] = -ru[1]*dPose[i];
     }
     // virtual stiffness
-    dKconSN = 0;
+    dKConSN = 0;
     for( int i=0; i<NTS; i++ )
     {
-        dKcon[i].setZero();
+        dKCon[i].setZero();
         for( int j=0; j<NPAIR; j++ )
         {
-            dKcon[i][j] = -U[i][NU+j];
+            dKCon[i][j] = -U[i][NU+j];
         }
-        cObj[6+i] = -ru[2]*dKcon[i].squaredNorm();
-        dKconSN += dKcon[i].squaredNorm();
+        cObj[6+i] = -ru[2]*dKCon[i].squaredNorm();
+        dKConSN += dKCon[i].squaredNorm();
     }
     // constant objective term
     ObjAdd = 0.5*(ru[0]*dPose.block<2,1>(0,0).squaredNorm() +
                   ru[1]*dPose.block<4,1>(2,0).squaredNorm() +
-                  ru[2]*dKconSN);
+                  ru[2]*dKConSN);
 }
 
 // setBounds: sets bounds of dX, dU, and constraints (dynamics, trust region, etc.)
 void CitoSQOPT::setBounds(double r, const stateVecThread X, const ctrlVecThread U,
                           double *bl, double *bu, int *isJFree, int *isAFree,
-                          double *qpos_lb, double *qpos_ub, double *tau_lb, double *tau_ub)
+                          double *qposLB, double *qposUB, double *tauLB, double *tauUB)
 {
     // decision variables
     // * states
@@ -161,8 +161,8 @@ void CitoSQOPT::setBounds(double r, const stateVecThread X, const ctrlVecThread 
             // ** change in joint positions
             if( isJFree[j] == 0 )
             {
-                bl[i*N+j] = qpos_lb[j] - X[i](j);
-                bu[i*N+j] = qpos_ub[j] - X[i](j);
+                bl[i*N+j] = qposLB[j] - X[i][j];
+                bu[i*N+j] = qposUB[j] - X[i][j];
             }
             // ** change in joint velocities: unbounded (already set)
         }
@@ -174,20 +174,20 @@ void CitoSQOPT::setBounds(double r, const stateVecThread X, const ctrlVecThread 
             {
                 if( isAFree == 0 )
                 {
-                    bl[dU_offset+i*M+j] = tau_lb[j] - U[i](j);
-                    bu[dU_offset+i*M+j] = tau_ub[j] - U[i](j);
+                    bl[dUOffset+i*M+j] = tauLB[j] - U[i][j];
+                    bu[dUOffset+i*M+j] = tauUB[j] - U[i][j];
                 }
             }
             // ** change in virtual stiffness
             for( int j=0; j< NPAIR; j++ )
             {
-                bl[dU_offset+i*M+NU+j] = 0 - U[i](NU+j);
-                bu[dU_offset+i*M+NU+j] = params::kcon0[j] - U[i](NU+j);
+                bl[dUOffset+i*M+NU+j] = 0 - U[i][NU+j];
+                bu[dUOffset+i*M+NU+j] = params::kCon0[j] - U[i][NU+j];
             }
         }
     }
     // auxiliary variables > 0
-    for( int i=aux_offset; i<n; i++ )
+    for( int i=auxOffset; i<n; i++ )
     {
         bl[i] = 0;
     }
@@ -223,7 +223,7 @@ void CitoSQOPT::setA(double *valA, int *indA, int *locA,
         valA[indNo] = -1;
         indNo++;
         // time step index
-        indTS = floor(i/N);
+        indTS = (int) floor(i/N);
         for( int j=0; j<N; j++ )
         {
             indA[indNo] = (indTS+1)*N+j;
@@ -263,7 +263,7 @@ void CitoSQOPT::setA(double *valA, int *indA, int *locA,
     for( int i=0; i<NTS*M; i++ )
     {
         // time step index
-        indTS = floor(i/M);
+        indTS = (int) floor(i/M);
         for( int j=0; j<N; j++ )
         {
             indA[indNo] = (indTS+1)*N+j;
@@ -349,18 +349,18 @@ void CitoSQOPT::moveColA(double *valA, int *indA, int *locA, int iMove)
 // moveRowBounds: moves iMove to top
 void CitoSQOPT::moveRowBounds(double *bl, double *bu, int iMove)
 {
-    double bl_temp[iMove], bu_temp[iMove];
-    bl_temp[0] = bl[iMove];
-    bu_temp[0] = bu[iMove];
+    double bLTemp[iMove], bUTemp[iMove];
+    bLTemp[0] = bl[iMove];
+    bUTemp[0] = bu[iMove];
     for( int i=0; i<iMove+1; i++ )
     {
         if( i<iMove )
         {
-            bl_temp[i+1] = bl[i];
-            bu_temp[i+1] = bu[i];
+            bLTemp[i+1] = bl[i];
+            bUTemp[i+1] = bu[i];
         }
-        bl[i] = bl_temp[i];
-        bu[i] = bu_temp[i];
+        bl[i] = bLTemp[i];
+        bu[i] = bUTemp[i];
     }
 }
 
@@ -370,12 +370,12 @@ void CitoSQOPT::sortX(double *x, int *moveIndices)
     int k = 0;
     for( int i=0; i<n; i++ )
     {
-        xtemp[i] = x[nnH+k];
+        xTemp[i] = x[nnH+k];
         for( int j=0; j<nnH; j++ )
         {
             if( i == moveIndices[j] )
             {
-                xtemp[moveIndices[j]] = x[nnH-j-1];
+                xTemp[moveIndices[j]] = x[nnH-j-1];
                 k = k - 1;
             }
         }
@@ -383,64 +383,6 @@ void CitoSQOPT::sortX(double *x, int *moveIndices)
     }
     for( int i=0; i<n; i++ )
     {
-        x[i] = xtemp[i];
+        x[i] = xTemp[i];
     }
 }
-
-// Test
-// // print A
-// int neCol[n];
-// for( int i=0; i<n; i++ )
-// {
-//   neCol[i] = locA[i+1]-locA[i];
-// }
-// int indNo = 0, colNo = 0;
-// for( int i=0; i<n; i++ )
-// {
-//   std::cout << "Column " << i << ":\n";
-//   for( int j=0; j<neCol[i]; j++ )
-//   {
-//     std::cout << "\tindNo: " << indNo << ", indA: " << indA[indNo] << ", valA: " << valA[indNo] << '\n';
-//     indNo+=1;
-//   }
-//   colNo++;
-//   std::cout << "\tlocA: " << locA[colNo] << '\n';
-// }
-// std::cout << "n: " << n << ", neA: " << neA << '\n';
-
-// // test shifts
-// int ntest = 10;
-// double *test   = new double[ntest];
-// double *testDummy  = new double[ntest];
-// double assignTest[10] = {1, 2, 3, 4, 5, 6 ,7, 8, 9, 10};
-// for( int i=0; i<ntest; i++ )
-// {
-//   test[i] = assignTest[i];
-//   testDummy[i] = assignTest[i];
-// }
-// for( int i=0; i<ntest; i++ )
-//   std::cout << test[i] << ' ';
-// std::cout << "\n\n\n";
-// const int nshift = 5;
-// int *shift = new int[nshift];
-// int assignShift[nshift] = {3, 9, 4, 7, 8};
-// for( int i=0; i<nshift; i++ )
-//   shift[i] = assignShift[i]-1;
-// int less_counter = 0;
-// for( int i=0; i<nshift; i++ )
-// {
-//   if( i>0 && shift[i]<shift[i-1] )
-//   {
-//     less_counter++;
-//   }
-//   int rMove = shift[i]+less_counter;
-//   sc.moveRowBounds(test, testDummy, rMove);
-//   for( int i=0; i<ntest; i++ )
-//     std::cout << test[i] << ' ';
-//   std::cout << "\n\n\n";
-// }
-//
-// sc.sortX(test, shift, nshift, ntest);
-// for( int i=0; i<ntest; i++ )
-//   std::cout << test[i] << ' ';
-// std::cout << "\n\n\n";

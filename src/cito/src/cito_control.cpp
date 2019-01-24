@@ -17,8 +17,8 @@ CitoControl::CitoControl(const mjModel* model) : m(model) {}
 
 CitoControl::~CitoControl()
 {
-    delete []qpos_lb;       delete []qpos_ub;
-    delete []tau_lb;        delete []tau_ub;
+    delete []qposLB;       delete []qposUB;
+    delete []tauLB;        delete []tauUB;
     delete []isJFree;       delete []isAFree;
 }
 
@@ -43,13 +43,14 @@ void CitoControl::setControl(mjData* d, const ctrlVec_t u)
       d->ctrl[i] = u[i] + d->qfrc_bias[params::jact[i]];
     }
     // contact model
-    hcon = this->contactModel(d, u);
+    hCon.setZero();
+    hCon = this->contactModel(d, u);
     // set external forces on the free bodies
     for( int i=0; i<params::nfree; i++ )
     {
       for( int j=0; j<6; j++ )
       {
-        d->xfrc_applied[params::bfree[i]*6+j] = hcon[i*6+j];
+        d->xfrc_applied[params::bfree[i]*6+j] = hCon[i*6+j];
       }
     }
 }
@@ -64,41 +65,41 @@ Eigen::Matrix<double, 6*params::nfree, 1> CitoControl::contactModel(const mjData
         // vectors in the world frame
         for( int i=0; i<3; i++ )
         {
-          p_sr[i] = d->site_xpos[params::spair1[p_i]*3+i];  // position of the site on the robot
-          p_se[i] = d->site_xpos[params::spair2[p_i]*3+i];  // position of the site in the environment
-          n_cs[i] = params::csn[p_i*3+i];                   // contact surface normal
+          pSR[i] = d->site_xpos[params::spair1[p_i]*3+i];   // position of the site on the robot
+          pSE[i] = d->site_xpos[params::spair2[p_i]*3+i];   // position of the site in the environment
+          nCS[i] = params::csn[p_i*3+i];                    // contact surface normal
         }
-        v_re  = p_se - p_sr;                                // vector from the end effector to the environment
+        vRE  = pSE - pSR;                                   // vector from the robot (end effector) to the environment
         // distance
-        phi_e = v_re.norm();                                // Euclidean distance between the end effector and the environment
-        phi_n = v_re.dot(n_cs);                             // normal distance between the end effector and the environment
-        zeta  = tanh(params::phi_r*phi_e);                  // semisphere based on the Euclidean distance
-        phi_c = zeta*phi_e + (1-zeta)*phi_n;                // combined distance
+        phiE = vRE.norm();                                  // Euclidean distance between the end effector and the environment
+        phiN = vRE.dot(nCS);                                // normal distance between the end effector and the environment
+        zeta  = tanh(params::phi_r*phiE);                   // semisphere based on the Euclidean distance
+        phiC = zeta*phiE + (1-zeta)*phiN;                   // combined distance
         // normal force in the contact frame
-        fn = u[NU+p_i]*exp(-params::acon[p_i]*phi_c);
+        gamma = u[NU+p_i]*exp(-params::acon[p_i]*phiC);
         // contact generalized in the world frame
-        lambda = fn*n_cs;
+        lambda = gamma*nCS;
         // loop for each free body
         for( int f_i=0; f_i<params::nfree; f_i++ )
         {
           for( int i=0; i<3; i++ )
           {
-            p_bf[i] = d->qpos[params::jfree[f_i]+i];        // position of the center of mass of the free body
+            pBF[i] = d->qpos[params::jfree[f_i]+i];         // position of the center of mass of the free body
           }
-          v_ef = p_bf - p_se;                               // vector from the end effector to the free body
-          // wrench on the free body due to the contact p_i: [lambda; cross(v_ef, lambda)]
+          vEF = pBF - pSE;                                  // vector from the end effector to the free body
+          // wrench on the free body due to the contact p_i: [lambda; cross(vEF, lambda)]
           h[f_i*6+0] += lambda[0];
           h[f_i*6+1] += lambda[1];
           h[f_i*6+2] += lambda[2];
-          h[f_i*6+3] += -v_ef[2]*lambda[1] + v_ef[1]*lambda[2];
-          h[f_i*6+4] += v_ef[2]*lambda[0]  - v_ef[0]*lambda[2];
-          h[f_i*6+5] += -v_ef[1]*lambda[0] + v_ef[0]*lambda[1];
+          h[f_i*6+3] += -vEF[2]*lambda[1] + vEF[1]*lambda[2];
+          h[f_i*6+4] += vEF[2]*lambda[0]  - vEF[0]*lambda[2];
+          h[f_i*6+5] += -vEF[1]*lambda[0] + vEF[0]*lambda[1];
         }
     }
     return h;
 }
 
-// getState function converts free joints' quaternions to Euler angles so that
+// getState: converts free joints' quaternions to Euler angles so that
 // the dimensionality of the state vector is 2*nv instead of nq+nv
 stateVec_t CitoControl::getState(const mjData* d)
 {
@@ -145,14 +146,14 @@ void CitoControl::getBounds()
         if( m->jnt_limited[jid] )
         {
             isJFree[i] = 0;
-            qpos_lb[i] = m->jnt_range[jid*2];
-            qpos_ub[i] = m->jnt_range[jid*2+1];
+            qposLB[i]  = m->jnt_range[jid*2];
+            qposUB[i]  = m->jnt_range[jid*2+1];
         }
         else
         {
             isJFree[i] = 1;
-            qpos_lb[i] = 0;  // to be replaced by -infBnd in the initial guess
-            qpos_ub[i] = 0;  // to be replaced by +infBnd in the initial guess
+            qposLB[i]  = 0;  // to be replaced by -infBnd in the initial guess
+            qposUB[i]  = 0;  // to be replaced by +infBnd in the initial guess
         }
     }
     for( int i=0; i<NU; i++ )
@@ -160,14 +161,14 @@ void CitoControl::getBounds()
         if( m->actuator_ctrllimited[i] )
         {
             isAFree[i] = 0;
-            tau_lb[i]  = m->actuator_ctrlrange[i*2];
-            tau_ub[i]  = m->actuator_ctrlrange[i*2+1];
+            tauLB[i]   = m->actuator_ctrlrange[i*2];
+            tauUB[i]   = m->actuator_ctrlrange[i*2+1];
         }
         else
         {
             isAFree[i] = 1;
-            tau_lb[i]  = 0; // to be replaced by -infBnd in the initial guess
-            tau_ub[i]  = 0; // to be replaced by +infBnd in the initial guess
+            tauLB[i]   = 0; // to be replaced by -infBnd in the initial guess
+            tauUB[i]   = 0; // to be replaced by +infBnd in the initial guess
         }
     }
 }

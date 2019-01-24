@@ -24,14 +24,14 @@ public:
     // ***** FUNCTIONS *************************************************************
     void solveCvx(double *xTraj, double r, const stateVecThread X, const ctrlVecThread U,
                   const stateDerThread Fx, const ctrlDerThread Fu, int *isJFree, int *isAFree,
-                  double *qpos_lb, double *qpos_ub, double *tau_lb, double *tau_ub);
+                  double *qposLB, double *qposUB, double *tauLB, double *tauUB);
 private:
     // ***** FUNCTIONS *************************************************************
     void setCost(const stateVecThread X, const ctrlVecThread U,
                  double *ru, double *cObj, double& ObjAdd);
     void setBounds(double r, const stateVecThread X, const ctrlVecThread U,
                    double *bl, double *bu, int *isJFree, int *isAFree,
-                   double *qpos_lb, double *qpos_ub, double *tau_lb, double *tau_ub);
+                   double *qposLB, double *qposUB, double *tauLB, double *tauUB);
     void setA(double *valA, int *indA, int *locA,
               const stateDerThread Fx, const ctrlDerThread Fu);
     void sortToMatch(double *valA, int *indA, int *locA, int *indMove, double *bl, double *bu);
@@ -40,9 +40,9 @@ private:
     void sortX(double *x, int *indMove);
     // ***** PARAMETERS ************************************************************
     // solver parameters
-    int nnH     = 6 + NTS*NPAIR;    // number of non-zero elements of the Hessian
-    int lencObj = 6 + NTS;          // number of non-zero elements of the linear term
-    int lenru   = 3;                // number of weights
+    int nnH     = 6 + NTS*NPAIR;        // number of non-zero elements of the Hessian
+    int lencObj = 6 + NTS;              // number of non-zero elements of the linear term
+    int lenru   = 3;                    // number of weights
     int neA = NTS*N*N + (NTS+1)*N + NTS*N*M + ((NTS+1)*N+NTS*M)*5;
     int n   = ((NTS+1)*N + NTS*M)*2;    // *2 is for auxiliary variables for l1-norm
     int nc  = (NTS+1)*N + ((NTS+1)*N+NTS*M)*2 + 1;
@@ -55,15 +55,15 @@ private:
     int Cold = 0, Basis = 1, Warm = 2;
     // setCost parameters
     Eigen::Matrix<double, 6, 1> dPose;
-    kconVecThread dKcon;
-    double dKconSN;
+    kConVecThread dKCon;
+    double dKConSN;
     // sort parameters
     int    nMove    = nnH;
     int    *indMove = new int[nMove];
-    double *xtemp   = new double[n];
+    double *xTemp   = new double[n];
     // setBounds parameters
-    int dU_offset = (NTS+1)*N;
-    int aux_offset  = (NTS+1)*N+NTS*M;
+    int dUOffset  = (NTS+1)*N;
+    int auxOffset = (NTS+1)*N+NTS*M;
     // ***** OBJECTS ***************************************************************
     sqoptProblem cvxProb;
 };

@@ -8,7 +8,7 @@ na             0
 nbody          14
 njnt           9
 ngeom          14
-nsite          8
+nsite          12
 ncam           0
 nlight         1
 nmesh          0
@@ -39,7 +39,7 @@ ntext          0
 ntextdata      0
 ntuple         0
 ntupledata     0
-nkey           0
+nkey           1
 nuser_body     0
 nuser_jnt      0
 nuser_geom     0
@@ -48,17 +48,17 @@ nuser_cam      0
 nuser_tendon   0
 nuser_actuator 0
 nuser_sensor   0
-nnames         651
+nnames         767
 
 nM             81
 nemax          0
 njmax          500
 nconmax        100
-nstack         1322620
+nstack         1322700
 nuserdata      0
 nmocap         0
 nsensordata    0
-nbuffer        5520911
+nbuffer        5521743
 
 timestep       0.002   
 apirate        1e+02   
@@ -1116,7 +1116,7 @@ GEOM 13:
 
 
 SITE 0:
-  name         cfr0
+  name         rbar0_front
   type         2
   bodyid       1
   matid        -1
@@ -1129,7 +1129,20 @@ SITE 0:
 
 
 SITE 1:
-  name         cfl0
+  name         rbar0_rear
+  type         2
+  bodyid       1
+  matid        -1
+  group        2
+  sameframe    0
+  size         0.001     0.005     0.005   
+  pos          0        -0.05      0       
+  quat         1         0         0         0       
+  rgba         1         0         0         1       
+
+
+SITE 2:
+  name         lbar0_front
   type         2
   bodyid       2
   matid        -1
@@ -1141,8 +1154,21 @@ SITE 1:
   rgba         1         0         0         1       
 
 
-SITE 2:
-  name         cfr1
+SITE 3:
+  name         lbar0_rear
+  type         2
+  bodyid       2
+  matid        -1
+  group        2
+  sameframe    0
+  size         0.001     0.005     0.005   
+  pos          0        -0.05      0       
+  quat         1         0         0         0       
+  rgba         1         0         0         1       
+
+
+SITE 4:
+  name         rbar1_front
   type         2
   bodyid       3
   matid        -1
@@ -1154,8 +1180,21 @@ SITE 2:
   rgba         1         0         0         1       
 
 
-SITE 3:
-  name         cfl1
+SITE 5:
+  name         rbar1_rear
+  type         2
+  bodyid       3
+  matid        -1
+  group        2
+  sameframe    0
+  size         0.001     0.005     0.005   
+  pos          0        -0.05      0       
+  quat         1         0         0         0       
+  rgba         1         0         0         1       
+
+
+SITE 6:
+  name         lbar1_front
   type         2
   bodyid       4
   matid        -1
@@ -1167,8 +1206,21 @@ SITE 3:
   rgba         1         0         0         1       
 
 
-SITE 4:
-  name         cll
+SITE 7:
+  name         lbar1_rear
+  type         2
+  bodyid       4
+  matid        -1
+  group        2
+  sameframe    0
+  size         0.001     0.005     0.005   
+  pos          0        -0.05      0       
+  quat         1         0         0         0       
+  rgba         1         0         0         1       
+
+
+SITE 8:
+  name         left_leg_ee
   type         2
   bodyid       7
   matid        -1
@@ -1180,8 +1232,8 @@ SITE 4:
   rgba         1         0         0         1       
 
 
-SITE 5:
-  name         clr
+SITE 9:
+  name         right_leg_ee
   type         2
   bodyid       9
   matid        -1
@@ -1193,8 +1245,8 @@ SITE 5:
   rgba         1         0         0         1       
 
 
-SITE 6:
-  name         cal
+SITE 10:
+  name         left_arm_ee
   type         2
   bodyid       11
   matid        -1
@@ -1206,8 +1258,8 @@ SITE 6:
   rgba         1         0         0         1       
 
 
-SITE 7:
-  name         car
+SITE 11:
+  name         right_arm_ee
   type         2
   bodyid       13
   matid        -1
@@ -1534,3 +1586,4 @@ ACTUATOR 7:
   length0      0       
   lengthrange  0         0       
 
+key_name0    init_qpos

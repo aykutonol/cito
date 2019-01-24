@@ -10,7 +10,7 @@
 mjModel *m = NULL;
 mjData  *d = NULL;
 // ********* state, control, and derivative threads *****************************/
-stateVecThread X, Xl;       ctrlVecThread U0, Uopt;
+stateVecThread X, XTilde;       ctrlVecThread U0, Uopt;
 stateDerThread Fx;          ctrlDerThread Fu;
 //==============================================================================
 int main(int argc, char const *argv[]) {
@@ -29,7 +29,7 @@ int main(int argc, char const *argv[]) {
     CitoNumDiff nd(m);
     CitoSCvx    scvx(m);
     // create trajectories
-    U0.resize(NTS); Uopt.resize(NTS); X.resize(NTS+1); Xl.resize(NTS+1);
+    U0.resize(NTS); Uopt.resize(NTS); X.resize(NTS+1); XTilde.resize(NTS+1);
     Fx.resize(NTS); Fu.resize(NTS);
     trajectory trajOpt;
     // ********* initial control trajectory *************************************/
@@ -38,40 +38,43 @@ int main(int argc, char const *argv[]) {
         U0[i].setZero();
         for (int j = 0; j < NPAIR; j++)
         {
-            U0[i][NU + j] = params::kcon0[j];
+            U0[i][NU + j] = params::kCon0[j];
         }
     }
     // ********* simulation *****************************************************/
-    for (int i = 0; i < NTS; i++)
-    {
-        for (int j = 0; j < params::ndpc; j++)
-        {
-            mj_step1(m, d);
-            cc.setControl(d, U0[i]);
-            mj_step2(m, d);
-        }
-        X[i].setZero(); Xl[i].setZero(); Fx[i].setZero(); Fu[i].setZero();
-        X[i] = cc.getState(d);
-        std::cout << "i: " << i << "\t tau: ";
-        mju_printMat(d->ctrl, 1, m->nu);
-        std::cout <<"\t\t kcon: ";
-        std::cout << U0[i].block<NPAIR, 1>(NU, 0).transpose() << "\n\n";
-        std::cout << "\t\t xfrc: ";
-        mju_printMat(d->xfrc_applied + params::bfree[0] * 6, 1, 6);
-        std::cout << "\t\t torso pose: ";
-        mju_printMat(d->qpos + params::jfree[0], 1, 7);
-        std::cout << "X: " << X[i].transpose() << "\n\n";
-//        nd.linDyn(d, U[i], Fx[i].data(), Fu[i].data());
-//        std::cout << "Fx:\n" << Fx[i] << '\n';
-//        std::cout << "Fu:\n" << Fu[i] << '\n';
-    }
+//    for (int i = 0; i < NTS; i++)
+//    {
+//        for (int j = 0; j < params::ndpc; j++)
+//        {
+//            mj_step1(m, d);
+//            cc.setControl(d, U0[i]);
+//            mj_step2(m, d);
+//        }
+//        X[i].setZero(); XTilde[i].setZero(); Fx[i].setZero(); Fu[i].setZero();
+//        X[i] = cc.getState(d);
+//        std::cout << "i: " << i << "\t tau: ";
+//        mju_printMat(d->ctrl, 1, m->nu);
+//        std::cout <<"\t\t kCon: ";
+//        std::cout << U0[i].block<NPAIR, 1>(NU, 0).transpose() << "\n\n";
+//        std::cout << "\t\t xfrc: ";
+//        mju_printMat(d->xfrc_applied + params::bfree[0] * 6, 1, 6);
+//        std::cout << "\t\t torso pose: ";
+//        mju_printMat(d->qpos + params::jfree[0], 1, 7);
+//        std::cout << "X: " << X[i].transpose() << "\n\n";
+////        nd.linDyn(d, U[i], Fx[i].data(), Fu[i].data());
+////        std::cout << "Fx:\n" << Fx[i] << '\n';
+////        std::cout << "Fu:\n" << Fu[i] << '\n';
+//    }
     Uopt = scvx.solveSCvx(U0);
     trajOpt = scvx.runSimulation(Uopt, false, true);
     std::cout << "\n\nOptimal trajectory:\n";
     for( int i=0; i<NTS; i++ )
     {
-        std::cout << "X" << i << ": " << trajOpt.X[i].transpose() << "\n";
-        std::cout << "U" << i << ": " << trajOpt.U[i].transpose() << "\n";
+        std::cout << "time step" << i << ":\n\tX = " << trajOpt.X[i].transpose() << "\n";
+        std::cout << "\t\t tau = ";
+        std::cout << trajOpt.U[i].block<NU, 1>(0, 0).transpose() << "\n";
+        std::cout <<"\t\t kCon = ";
+        std::cout << trajOpt.U[i].block<NPAIR, 1>(NU, 0).transpose() << "\n\n";
     }
     std::cout << "X" << NTS << ": " << trajOpt.X[NTS].transpose() << "\n\n";
 

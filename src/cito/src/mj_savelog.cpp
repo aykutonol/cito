@@ -17,7 +17,6 @@ MjSaveLog::MjSaveLog(const mjModel* model) : m(model)
     printFile = fopen(paths::logFile, "wb");
     if( printFile == NULL ) { mju_error("Unable to open the log file."); }
     // create and write the header
-    std::cout << "nq: " << m->nq << "\n";
     header[0] = m->nq;
     header[1] = m->nv;
     header[2] = m->nu;

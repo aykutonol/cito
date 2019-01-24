@@ -1,6 +1,7 @@
 devel/
 build/
 logs/
+mjLogs/
 .catkin_tools/
 MUJOCO_LOG.TXT
 src/cito/.idea/

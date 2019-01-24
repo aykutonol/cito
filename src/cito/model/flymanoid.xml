@@ -17,19 +17,23 @@
         <!-- Environment -->
         <body name="rbar0" pos="1 1 0" >
             <geom name="rbar0" type="box" size="0.1 0.05 0.05" group="1" rgba="0.7 0.7 0.7 1" />
-            <site name="cfr0" pos="0 0.05 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
+            <site name="rbar0_front" pos="0 0.05 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
+            <site name="rbar0_rear" pos="0 -0.05 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
         </body>
         <body name="lbar0" pos="-1 1 0" >
             <geom name="lbar0" type="box" size="0.1 0.05 0.05" group="1" rgba="0.7 0.7 0.7 1" />
-            <site name="cfl0" pos="0 0.05 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
+            <site name="lbar0_front" pos="0 0.05 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
+            <site name="lbar0_rear" pos="0 -0.05 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
         </body>
         <body name="rbar1" pos="1 2 0" >
             <geom name="rbar1" type="box" size="0.1 0.05 0.05" group="1" rgba="0.7 0.7 0.7 1" />
-            <site name="cfr1" pos="0 0.05 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
+            <site name="rbar1_front" pos="0 0.05 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
+            <site name="rbar1_rear" pos="0 -0.05 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
         </body>
         <body name="lbar1" pos="-1 2 0" >
             <geom name="lbar1" type="box" size="0.1 0.05 0.05" group="1" rgba="0.7 0.7 0.7 1" />
-            <site name="cfl1" pos="0 0.05 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
+            <site name="lbar1_front" pos="0 0.05 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
+            <site name="lbar1_rear" pos="0 -0.05 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
         </body>
 
         <!-- Robot -->
@@ -43,7 +47,7 @@
                 <body name="left_leg_link1" pos="0 -0.5 0" >
                       <joint name="left_leg_joint1" pos="0 0 0" axis="0 0 1" limited="true" range="-3.0426 3.0426" />
                       <geom name="left_leg_link1" type="cylinder" size="0.01 0.25" mass="0.5" pos="0 -0.25 0" quat="0.707107 0.707107 0 0" rgba="0.2 0.2 0.8 1" group="1" />
-                      <site name="cll" pos="0 -0.5 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
+                      <site name="left_leg_ee" pos="0 -0.5 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
                 </body>
             </body>
             <body name="right_leg_link0" pos="0.5 -0.5 0" >
@@ -52,7 +56,7 @@
                 <body name="right_leg_link1" pos="0 -0.5 0" >
                       <joint name="right_leg_joint1" pos="0 0 0" axis="0 0 1" limited="true" range="-3.0426 3.0426" />
                       <geom name="right_leg_link1" type="cylinder" size="0.01 0.25" mass="0.5" pos="0 -0.25 0" quat="0.707107 0.707107 0 0" rgba="0.2 0.2 0.8 1" group="1" />
-                      <site name="clr" pos="0 -0.5 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
+                      <site name="right_leg_ee" pos="0 -0.5 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
                 </body>
             </body>
             <!-- Arms -->
@@ -62,7 +66,7 @@
                 <body name="left_arm_link1" pos="0 0.5 0" >
                       <joint name="left_arm_joint1" pos="0 0 0" axis="0 0 1" limited="true" range="-3.0426 3.0426" />
                       <geom name="left_arm_link1" type="cylinder" size="0.01 0.25" mass="0.5" pos="0 0.25 0" quat="0.707107 -0.707107 0 0" rgba="0.2 0.2 0.8 1" group="1" />
-                      <site name="cal" pos="0 0.5 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
+                      <site name="left_arm_ee" pos="0 0.5 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
                 </body>
             </body>
             <body name="right_arm_link0" pos="0.5 0.5 0" >
@@ -71,7 +75,7 @@
                 <body name="right_arm_link1" pos="0 0.5 0" >
                       <joint name="right_arm_joint1" pos="0 0 0" axis="0 0 1" limited="true" range="-3.0426 3.0426" />
                       <geom name="right_arm_link1" type="cylinder" size="0.01 0.25" mass="0.5" pos="0 0.25 0" quat="0.707107 -0.707107 0 0" rgba="0.2 0.2 0.8 1" group="1" />
-                      <site name="car" pos="0 0.5 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
+                      <site name="right_arm_ee" pos="0 0.5 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
                 </body>
             </body>
         </body>
