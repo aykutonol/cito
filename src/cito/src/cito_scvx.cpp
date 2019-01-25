@@ -128,11 +128,11 @@ ctrlVecThread CitoSCvx::solveSCvx(const ctrlVecThread U0)
         trajTemp = {};
         trajTemp = this->runSimulation(UTemp, false, false);
         // get the linear and nonlinear costs
-        L[iter]     = this->getCost(XTilde[NTS], UTemp);
+        JTilde[iter]     = this->getCost(XTilde[NTS], UTemp);
         JTemp[iter] = this->getCost(trajTemp.X[NTS], UTemp);
         // similarity measure ==================================================
         dJ[iter] = J[iter] - JTemp[iter];
-        dL[iter] = J[iter] - L[iter];
+        dL[iter] = J[iter] - JTilde[iter];
         rho[iter] = dJ[iter]/dL[iter];
         if( dL[iter] > 0 && dL[iter] < dLTol )
         {
@@ -165,10 +165,8 @@ ctrlVecThread CitoSCvx::solveSCvx(const ctrlVecThread U0)
         // bound the trust region radius r
         r[iter+1] = std::max(r[iter+1], rMin);
         r[iter+1] = std::min(r[iter+1], rMax);
-        // next iteration ======================================================
-        iter++;
         // stopping criteria check =============================================
-        if( iter == maxIter )
+        if( iter+1 == maxIter )
         {
             stop = 1;
             std::cout << "\n\n\tWARNING: Maximum number of iterations reached\n\n";
@@ -179,11 +177,14 @@ ctrlVecThread CitoSCvx::solveSCvx(const ctrlVecThread U0)
             std::cout << "\n\n\tWARNING: dL<dLTol\n\n";
         }
         // screen output for the iteration =====================================
-        std::cout << "\n\nIteration " << iter << ":" << '\n';
+        std::cout << "\n\nIteration " << iter+1 << ":" << '\n';
         std::cout << "X:      " << trajTemp.X[NTS].transpose() << "\n";
         std::cout << "XTilde: " << XTilde[NTS].transpose() << "\n";
+        std::cout << "JTilde = " << JTilde[iter] << ", J = " << JTemp[iter] << "\n";
+        // next iteration ======================================================
+        iter++;
     }
-    // *********** screen output for the whole process ************************/
+    // summary screen output ===============================================
     std::cout << "\n\nSCVX Summary\nJ0=" << J[0] << "\n\n";
     for( int i=0; i<iter; i++ )
     {
@@ -193,7 +194,7 @@ ctrlVecThread CitoSCvx::solveSCvx(const ctrlVecThread U0)
                    "Iteration","L","J","dL","dJ","rho","r","accept");
         }
         printf("%-12d%-12.6g%-12.6g%-12.3g%-12.3g%-12.3g%-12.3g%-12d\n",
-               i,L[i],JTemp[i],dL[i],dJ[i],rho[i],r[i],accept[i]);
+               i+1,JTilde[i],JTemp[i],dL[i],dJ[i],rho[i],r[i],accept[i]);
     }
     return USucc;
 }

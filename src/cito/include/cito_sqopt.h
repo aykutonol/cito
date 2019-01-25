@@ -41,8 +41,8 @@ private:
     // ***** PARAMETERS ************************************************************
     // solver parameters
     int nnH     = 6 + NTS*NPAIR;        // number of non-zero elements of the Hessian
-    int lencObj = 6 + NTS;              // number of non-zero elements of the linear term
-    int lenru   = 3;                    // number of weights
+    int lencObj = 6 + NTS*NPAIR;        // number of non-zero elements of the linear term
+    int lenru   = 4;                    // number of weights
     int neA = NTS*N*N + (NTS+1)*N + NTS*N*M + ((NTS+1)*N+NTS*M)*5;
     int n   = ((NTS+1)*N + NTS*M)*2;    // *2 is for auxiliary variables for l1-norm
     int nc  = (NTS+1)*N + ((NTS+1)*N+NTS*M)*2 + 1;

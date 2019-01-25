@@ -30,8 +30,6 @@ CitoSQOPT::CitoSQOPT()
     {
         indMove[nnH-1-i] = NTS*N + task::controlJointPos0 + i;
     }
-    for( int i=0; i<nnH; i++ )
-        std::cout << "indMove " << i << ": " << indMove[i] << "\n";
     // initialize & set options for SQOPT
     cvxProb.initialize("", 1);
     // set the weights
@@ -140,8 +138,9 @@ void CitoSQOPT::setCost(const stateVecThread X, const ctrlVecThread U,
         for( int j=0; j<NPAIR; j++ )
         {
             dKCon[i][j] = -U[i][NU+j];
+            cObj[6+i*NPAIR+j] = -ru[2]*dKCon[i][j];
         }
-        cObj[6+i] = -ru[2]*dKCon[i].squaredNorm();
+//        cObj[6+i] = -ru[2]*dKCon[i].squaredNorm();
         dKConSN += dKCon[i].squaredNorm();
     }
     // constant objective term

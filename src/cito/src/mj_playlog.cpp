@@ -946,6 +946,9 @@ int main(int argc, const char** argv)
     }
     // free and terminate
     closeMuJoCo();
-    glfwTerminate();
+    // terminate GLFW (crashes with Linux NVidia drivers)
+    #if defined(__APPLE__) || defined(_WIN32)
+        glfwTerminate();
+    #endif
     return 0;
 }
