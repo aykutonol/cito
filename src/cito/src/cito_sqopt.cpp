@@ -9,6 +9,7 @@
 // ***** CLASS TYPE ************************************************************
 // Solver specific
 
+#include <iostream>
 #include "cito_sqopt.h"
 
 // ***** CONSTRUCTOR & DESTRUCTOR **********************************************
@@ -29,6 +30,8 @@ CitoSQOPT::CitoSQOPT()
     {
         indMove[nnH-1-i] = NTS*N + task::controlJointPos0 + i;
     }
+    for( int i=0; i<nnH; i++ )
+        std::cout << "indMove " << i << ": " << indMove[i] << "\n";
     // initialize & set options for SQOPT
     cvxProb.initialize("", 1);
     // set the weights
@@ -41,11 +44,12 @@ void qpHx(int *nnH, double x[], double Hx[], int *nState,
           char cu[], int *lencu, int iu[], int *leniu,
           double ru[], int *lenru)
 {
-    // final position of object
+    // final x-y position of the control body
     for( int i=0; i<2; i++ )
     {
         Hx[i] = ru[0]*x[i];
     }
+    // final z position and orientation of the control body
     for( int i=2; i<6; i++ )
     {
         Hx[i] = ru[1]*x[i];

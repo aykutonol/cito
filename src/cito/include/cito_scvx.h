@@ -12,7 +12,6 @@
 #include <iostream>
 #include "cito_numdiff.h"
 #include "cito_sqopt.h"
-#include "mj_savelog.h"
 
 
 class CitoSCvx
@@ -52,7 +51,6 @@ private:
     CitoControl cc;
     CitoNumDiff nd;
     CitoSQOPT   sq;
-    MjSaveLog   sl;
 };
 
 #endif //CITO_SCVX_H

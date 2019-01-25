@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "mujoco.h"
+
 #include "cito_params.h"
 
 class MjSaveLog{
@@ -24,12 +25,12 @@ public:
     ~MjSaveLog();
     // ***** FUNCTIONS *************************************************************
     void writeData(const mjData *d);
+private:
     // ***** PARAMETERS ************************************************************
     const mjModel* m;
     FILE* printFile;
     int header[6];
     int dataSize;
-private:
 };
 
 #endif //MJ_SAVELOG_H

@@ -9,7 +9,7 @@
 #include "cito_scvx.h"
 
 // ***** CONSTRUCTOR ***********************************************************
-CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cc(model), nd(model), sl(model)
+CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cc(model), nd(model)
 {
     r[0] = r0;
     cc.getBounds();
@@ -50,8 +50,6 @@ double CitoSCvx::getCost(stateVec_t XFinal, const ctrlVecThread U)
 // runSimulation: rollouts and linearizes the dynamics given a control trajectory
 trajectory CitoSCvx::runSimulation(const ctrlVecThread U, bool linearize, bool save)
 {
-    // initialize save
-//    if( save ) { MjSaveLog sl(m); }
     // make mjData
     mjData* d = NULL;
     d = mj_makeData(m);
@@ -62,7 +60,6 @@ trajectory CitoSCvx::runSimulation(const ctrlVecThread U, bool linearize, bool s
     // rollout (and linearize) the dynamics
     for( int i=0; i<NTS; i++ )
     {
-        if( save ) { sl.writeData(d); }
         // get the current state values
         XSucc[i].setZero();
         XSucc[i] = cc.getState(d);
@@ -73,9 +70,8 @@ trajectory CitoSCvx::runSimulation(const ctrlVecThread U, bool linearize, bool s
             nd.linDyn(d, U[i], Fx[i].data(), Fu[i].data());
         }
         // take tc/dt steps
-        cc.takeStep(d, U[i]);
+        cc.takeStep(d, U[i], save);
     }
-    if( save ) { sl.writeData(d); }
     XSucc[NTS].setZero();
     XSucc[NTS] = cc.getState(d);
     // delete data
@@ -98,7 +94,7 @@ ctrlVecThread CitoSCvx::solveSCvx(const ctrlVecThread U0)
     int iter = 0;
     while( stop == 0 )
     {
-        // simulation ==========================================================
+        // simulation and linearization ========================================
         trajS = {};
         trajS = this->runSimulation(USucc, true, false);
         // get the nonlinear cost if the first iteration

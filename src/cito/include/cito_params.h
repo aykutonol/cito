@@ -31,17 +31,19 @@ namespace paths {
 namespace task {
     // properties of the joint to be controlled
     const double desiredPoseInput[6] = {0.0, 1.5, 0.0, 0.0, 0.0, 0.0};
+    const double desiredVeloInput[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     const Eigen::Matrix<double, 6, 1> desiredPose(desiredPoseInput);
+    const Eigen::Matrix<double, 6, 1> desiredVelo(desiredVeloInput);
     const int controlJointPos0 = 0;   // index of the first element of the joint position
     // cost function weights
     const double w1 = 1e0;    // weight on deviations in x and y directions
     const double w2 = 1e0;    // weight on deviations in z and orientation
-    const double w3 = 1e0;   // weight on virtual stiffness
+    const double w3 = 1e-4;   // weight on virtual stiffness
 }
 // SIMULATION AND MODEL PARAMETERS *********************************************
 namespace params {
     // simulation ==============================================================
-    const double tf = 2.00;           // [s] final time
+    const double tf = 0.20;           // [s] final time
     const double tc = 1e-1;           // [s] control sampling period
     const double dt = 2e-3;           // [s] dynamic sampling period
     const int ncts = (int) floor(tf/tc);    // number of control time steps

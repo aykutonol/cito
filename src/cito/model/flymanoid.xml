@@ -42,38 +42,38 @@
             <geom name="torso" type="box" size="0.5 0.5 0.01" mass="1" group="1" rgba="0.8 0.2 0.2 1" />
             <!-- Legs -->
             <body name="left_leg_link0" pos="-0.5 -0.5 0" >
-                <joint name="left_leg_joint0" pos="0 0 0" axis="0 0 1" limited="true" range="-3.0426 1.5" />
+                <joint name="left_leg_joint0" pos="0 0 0" axis="0 0 1" limited="true" range="-1.5 1.5" />
                 <geom name="left_leg_link0" type="cylinder" size="0.01 0.25" mass="0.5" pos="0 -0.25 0" quat="0.707107 0.707107 0 0" rgba="0.2 0.2 0.8 1" group="1" />
                 <body name="left_leg_link1" pos="0 -0.5 0" >
-                      <joint name="left_leg_joint1" pos="0 0 0" axis="0 0 1" limited="true" range="-3.0426 3.0426" />
+                      <joint name="left_leg_joint1" pos="0 0 0" axis="0 0 1" limited="true" range="-1.5 1.5" />
                       <geom name="left_leg_link1" type="cylinder" size="0.01 0.25" mass="0.5" pos="0 -0.25 0" quat="0.707107 0.707107 0 0" rgba="0.2 0.2 0.8 1" group="1" />
                       <site name="left_leg_ee" pos="0 -0.5 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
                 </body>
             </body>
             <body name="right_leg_link0" pos="0.5 -0.5 0" >
-                <joint name="right_leg_joint0" pos="0 0 0" axis="0 0 1" limited="true" range="-1.5 3.0426" />
+                <joint name="right_leg_joint0" pos="0 0 0" axis="0 0 1" limited="true" range="-1.5 1.5" />
                 <geom name="right_leg_link0" type="cylinder" size="0.01 0.25" mass="0.5" pos="0 -0.25 0" quat="0.707107 0.707107 0 0" rgba="0.2 0.2 0.8 1" group="1" />
                 <body name="right_leg_link1" pos="0 -0.5 0" >
-                      <joint name="right_leg_joint1" pos="0 0 0" axis="0 0 1" limited="true" range="-3.0426 3.0426" />
+                      <joint name="right_leg_joint1" pos="0 0 0" axis="0 0 1" limited="true" range="-1.5 1.5" />
                       <geom name="right_leg_link1" type="cylinder" size="0.01 0.25" mass="0.5" pos="0 -0.25 0" quat="0.707107 0.707107 0 0" rgba="0.2 0.2 0.8 1" group="1" />
                       <site name="right_leg_ee" pos="0 -0.5 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
                 </body>
             </body>
             <!-- Arms -->
             <body name="left_arm_link0" pos="-0.5 0.5 0" >
-                <joint name="left_arm_joint0" pos="0 0 0" axis="0 0 1" limited="true" range="-1.5 3.0426" />
+                <joint name="left_arm_joint0" pos="0 0 0" axis="0 0 1" limited="true" range="-1.5 1.5" />
                 <geom name="left_arm_link0" type="cylinder" size="0.01 0.25" mass="0.5" pos="0 0.25 0" quat="0.707107 -0.707107 0 0" rgba="0.2 0.2 0.8 1" group="1" />
                 <body name="left_arm_link1" pos="0 0.5 0" >
-                      <joint name="left_arm_joint1" pos="0 0 0" axis="0 0 1" limited="true" range="-3.0426 3.0426" />
+                      <joint name="left_arm_joint1" pos="0 0 0" axis="0 0 1" limited="true" range="-1.5 1.5" />
                       <geom name="left_arm_link1" type="cylinder" size="0.01 0.25" mass="0.5" pos="0 0.25 0" quat="0.707107 -0.707107 0 0" rgba="0.2 0.2 0.8 1" group="1" />
                       <site name="left_arm_ee" pos="0 0.5 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
                 </body>
             </body>
             <body name="right_arm_link0" pos="0.5 0.5 0" >
-                <joint name="right_arm_joint0" pos="0 0 0" axis="0 0 1" limited="true" range="-3.0426 1.5" />
+                <joint name="right_arm_joint0" pos="0 0 0" axis="0 0 1" limited="true" range="-1.5 1.5" />
                 <geom name="right_arm_link0" type="cylinder" size="0.01 0.25" mass="0.5" pos="0 0.25 0" quat="0.707107 -0.707107 0 0" rgba="0.2 0.2 0.8 1" group="1" />
                 <body name="right_arm_link1" pos="0 0.5 0" >
-                      <joint name="right_arm_joint1" pos="0 0 0" axis="0 0 1" limited="true" range="-3.0426 3.0426" />
+                      <joint name="right_arm_joint1" pos="0 0 0" axis="0 0 1" limited="true" range="-1.5 1.5" />
                       <geom name="right_arm_link1" type="cylinder" size="0.01 0.25" mass="0.5" pos="0 0.25 0" quat="0.707107 -0.707107 0 0" rgba="0.2 0.2 0.8 1" group="1" />
                       <site name="right_arm_ee" pos="0 0.5 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
                 </body>
@@ -93,14 +93,18 @@
     </actuator>
 
     <contact>
-        <pair geom1="torso" geom2="left_leg_link1" />
-        <pair geom1="torso" geom2="right_leg_link1" />
-        <pair geom1="torso" geom2="left_arm_link1" />
-        <pair geom1="torso" geom2="right_arm_link1" />
-        <pair geom1="lbar0" geom2="left_arm_link1" />
-        <pair geom1="lbar1" geom2="left_arm_link1" />
-        <pair geom1="rbar0" geom2="right_arm_link1" />
-        <pair geom1="rbar1" geom2="right_arm_link1" />
+        <pair geom1="torso"           geom2="left_leg_link1" />
+        <pair geom1="torso"           geom2="right_leg_link1" />
+        <pair geom1="torso"           geom2="left_arm_link1" />
+        <pair geom1="torso"           geom2="right_arm_link1" />
+        <pair geom1="left_arm_link1"  geom2="left_leg_link1" />
+        <pair geom1="left_arm_link1"  geom2="right_arm_link1" />
+        <pair geom1="left_leg_link1"  geom2="right_leg_link1" />
+        <pair geom1="right_arm_link1" geom2="right_leg_link1" />
+        <pair geom1="lbar0"           geom2="left_arm_link1" />
+        <pair geom1="lbar1"           geom2="left_arm_link1" />
+        <pair geom1="rbar0"           geom2="right_arm_link1" />
+        <pair geom1="rbar1"           geom2="right_arm_link1" />
     </contact>
 
     <keyframe>

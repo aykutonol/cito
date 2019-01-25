@@ -37,7 +37,7 @@ void CitoNumDiff::copyTakeStep(const mjData* dmain, const ctrlVec_t u, mjtNum* n
     mj_forward(m, d);
     cc.setControl(d, u);
     // take a full control step (i.e., tc/dt steps)
-    cc.takeStep(d, u);
+    cc.takeStep(d, u, false);
     // get new state
     newXtemp.setZero();
     newXtemp = cc.getState(d);

@@ -13,24 +13,26 @@
 #include "cito_control.h"
 
 // ***** CONSTRUCTOR ***********************************************************
-CitoControl::CitoControl(const mjModel* model) : m(model) {}
+CitoControl::CitoControl(const mjModel* model) : m(model), sl(model) {}
 
 CitoControl::~CitoControl()
 {
-    delete []qposLB;       delete []qposUB;
-    delete []tauLB;        delete []tauUB;
+    delete []qposLB;        delete []qposUB;
+    delete []tauLB;         delete []tauUB;
     delete []isJFree;       delete []isAFree;
 }
 
 // ***** FUNCTIONS *************************************************************
 // takeStep: takes a full control step given a control input
-void CitoControl::takeStep(mjData*d, const ctrlVec_t u)
+void CitoControl::takeStep(mjData*d, const ctrlVec_t u, bool save)
 {
+    if( save ) { sl.writeData(d); }
     for( int i=0; i<params::ndpc; i++ )
     {
         mj_step1(m, d);
         this->setControl(d, u);
         mj_step2(m, d);
+        if( save ) { sl.writeData(d); }
     }
 }
 

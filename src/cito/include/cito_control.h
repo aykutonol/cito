@@ -8,6 +8,7 @@
 // the bodies.
 
 #include "cito_params.h"
+#include "mj_savelog.h"
 
 #ifndef CITO_CONTROL_H
 #define CITO_CONTROL_H
@@ -19,7 +20,7 @@ public:
     CitoControl(const mjModel* model);
     ~CitoControl();
     // ***** FUNCTIONS *************************************************************
-    void takeStep(mjData*d, const ctrlVec_t u);
+    void takeStep(mjData*d, const ctrlVec_t u, bool save);
     void setControl(mjData* d, const ctrlVec_t u);
     stateVec_t getState(const mjData* d);
     void getBounds();
@@ -45,6 +46,8 @@ private:
     // variables for getState
     stateVec_t x;
     Eigen::Matrix<mjtNum, 4, 1> jfree_quat;
+    // objects
+    MjSaveLog sl;
 };
 
 #endif //CITO_CONTROL_H
