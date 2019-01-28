@@ -70,13 +70,15 @@ int main(int argc, char const *argv[]) {
     std::cout << "\n\nOptimal trajectory:\n";
     for( int i=0; i<NTS; i++ )
     {
-        std::cout << "time step" << i << ":\n\tX = " << trajOpt.X[i].transpose() << "\n";
+        std::cout << "time step " << i << ":\n\t\tpos = " << trajOpt.X[i].block<NV, 1>(0, 0).transpose() << "\n";
+        std::cout << "\t\t vel = " << trajOpt.X[i].block<NV, 1>(NV, 0).transpose() << "\n";
         std::cout << "\t\t tau = ";
         std::cout << trajOpt.U[i].block<NU, 1>(0, 0).transpose() << "\n";
         std::cout <<"\t\t kCon = ";
         std::cout << trajOpt.U[i].block<NPAIR, 1>(NU, 0).transpose() << "\n\n";
     }
-    std::cout << "X" << NTS << ": " << trajOpt.X[NTS].transpose() << "\n\n";
+    std::cout << "time step " << NTS << ":\n\t\tpos = " << trajOpt.X[NTS].block<NV, 1>(0, 0).transpose() << "\n";
+    std::cout << "\t\t vel = " << trajOpt.X[NTS].block<NV, 1>(NV, 0).transpose() << "\n";
 
     double J = scvx.getCost(trajOpt.X[NTS], trajOpt.U);
     std::cout << "J = " << J;

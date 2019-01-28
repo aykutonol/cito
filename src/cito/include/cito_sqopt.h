@@ -40,8 +40,8 @@ private:
     void sortX(double *x, int *indMove);
     // ***** PARAMETERS ************************************************************
     // solver parameters
-    int nnH     = 6 + NTS*NPAIR;        // number of non-zero elements of the Hessian
-    int lencObj = 6 + NTS*NPAIR;        // number of non-zero elements of the linear term
+    int nnH     = 6 + 6 + NTS*NPAIR;    // number of non-zero elements of the Hessian
+    int lencObj = nnH;                  // number of non-zero elements of the linear term
     int lenru   = 4;                    // number of weights
     int neA = NTS*N*N + (NTS+1)*N + NTS*N*M + ((NTS+1)*N+NTS*M)*5;
     int n   = ((NTS+1)*N + NTS*M)*2;    // *2 is for auxiliary variables for l1-norm
@@ -54,7 +54,7 @@ private:
     double infBnd = 1.0e20;
     int Cold = 0, Basis = 1, Warm = 2;
     // setCost parameters
-    Eigen::Matrix<double, 6, 1> dPose;
+    Eigen::Matrix<double, 6, 1> dPose, dVelo;
     kConVecThread dKCon;
     double dKConSN;
     // sort parameters

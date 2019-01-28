@@ -27,7 +27,7 @@ nhfielddata    0
 ntex           2
 ntexdata       5505024
 nmat           1
-npair          8
+npair          16
 nexclude       0
 neq            0
 ntendon        0
@@ -48,7 +48,7 @@ nuser_cam      0
 nuser_tendon   0
 nuser_actuator 0
 nuser_sensor   0
-nnames         767
+nnames         775
 
 nM             81
 nemax          0
@@ -58,7 +58,7 @@ nstack         1322700
 nuserdata      0
 nmocap         0
 nsensordata    0
-nbuffer        5521743
+nbuffer        5522807
 
 timestep       0.002   
 apirate        1e+02   
@@ -449,7 +449,7 @@ JOINT 1:
   pos          0         0         0       
   axis         0         0         1       
   stiffness    0       
-  range       -3         1.5     
+  range       -1.5       1.5     
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
   margin       0       
@@ -465,7 +465,7 @@ JOINT 2:
   pos          0         0         0       
   axis         0         0         1       
   stiffness    0       
-  range       -3         3       
+  range       -1.5       1.5     
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
   margin       0       
@@ -481,7 +481,7 @@ JOINT 3:
   pos          0         0         0       
   axis         0         0         1       
   stiffness    0       
-  range       -1.5       3       
+  range       -1.5       1.5     
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
   margin       0       
@@ -497,7 +497,7 @@ JOINT 4:
   pos          0         0         0       
   axis         0         0         1       
   stiffness    0       
-  range       -3         3       
+  range       -1.5       1.5     
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
   margin       0       
@@ -513,7 +513,7 @@ JOINT 5:
   pos          0         0         0       
   axis         0         0         1       
   stiffness    0       
-  range       -1.5       3       
+  range       -1.5       1.5     
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
   margin       0       
@@ -529,7 +529,7 @@ JOINT 6:
   pos          0         0         0       
   axis         0         0         1       
   stiffness    0       
-  range       -3         3       
+  range       -1.5       1.5     
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
   margin       0       
@@ -545,7 +545,7 @@ JOINT 7:
   pos          0         0         0       
   axis         0         0         1       
   stiffness    0       
-  range       -3         1.5     
+  range       -1.5       1.5     
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
   margin       0       
@@ -561,7 +561,7 @@ JOINT 8:
   pos          0         0         0       
   axis         0         0         1       
   stiffness    0       
-  range       -3         3       
+  range       -1.5       1.5     
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
   margin       0       
@@ -1325,6 +1325,18 @@ PAIR 0:
   name         
   dim          3
   geom1        1
+  geom2        9
+  signature    131082
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 1:
+  name         
+  dim          3
+  geom1        1
   geom2        13
   signature    131086
   solref       0.02      1       
@@ -1333,7 +1345,19 @@ PAIR 0:
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
-PAIR 1:
+PAIR 2:
+  name         
+  dim          3
+  geom1        2
+  geom2        7
+  signature    196616
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 3:
   name         
   dim          3
   geom1        2
@@ -1345,7 +1369,19 @@ PAIR 1:
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
-PAIR 2:
+PAIR 4:
+  name         
+  dim          3
+  geom1        3
+  geom2        9
+  signature    262154
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 5:
   name         
   dim          3
   geom1        3
@@ -1357,7 +1393,19 @@ PAIR 2:
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
-PAIR 3:
+PAIR 6:
+  name         
+  dim          3
+  geom1        4
+  geom2        7
+  signature    327688
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 7:
   name         
   dim          3
   geom1        4
@@ -1369,7 +1417,7 @@ PAIR 3:
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
-PAIR 4:
+PAIR 8:
   name         
   dim          3
   geom1        5
@@ -1381,7 +1429,7 @@ PAIR 4:
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
-PAIR 5:
+PAIR 9:
   name         
   dim          3
   geom1        5
@@ -1393,7 +1441,7 @@ PAIR 5:
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
-PAIR 6:
+PAIR 10:
   name         
   dim          3
   geom1        5
@@ -1405,12 +1453,60 @@ PAIR 6:
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
-PAIR 7:
+PAIR 11:
   name         
   dim          3
   geom1        5
   geom2        13
   signature    393230
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 12:
+  name         
+  dim          3
+  geom1        7
+  geom2        9
+  signature    524298
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 13:
+  name         
+  dim          3
+  geom1        7
+  geom2        11
+  signature    524300
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 14:
+  name         
+  dim          3
+  geom1        9
+  geom2        13
+  signature    655374
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 15:
+  name         
+  dim          3
+  geom1        11
+  geom2        13
+  signature    786446
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
   margin       0       

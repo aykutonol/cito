@@ -25,7 +25,12 @@ CitoSQOPT::CitoSQOPT()
             indMove[i*NPAIR+j] = (NTS+1)*N + NTS*M - 1 - (i*M + j);
         }
     }
-    // *** pose variables for the control joint
+    // *** final velocity variables for the control joint
+    for( int i=0; i<6; i++ )
+    {
+        indMove[nnH-1-6-i] = NTS*N + task::controlJointPos0 + NV + i;
+    }
+    // *** final pose variables for the control joint
     for( int i=0; i<6; i++ )
     {
         indMove[nnH-1-i] = NTS*N + task::controlJointPos0 + i;
@@ -33,7 +38,7 @@ CitoSQOPT::CitoSQOPT()
     // initialize & set options for SQOPT
     cvxProb.initialize("", 1);
     // set the weights
-    ru[0] = task::w1; ru[1] = task::w2; ru[2] = task::w3;
+    ru[0] = task::w1; ru[1] = task::w2; ru[2] = task::w3; ru[3] = task::w4;
     cvxProb.setUserR(ru, lenru);
 }
 // ***** FUNCTIONS *************************************************************
@@ -52,8 +57,13 @@ void qpHx(int *nnH, double x[], double Hx[], int *nState,
     {
         Hx[i] = ru[1]*x[i];
     }
+    // final velocity terms
+    for( int i=6; i<12; i++ )
+    {
+        Hx[i] = ru[3]*x[i];
+    }
     // kCon terms
-    for( int i=6; i<6+NTS*NPAIR; i++ )
+    for( int i=12; i<12+NTS*NPAIR; i++ )
     {
         Hx[i] = ru[2]*x[i];
     }
@@ -111,24 +121,28 @@ void CitoSQOPT::solveCvx(double *xTraj, double r, const stateVecThread X, const 
 void CitoSQOPT::setCost(const stateVecThread X, const ctrlVecThread U,
                         double *ru, double *cObj, double& ObjAdd)
 {
-    // set weights
-     cvxProb.setUserR(ru, lenru);
     // *********** set linear and constant objective terms ****************/
     // desired change in the pose
     dPose.setZero();
     for( int i=0; i<6; i++ )
     {
         dPose[i] = task::desiredPose[i] - X[NTS][task::controlJointPos0+i];
+        dVelo[i] = task::desiredVelo[i] - X[NTS][task::controlJointPos0+NV+i];
     }
-    // position
+    // final position
     for( int i=0; i<2; i++ )
     {
         cObj[i] = -ru[0]*dPose[i];
     }
-    // orientation
+    // final orientation
     for( int i=2; i<6; i++ )
     {
         cObj[i] = -ru[1]*dPose[i];
+    }
+    // final velocity
+    for( int i=0; i<6; i++ )
+    {
+        cObj[6+i] = -ru[3]*dVelo[i];
     }
     // virtual stiffness
     dKConSN = 0;
@@ -138,7 +152,7 @@ void CitoSQOPT::setCost(const stateVecThread X, const ctrlVecThread U,
         for( int j=0; j<NPAIR; j++ )
         {
             dKCon[i][j] = -U[i][NU+j];
-            cObj[6+i*NPAIR+j] = -ru[2]*dKCon[i][j];
+            cObj[12+i*NPAIR+j] = -ru[2]*dKCon[i][j];
         }
 //        cObj[6+i] = -ru[2]*dKCon[i].squaredNorm();
         dKConSN += dKCon[i].squaredNorm();
@@ -146,6 +160,7 @@ void CitoSQOPT::setCost(const stateVecThread X, const ctrlVecThread U,
     // constant objective term
     ObjAdd = 0.5*(ru[0]*dPose.block<2,1>(0,0).squaredNorm() +
                   ru[1]*dPose.block<4,1>(2,0).squaredNorm() +
+                  ru[3]*dVelo.squaredNorm() +
                   ru[2]*dKConSN);
 }
 

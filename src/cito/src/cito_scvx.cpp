@@ -27,9 +27,11 @@ double CitoSCvx::getCost(stateVec_t XFinal, const ctrlVecThread U)
     for( int i=0; i<6; i++ )
     {
         finalPose[i] = XFinal[task::controlJointPos0 + i];
+        finalVelo[i] = XFinal[task::controlJointPos0 + NV + i];
     }
     Jf = 0.5*(task::w1*(task::desiredPose.block<2,1>(0,0)-finalPose.block<2,1>(0,0)).squaredNorm()+
-              task::w2*(task::desiredPose.block<4,1>(2,0)-finalPose.block<4,1>(2,0)).squaredNorm());
+              task::w2*(task::desiredPose.block<4,1>(2,0)-finalPose.block<4,1>(2,0)).squaredNorm()+
+              task::w4*(task::desiredVelo - finalVelo).squaredNorm());
     // integrated cost
     KConSN = 0;
     for( int i=0; i<NTS; i++ )
