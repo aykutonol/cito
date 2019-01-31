@@ -30,11 +30,11 @@ private:
     const mjModel* m;
     // SCvx parameters
     static const int maxIter = 10;  // maximum number of iterations
-    double r0 = 1e2;                // initial trust region radius
+    double r0 = 5e1;                // initial trust region radius
     double JTemp[maxIter+1], J[maxIter+1], JTilde[maxIter+1];
     double r[maxIter+1], rho[maxIter+1], dL[maxIter+1], dJ[maxIter+1];
     double dLTol = 1e-4;
-    double rho0 = 0, rho1 = 0.25, rho2 = 0.90, rMin = 0, rMax = 1e20;
+    double rho0 = 0, rho1 = 0.25, rho2 = 0.90, rMin = 1e-3, rMax = 1e3;
     double alpha = 2, beta = 3.2;
     bool accept[maxIter+1], dLTolMet = 0, stop = 0;
     // state/control vectors/matrices for the succession, change, and linear approximation

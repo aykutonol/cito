@@ -30,7 +30,7 @@ bool showoption = false;
 bool showinfo = true;
 bool showsensor = true;
 bool showfullscreen = false;
-int showhelp = 1;                   // 0: none; 1: brief; 2: full
+int showhelp = 0;                   // 0: none; 1: brief; 2: full
 
 // abstract visualization
 mjvScene scn;
@@ -126,7 +126,7 @@ void initOpenGL(const char* modelFilePath, const char* logFilePath)
 
     // create window
     // window size modification ************************************************
-    window = glfwCreateWindow(1024, 700, "MuJoCo Playlog", NULL, NULL);
+    window = glfwCreateWindow(1280, 800, "MuJoCo Playlog", NULL, NULL);
     if( !window )
     {
         glfwTerminate();
@@ -822,9 +822,12 @@ void render(GLFWwindow* window)
         mjr_overlay(mjFONT_NORMAL, mjGRID_TOPLEFT, rect, help_title, help_content, &con);
 
     // show info
+    sprintf(status, "%-5.4f\n%d", d->time, d->ncon);
     if( showinfo )
         mjr_overlay(mjFONT_NORMAL, mjGRID_BOTTOMLEFT, rect,
-                    "Time\nSize\nCamera\nFrame\nLabel", status, &con);
+                    "Time\nContacts", status, &con);
+//        mjr_overlay(mjFONT_NORMAL, mjGRID_BOTTOMLEFT, rect,
+//                    "Time\nSize\nCamera\nFrame\nLabel", status, &con);
 
     // show options
     if( showoption )

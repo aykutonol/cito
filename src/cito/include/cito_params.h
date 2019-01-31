@@ -30,7 +30,7 @@ namespace paths {
 // TASK PARAMETERS *************************************************************
 namespace task {
     // properties of the joint to be controlled
-    const double desiredPoseInput[6] = {0.0, 1.5, 0.0, 0.0, 0.0, 0.0};
+    const double desiredPoseInput[6] = {0.0, 1.25, 0.0, 0.0, 0.0, 0.0};
     const double desiredVeloInput[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
     const Eigen::Matrix<double, 6, 1> desiredPose(desiredPoseInput);
     const Eigen::Matrix<double, 6, 1> desiredVelo(desiredVeloInput);
@@ -38,7 +38,7 @@ namespace task {
     // cost function weights
     const double w1 = 1e2;    // weight on deviations in x and y directions
     const double w2 = 1e0;    // weight on deviations in z and orientation
-    const double w3 = 1e-3;   // weight on virtual stiffness
+    const double w3 = 5e-3;   // weight on virtual stiffness
     const double w4 = 1e2;    // weight on final velocities
 }
 // SIMULATION AND MODEL PARAMETERS *********************************************
