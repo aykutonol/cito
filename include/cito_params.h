@@ -19,8 +19,6 @@
 
 // USER-SPECIFIC PATHS *********************************************************
 namespace paths {
-    // mujoco key
-    const char *const mjKey = "/home/aykut/Development/mujoco200_linux/bin/mjkey.txt";
     // model file
     const char *const modelFile = "/home/aykut/Development/cito/src/cito/model/flymanoid.xml";
     // log files

@@ -16,7 +16,8 @@ stateDerThread Fx;          ctrlDerThread Fu;
 int main(int argc, char const *argv[]) {
     // ********* mujoco initialization ******************************************/
     // activate mujoco
-    mj_activate(paths::mjKey);
+    const char* mjKeyPath = std::getenv("MJ_KEY");
+    mj_activate(mjKeyPath);
     // load xml model
     if( strlen(paths::modelFile)>4 && !strcmp(paths::modelFile+strlen(paths::modelFile)-4, ".mjb") )
     {       m = mj_loadModel(paths::modelFile, NULL); }

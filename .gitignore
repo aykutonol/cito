@@ -1,9 +1,3 @@
-devel/
-build/
-logs/
-mjLogs/
-.catkin_tools/
-MUJOCO_LOG.TXT
-src/cito/.idea/
-src/cito/cmake-build-debug/
+.idea/
+cmake-build-debug/
 

@@ -182,7 +182,8 @@ void setFrame(void)
 void initMuJoCo(const char* modelFilePath, const char* logFilePath)
 {
     // activate MuJoCo license
-    mj_activate(paths::mjKey);
+    const char* mjKeyPath = std::getenv("MJ_KEY");
+    mj_activate(mjKeyPath);
     // load and compile model
     if( strlen(modelFilePath)>4 && !strcmp(modelFilePath+strlen(modelFilePath)-4, ".mjb") )
          m = mj_loadModel(modelFilePath, NULL);

@@ -1,8 +1,9 @@
 #include "mujoco.h"
 #include "glfw3.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <string>
+#include <iostream>
 
 
 // MuJoCo data structures
@@ -135,7 +136,8 @@ void scroll(GLFWwindow* window, double xoffset, double yoffset)
 int main(int argc, const char** argv)
 {
     // activate software
-    mj_activate("/home/aykut/Development/mujoco200_linux/bin/mjkey.txt");
+    const char* mjKeyPath = std::getenv("MJ_KEY");
+    mj_activate(mjKeyPath);
 
     // load xml model
     m = mj_loadXML("/home/aykut/Development/cito/src/cito/model/flymanoid.xml", 0, 0, 0);
