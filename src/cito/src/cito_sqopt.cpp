@@ -37,6 +37,8 @@ CitoSQOPT::CitoSQOPT()
     }
     // initialize & set options for SQOPT
     cvxProb.initialize("", 1);
+    cvxProb.setProbName("SubQP");
+    cvxProb.setIntParameter("Print level", 0);
     // set the weights
     ru[0] = task::w1; ru[1] = task::w2; ru[2] = task::w3; ru[3] = task::w4;
     cvxProb.setUserR(ru, lenru);

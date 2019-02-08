@@ -11,7 +11,7 @@
 // ***** CONSTRUCTOR ***********************************************************
 CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cc(model), nd(model)
 {
-    r[0] = r0;
+    r[0] = r0;      // initial trust region radius
     cc.getBounds();
     XSucc.resize(NTS+1);    dX.resize(NTS+1);   XTilde.resize(NTS+1);
     USucc.resize(NTS);      UTemp.resize(NTS);  dU.resize(NTS);
