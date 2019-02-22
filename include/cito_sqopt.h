@@ -54,7 +54,8 @@ private:
     double infBnd = 1.0e20;
     int Cold = 0, Basis = 1, Warm = 2;
     // setCost parameters
-    Eigen::Matrix<double, 6, 1> dPose, dVelo;
+    int controlJointDOF0;
+    Eigen::Matrix<double, 6, 1> dPose, dVelo, desiredPose, desiredVelo;
     kConVecThread dKCon;
     double dKConSN;
     // sort parameters

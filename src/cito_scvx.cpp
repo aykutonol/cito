@@ -11,12 +11,27 @@
 // ***** CONSTRUCTOR ***********************************************************
 CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cc(model), nd(model)
 {
-    r[0] = r0;      // initial trust region radius
+    // read task parameters
+    YAML::Node parameters = YAML::LoadFile(paths::taskConfig);
+    std::vector<double> desiredPoseInput = { parameters["desiredPoseInput"].as<std::vector<double>>() };
+    std::vector<double> desiredVeloInput = { parameters["desiredVeloInput"].as<std::vector<double>>() };
+    desiredPose = Eigen::Map<Eigen::Matrix<double, 6, 1>>(desiredPoseInput.data(), desiredPoseInput.size());
+    desiredVelo = Eigen::Map<Eigen::Matrix<double, 6, 1>>(desiredVeloInput.data(), desiredVeloInput.size());
+    controlJointDOF0 = parameters["controlJointDOF0"].as<int>();
+    // initial trust region radius
+    r[0] = r0;
+    // set bounds
     cc.getBounds();
+    // trajectories
     XSucc.resize(NTS+1);    dX.resize(NTS+1);   XTilde.resize(NTS+1);
     USucc.resize(NTS);      UTemp.resize(NTS);  dU.resize(NTS);
     Fx.resize(NTS);         Fu.resize(NTS);
     KCon.resize(NTS);
+    // read task parameters
+    weight[0] = parameters["w1"].as<double>();
+    weight[1] = parameters["w2"].as<double>();
+    weight[2] = parameters["w3"].as<double>();
+    weight[3] = parameters["w4"].as<double>();
 }
 
 // ***** FUNCTIONS *************************************************************
@@ -26,12 +41,12 @@ double CitoSCvx::getCost(stateVec_t XFinal, const ctrlVecThread U)
     // terminal cost
     for( int i=0; i<6; i++ )
     {
-        finalPose[i] = XFinal[task::controlJointPos0 + i];
-        finalVelo[i] = XFinal[task::controlJointPos0 + NV + i];
+        finalPose[i] = XFinal[controlJointDOF0 + i];
+        finalVelo[i] = XFinal[controlJointDOF0 + NV + i];
     }
-    Jf = 0.5*(task::w1*(task::desiredPose.block<2,1>(0,0)-finalPose.block<2,1>(0,0)).squaredNorm()+
-              task::w2*(task::desiredPose.block<4,1>(2,0)-finalPose.block<4,1>(2,0)).squaredNorm()+
-              task::w4*(task::desiredVelo - finalVelo).squaredNorm());
+    Jf = 0.5*(weight[0]*(desiredPose.block<2,1>(0,0)-finalPose.block<2,1>(0,0)).squaredNorm()+
+              weight[1]*(desiredPose.block<4,1>(2,0)-finalPose.block<4,1>(2,0)).squaredNorm()+
+              weight[3]*(desiredVelo - finalVelo).squaredNorm());
     // integrated cost
     KConSN = 0;
     for( int i=0; i<NTS; i++ )
@@ -43,7 +58,7 @@ double CitoSCvx::getCost(stateVec_t XFinal, const ctrlVecThread U)
         }
         KConSN += KCon[i].squaredNorm();
     }
-    Ji = 0.5*task::w3*KConSN;
+    Ji = 0.5*weight[2]*KConSN;
     // total cost
     Jt = Jf + Ji;
     return Jt;

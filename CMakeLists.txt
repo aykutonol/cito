@@ -5,6 +5,7 @@ add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(yaml-cpp REQUIRED)
 
 set(MUJOCO_DIR "$ENV{MJ_HOME}")
 
@@ -53,6 +54,7 @@ target_link_libraries(${NODE_NAME1} ${MUJOCO_DIR}/bin/libmujoco200nogl.so
 				    pthread
 				    ${PROJECT_NAME}
 				    /home/aykut/Development/snopt-interface/lib/libsnopt7_cpp.so
+					yaml-cpp
 )
 # playlog: shows motions generated
 add_executable(${NODE_NAME2} src/mj_playlog.cpp)

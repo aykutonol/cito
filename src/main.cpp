@@ -4,6 +4,7 @@
 
 #include <iostream>
 
+
 #include "cito_scvx.h"
 
 // ********* mujoco model & data ************************************************/

@@ -13,6 +13,7 @@
 
 #include "mujoco.h"
 #include <Eigen/Dense>
+#include <yaml-cpp/yaml.h>
 
 #ifndef CITO_PARAMS_H
 #define CITO_PARAMS_H
@@ -24,27 +25,24 @@ namespace paths {
     // log files
     const char *const logFile = "/home/aykut/Development/cito/mjLogs/mjLog_flymanoid";
     const char *const trajFile = "/home/aykut/Development/cito/mjLogs/traj_flymanoid.txt";
+    // config files
+    const char *const taskConfig = "/home/aykut/Development/cito/src/cito/config/task.yaml";
 }
-// TASK PARAMETERS *************************************************************
-namespace task {
-    // properties of the joint to be controlled
-    const double desiredPoseInput[6] = {0.0, 1.25, 0.0, 0.0, 0.0, 0.0};
-    const double desiredVeloInput[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-    const Eigen::Matrix<double, 6, 1> desiredPose(desiredPoseInput);
-    const Eigen::Matrix<double, 6, 1> desiredVelo(desiredVeloInput);
-    const int controlJointPos0 = 0;   // index of the first element of the joint position
-    // cost function weights
-    const double w1 = 1e2;    // weight on deviations in x and y directions
-    const double w2 = 1e0;    // weight on deviations in z and orientation
-    const double w3 = 5e-3;   // weight on virtual stiffness
-    const double w4 = 1e2;    // weight on final velocities
-}
+//// TASK PARAMETERS *************************************************************
+//namespace task {
+//    // properties of the joint to be controlled
+//    const double desiredPoseInput[6] = {0.0, 1.25, 0.0, 0.0, 0.0, 0.0};
+//    const double desiredVeloInput[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+//    const Eigen::Matrix<double, 6, 1> desiredPose(desiredPoseInput);
+//    const Eigen::Matrix<double, 6, 1> desiredVelo(desiredVeloInput);
+//    const int controlJointDOF0 = 0;   // index of the first element of the DOF associated with the joint
+//}
 // SIMULATION AND MODEL PARAMETERS *********************************************
 namespace params {
     // simulation ==============================================================
-    const double tf = 2.00;           // [s] final time
-    const double tc = 1e-1;           // [s] control sampling period
-    const double dt = 2e-3;           // [s] dynamic sampling period
+    const double tf = 2.00;                 // [s] final time
+    const double tc = 1e-1;                 // [s] control sampling period
+    const double dt = 2e-3;                 // [s] dynamic sampling period
     const int ncts = (int) floor(tf/tc);    // number of control time steps
     const int ndpc = (int) floor(tc/dt);    // number of dynamic time steps per a control step
     // model ===================================================================
@@ -69,8 +67,8 @@ namespace params {
                                0,1,4,5};
     // initial pose of the robot and controls
     const double kCon0[npair] = {10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10};
-    const double acon[npair]  = {10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10};
-    const double phi_r = 200;     // parameter for the radius of the distance sphere (200 ~ 1 cm)
+    const double aCon[npair]  = {10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10};
+    const double phiR = 200;        // parameter for the radius of the distance sphere (200 ~ 1 cm)
     // contact surface normals for each pair
     const double csn[npair*3] = {0,1,0, 0,-1,0, 0,1,0, 0,-1,0,
                                  0,1,0, 0,-1,0, 0,1,0, 0,-1,0,

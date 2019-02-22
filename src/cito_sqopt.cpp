@@ -15,6 +15,14 @@
 // ***** CONSTRUCTOR & DESTRUCTOR **********************************************
 CitoSQOPT::CitoSQOPT()
 {
+    // read task parameters
+    YAML::Node parameters = YAML::LoadFile(paths::taskConfig);
+    std::vector<double> desiredPoseConfig = { parameters["desiredPoseInput"].as<std::vector<double>>() };
+    std::vector<double> desiredVeloConfig = { parameters["desiredVeloInput"].as<std::vector<double>>() };
+    desiredPose = Eigen::Map<Eigen::Matrix<double, 6, 1>>(desiredPoseConfig.data(), desiredPoseConfig.size());
+    desiredVelo = Eigen::Map<Eigen::Matrix<double, 6, 1>>(desiredVeloConfig.data(), desiredVeloConfig.size());
+    controlJointDOF0 = parameters["controlJointDOF0"].as<int>();
+    // trajectories
     dKCon.resize(NTS);
     // indices to move
     // *** virtual stiffness variables
@@ -28,19 +36,22 @@ CitoSQOPT::CitoSQOPT()
     // *** final velocity variables for the control joint
     for( int i=0; i<6; i++ )
     {
-        indMove[nnH-1-6-i] = NTS*N + task::controlJointPos0 + NV + i;
+        indMove[nnH-1-6-i] = NTS*N + controlJointDOF0 + NV + i;
     }
     // *** final pose variables for the control joint
     for( int i=0; i<6; i++ )
     {
-        indMove[nnH-1-i] = NTS*N + task::controlJointPos0 + i;
+        indMove[nnH-1-i] = NTS*N + controlJointDOF0 + i;
     }
     // initialize & set options for SQOPT
     cvxProb.initialize("", 1);
     cvxProb.setProbName("SubQP");
     cvxProb.setIntParameter("Print level", 0);
     // set the weights
-    ru[0] = task::w1; ru[1] = task::w2; ru[2] = task::w3; ru[3] = task::w4;
+    ru[0] = parameters["w1"].as<double>();
+    ru[1] = parameters["w2"].as<double>();
+    ru[2] = parameters["w3"].as<double>();
+    ru[3] = parameters["w4"].as<double>();
     cvxProb.setUserR(ru, lenru);
 }
 // ***** FUNCTIONS *************************************************************
@@ -128,8 +139,8 @@ void CitoSQOPT::setCost(const stateVecThread X, const ctrlVecThread U,
     dPose.setZero();
     for( int i=0; i<6; i++ )
     {
-        dPose[i] = task::desiredPose[i] - X[NTS][task::controlJointPos0+i];
-        dVelo[i] = task::desiredVelo[i] - X[NTS][task::controlJointPos0+NV+i];
+        dPose[i] = desiredPose[i] - X[NTS][controlJointDOF0+i];
+        dVelo[i] = desiredVelo[i] - X[NTS][controlJointDOF0+NV+i];
     }
     // final position
     for( int i=0; i<2; i++ )

@@ -43,7 +43,9 @@ private:
     // trajectories
     trajectory traj, trajS, trajTemp;
     // getCost
-    Eigen::Matrix<double, 6, 1> finalPose, finalVelo;
+    double weight[4];
+    int controlJointDOF0;
+    Eigen::Matrix<double, 6, 1> finalPose, finalVelo, desiredPose, desiredVelo;
     kConVecThread KCon;
     double KConSN;          // total squared norm of virtual stiffness variables
     double Jf, Ji, Jt;      // final, integrated, and total cost values

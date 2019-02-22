@@ -75,10 +75,10 @@ Eigen::Matrix<double, 6*params::nfree, 1> CitoControl::contactModel(const mjData
         // distance
         phiE = vRE.norm();                                  // Euclidean distance between the end effector and the environment
         phiN = vRE.dot(nCS);                                // normal distance between the end effector and the environment
-        zeta  = tanh(params::phi_r*phiE);                   // semisphere based on the Euclidean distance
+        zeta  = tanh(params::phiR*phiE);                   // semisphere based on the Euclidean distance
         phiC = zeta*phiE + (1-zeta)*phiN;                   // combined distance
         // normal force in the contact frame
-        gamma = u[NU+p_i]*exp(-params::acon[p_i]*phiC);
+        gamma = u[NU+p_i]*exp(-params::aCon[p_i]*phiC);
         // contact generalized in the world frame
         lambda = gamma*nCS;
         // loop for each free body
