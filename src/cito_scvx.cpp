@@ -109,11 +109,16 @@ ctrlVecThread CitoSCvx::solveSCvx(const ctrlVecThread U0)
     for( int i=0; i<NTS; i++ ) { USucc[i] = U0[i]; }
     // start the SCvx algorithm
     int iter = 0;
-    while( stop == 0 )
+    while( !stop )
     {
-        // simulation and linearization ========================================
-        trajS = {};
-        trajS = this->runSimulation(USucc, true, false);
+        // simulation and convexification ======================================
+        if( iter == 0 || accept[iter-1] )
+        {
+            std::cout << "INFO: convexification started\n";
+            trajS = {};
+            trajS = this->runSimulation(USucc, true, false);
+            std::cout << "INFO: convexification done\n";
+        }
         // get the nonlinear cost if the first iteration
         if( iter == 0 ) { J[iter] = this->getCost(trajS.X[NTS], USucc); }
         // convex optimization =================================================

@@ -10,9 +10,9 @@
 // ********* mujoco model & data ************************************************/
 mjModel *m = NULL;
 mjData  *d = NULL;
-// ********* state, control, and derivative threads *****************************/
-stateVecThread X, XTilde;       ctrlVecThread U0, Uopt;
-stateDerThread Fx;          ctrlDerThread Fu;
+// ********* threads & structs **************************************************/
+ctrlVecThread U0, UOpt;
+trajectory trajOpt;
 //==============================================================================
 int main(int argc, char const *argv[]) {
     // ********* mujoco initialization ******************************************/
@@ -30,10 +30,8 @@ int main(int argc, char const *argv[]) {
     CitoControl cc(m);
     CitoNumDiff nd(m);
     CitoSCvx    scvx(m);
-    // create trajectories
-    U0.resize(NTS); Uopt.resize(NTS); X.resize(NTS+1); XTilde.resize(NTS+1);
-    Fx.resize(NTS); Fu.resize(NTS);
-    trajectory trajOpt;
+    // ********* create objects for CITO ****************************************/
+    U0.resize(NTS); UOpt.resize(NTS);
     // ********* initial control trajectory *************************************/
     for (int i = 0; i < NTS; i++)
     {
@@ -43,32 +41,11 @@ int main(int argc, char const *argv[]) {
             U0[i][NU + j] = params::kCon0[j];
         }
     }
-    // ********* simulation *****************************************************/
-//    for (int i = 0; i < NTS; i++)
-//    {
-//        for (int j = 0; j < params::ndpc; j++)
-//        {
-//            mj_step1(m, d);
-//            cc.setControl(d, U0[i]);
-//            mj_step2(m, d);
-//        }
-//        X[i].setZero(); XTilde[i].setZero(); Fx[i].setZero(); Fu[i].setZero();
-//        X[i] = cc.getState(d);
-//        std::cout << "i: " << i << "\t tau: ";
-//        mju_printMat(d->ctrl, 1, m->nu);
-//        std::cout <<"\t\t kCon: ";
-//        std::cout << U0[i].block<NPAIR, 1>(NU, 0).transpose() << "\n\n";
-//        std::cout << "\t\t xfrc: ";
-//        mju_printMat(d->xfrc_applied + params::bfree[0] * 6, 1, 6);
-//        std::cout << "\t\t torso pose: ";
-//        mju_printMat(d->qpos + params::jfree[0], 1, 7);
-//        std::cout << "X: " << X[i].transpose() << "\n\n";
-////        nd.linDyn(d, U[i], Fx[i].data(), Fu[i].data());
-////        std::cout << "Fx:\n" << Fx[i] << '\n';
-////        std::cout << "Fu:\n" << Fu[i] << '\n';
-//    }
-    Uopt = scvx.solveSCvx(U0);
-    trajOpt = scvx.runSimulation(Uopt, false, true);
+    // ********* run successive convexification *********************************/
+    UOpt = scvx.solveSCvx(U0);
+    // ********* evaluate the optimal trajectory ********************************/
+    trajOpt = scvx.runSimulation(UOpt, false, true);
+    // print the trajectory
     std::cout << "\n\nOptimal trajectory:\n";
     for( int i=0; i<NTS; i++ )
     {
@@ -76,15 +53,14 @@ int main(int argc, char const *argv[]) {
         std::cout << "\t\t vel = " << trajOpt.X[i].block<NV, 1>(NV, 0).transpose() << "\n";
         std::cout << "\t\t tau = ";
         std::cout << trajOpt.U[i].block<NU, 1>(0, 0).transpose() << "\n";
-        std::cout <<"\t\t kCon = ";
+        std::cout <<"\t\t KCon = ";
         std::cout << trajOpt.U[i].block<NPAIR, 1>(NU, 0).transpose() << "\n\n";
     }
     std::cout << "time step " << NTS << ":\n\t\tpos = " << trajOpt.X[NTS].block<NV, 1>(0, 0).transpose() << "\n";
     std::cout << "\t\t vel = " << trajOpt.X[NTS].block<NV, 1>(NV, 0).transpose() << "\n";
-
+    // ********* evaluate the optimal const *************************************/
     double J = scvx.getCost(trajOpt.X[NTS], trajOpt.U);
     std::cout << "J = " << J;
-    std::cout << "\n\nNTS: " << NTS << ", N: " << N << ", M: " << M << ", NU: " << NU << ", NPAIR: " << NPAIR << "\n";
     // ********* mujoco shut down ***********************************************/
     mj_deleteData(d);
     mj_deleteModel(m);

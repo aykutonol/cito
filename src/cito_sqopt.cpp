@@ -96,8 +96,8 @@ void CitoSQOPT::solveCvx(double *xTraj, double r, const stateVecThread X, const 
     double *bu    = new double[n+nc];
     double *pi    = new double[nc];
     double *rc    = new double[n+nc];
-    int    *hs    = new    int[n+nc];
-    int    *eType = new    int[n+nc];
+    int    *hs    = new int[n+nc];
+    int    *eType = new int[n+nc];
     // initial guess
     for( int i=0; i<n+nc; i++ )
     {

@@ -28,15 +28,6 @@ namespace paths {
     // config files
     const char *const taskConfig = "/home/aykut/Development/cito/src/cito/config/task.yaml";
 }
-//// TASK PARAMETERS *************************************************************
-//namespace task {
-//    // properties of the joint to be controlled
-//    const double desiredPoseInput[6] = {0.0, 1.25, 0.0, 0.0, 0.0, 0.0};
-//    const double desiredVeloInput[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-//    const Eigen::Matrix<double, 6, 1> desiredPose(desiredPoseInput);
-//    const Eigen::Matrix<double, 6, 1> desiredVelo(desiredVeloInput);
-//    const int controlJointDOF0 = 0;   // index of the first element of the DOF associated with the joint
-//}
 // SIMULATION AND MODEL PARAMETERS *********************************************
 namespace params {
     // simulation ==============================================================
