@@ -55,13 +55,13 @@ private:
     int Cold = 0, Basis = 1, Warm = 2;
     // setCost parameters
     int controlJointDOF0;
-    Eigen::Matrix<double, 6, 1> dPose, dVelo, desiredPose, desiredVelo;
+    Eigen::Matrix<double, 6, 1> desiredPose, desiredVelo, dPose, dVelo;
     kConVecThread dKCon;
     double dKConSN;
     // sort parameters
-    int    nMove    = nnH;
-    int    *indMove = new int[nMove];
-    double *xTemp   = new double[n];
+    int nMove    = nnH;
+    int *indMove = new int[nMove];
+    double *xTemp;
     // setBounds parameters
     int dUOffset  = (NTS+1)*N;
     int auxOffset = (NTS+1)*N+NTS*M;

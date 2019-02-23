@@ -27,6 +27,7 @@ namespace paths {
     const char *const trajFile = "/home/aykut/Development/cito/mjLogs/traj_flymanoid.txt";
     // config files
     const char *const taskConfig = "/home/aykut/Development/cito/src/cito/config/task.yaml";
+    const char *const scvxConfig = "/home/aykut/Development/cito/src/cito/config/scvx.yaml";
 }
 // SIMULATION AND MODEL PARAMETERS *********************************************
 namespace params {

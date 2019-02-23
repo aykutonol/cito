@@ -12,14 +12,33 @@
 CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cc(model), nd(model)
 {
     // read task parameters
-    YAML::Node parameters = YAML::LoadFile(paths::taskConfig);
-    std::vector<double> desiredPoseInput = { parameters["desiredPoseInput"].as<std::vector<double>>() };
-    std::vector<double> desiredVeloInput = { parameters["desiredVeloInput"].as<std::vector<double>>() };
+    YAML::Node paramTask = YAML::LoadFile(paths::taskConfig);
+    std::vector<double> desiredPoseInput = { paramTask["desiredPoseInput"].as<std::vector<double>>() };
+    std::vector<double> desiredVeloInput = { paramTask["desiredVeloInput"].as<std::vector<double>>() };
     desiredPose = Eigen::Map<Eigen::Matrix<double, 6, 1>>(desiredPoseInput.data(), desiredPoseInput.size());
     desiredVelo = Eigen::Map<Eigen::Matrix<double, 6, 1>>(desiredVeloInput.data(), desiredVeloInput.size());
-    controlJointDOF0 = parameters["controlJointDOF0"].as<int>();
-    // initial trust region radius
-    r[0] = r0;
+    controlJointDOF0 = paramTask["controlJointDOF0"].as<int>();
+    // read SCvx parameters
+    YAML::Node paramSCvx = YAML::LoadFile(paths::scvxConfig);
+    // create new arrays for the max. number of iterations
+    beta_expand = paramSCvx["beta_expand"].as<double>();
+    beta_shrink = paramSCvx["beta_shrink"].as<double>();
+    maxIter = paramSCvx["maxIter"].as<int>();
+    dLTol = paramSCvx["dLTol"].as<double>();
+    rho0 = paramSCvx["rho0"].as<double>();
+    rho1 = paramSCvx["rho1"].as<double>();
+    rho2 = paramSCvx["rho2"].as<double>();
+    rMin = paramSCvx["rMin"].as<double>();
+    rMax = paramSCvx["rMax"].as<double>();
+    J      = new double[maxIter+1];
+    JTemp  = new double[maxIter+1];
+    JTilde = new double[maxIter+1];
+    dJ     = new double[maxIter+1];
+    dL     = new double[maxIter+1];
+    rho    = new double[maxIter+1];
+    r      = new double[maxIter+1];
+    accept = new bool[maxIter];
+    r[0]  = paramSCvx["r0"].as<double>();        // initial trust-region radius
     // set bounds
     cc.getBounds();
     // trajectories
@@ -28,10 +47,10 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cc(model), nd(model)
     Fx.resize(NTS);         Fu.resize(NTS);
     KCon.resize(NTS);
     // read task parameters
-    weight[0] = parameters["w1"].as<double>();
-    weight[1] = parameters["w2"].as<double>();
-    weight[2] = parameters["w3"].as<double>();
-    weight[3] = parameters["w4"].as<double>();
+    weight[0] = paramTask["w1"].as<double>();
+    weight[1] = paramTask["w2"].as<double>();
+    weight[2] = paramTask["w3"].as<double>();
+    weight[3] = paramTask["w4"].as<double>();
 }
 
 // ***** FUNCTIONS *************************************************************
@@ -111,18 +130,22 @@ ctrlVecThread CitoSCvx::solveSCvx(const ctrlVecThread U0)
     int iter = 0;
     while( !stop )
     {
+        std::cout << "Iteration " << iter+1 << ":" << '\n';
         // simulation and convexification ======================================
         if( iter == 0 || accept[iter-1] )
         {
-            std::cout << "INFO: convexification started\n";
+            std::cout << "INFO: convexification is starting\n";
+            auto tDiffStart = std::chrono::system_clock::now();
             trajS = {};
             trajS = this->runSimulation(USucc, true, false);
-            std::cout << "INFO: convexification done\n";
+            auto tDiffEnd = std::chrono::system_clock::now();
+            std::cout << "INFO: convexification took " << std::chrono::duration<double>(tDiffEnd-tDiffStart).count() << " s \n";
         }
         // get the nonlinear cost if the first iteration
         if( iter == 0 ) { J[iter] = this->getCost(trajS.X[NTS], USucc); }
         // convex optimization =================================================
         double *dTraj = new double[NTRAJ];
+
         sq.solveCvx(dTraj, r[iter], trajS.X, USucc, trajS.Fx, trajS.Fu, cc.isJFree, cc.isAFree,
                     cc.qposLB, cc.qposUB, cc.tauLB, cc.tauUB);
         // apply the change
@@ -148,10 +171,15 @@ ctrlVecThread CitoSCvx::solveSCvx(const ctrlVecThread U0)
         }
         // evaluate the dynamics for the change and get the cost values ========
         trajTemp = {};
+        std::cout << "INFO: QP solver is starting\n";
+        auto tQPStart = std::chrono::system_clock::now();
         trajTemp = this->runSimulation(UTemp, false, false);
+        auto tQPEnd = std::chrono::system_clock::now();
+        std::cout << "INFO: QP solver took " << std::chrono::duration<double>(tQPEnd-tQPStart).count() << " s \n";
+
         // get the linear and nonlinear costs
-        JTilde[iter]     = this->getCost(XTilde[NTS], UTemp);
-        JTemp[iter] = this->getCost(trajTemp.X[NTS], UTemp);
+        JTilde[iter] = this->getCost(XTilde[NTS], UTemp);
+        JTemp[iter]  = this->getCost(trajTemp.X[NTS], UTemp);
         // similarity measure ==================================================
         dJ[iter] = J[iter] - JTemp[iter];
         dL[iter] = J[iter] - JTilde[iter];
@@ -162,13 +190,13 @@ ctrlVecThread CitoSCvx::solveSCvx(const ctrlVecThread U0)
         }
         // accept or reject the solution =======================================
         // reject
-        if( rho[iter]<=rho0 || (dL[iter]<0 && dJ[iter]<0) || std::isnan(rho[iter]) )
+        if( rho[iter]<=rho0 || (dL[iter]<0 && dJ[iter]<0) )
         {
-            accept[iter] = 0;
-            r[iter+1] = r[iter]/alpha;
+            accept[iter] = false;
+            r[iter+1] = r[iter]/beta_shrink;
             J[iter+1] = J[iter];
         }
-        else { accept[iter] = 1; }
+        else { accept[iter] = true; }
         // accept
         if( accept[iter] )
         {
@@ -178,11 +206,11 @@ ctrlVecThread CitoSCvx::solveSCvx(const ctrlVecThread U0)
                 USucc[i] = UTemp[i];
             }
             if( rho[iter] < rho1 )
-            { r[iter+1] = r[iter]/alpha;  }
+            { r[iter+1] = r[iter]/beta_shrink;  }
             else if( rho[iter]>=rho1 && rho[iter]<rho2 )
             { r[iter+1] = r[iter];        }
             else if( rho[iter]>=rho2 )
-            { r[iter+1] = r[iter]*beta;   }
+            { r[iter+1] = r[iter]*beta_expand;   }
         }
         // bound the trust region radius r
         r[iter+1] = std::max(r[iter+1], rMin);
@@ -190,19 +218,18 @@ ctrlVecThread CitoSCvx::solveSCvx(const ctrlVecThread U0)
         // stopping criteria check =============================================
         if( iter+1 == maxIter )
         {
-            stop = 1;
+            stop = true;
             std::cout << "\n\n\tWARNING: Maximum number of iterations reached\n\n";
         }
-        if( dLTolMet!=0 )
+        if( dLTolMet )
         {
-            stop = 1;
+            stop = true;
             std::cout << "\n\n\tWARNING: dL<dLTol\n\n";
         }
         // screen output for the iteration =====================================
-        std::cout << "\n\nIteration " << iter+1 << ":" << '\n';
         std::cout << "X:      " << trajTemp.X[NTS].transpose() << "\n";
         std::cout << "XTilde: " << XTilde[NTS].transpose() << "\n";
-        std::cout << "JTilde = " << JTilde[iter] << ", J = " << JTemp[iter] << "\n";
+        std::cout << "JTilde = " << JTilde[iter] << ", J = " << JTemp[iter] << "\n\n\n";
         // next iteration ======================================================
         iter++;
     }

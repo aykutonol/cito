@@ -16,12 +16,12 @@
 CitoSQOPT::CitoSQOPT()
 {
     // read task parameters
-    YAML::Node parameters = YAML::LoadFile(paths::taskConfig);
-    std::vector<double> desiredPoseConfig = { parameters["desiredPoseInput"].as<std::vector<double>>() };
-    std::vector<double> desiredVeloConfig = { parameters["desiredVeloInput"].as<std::vector<double>>() };
+    YAML::Node paramTask = YAML::LoadFile(paths::taskConfig);
+    std::vector<double> desiredPoseConfig = { paramTask["desiredPoseInput"].as<std::vector<double>>() };
+    std::vector<double> desiredVeloConfig = { paramTask["desiredVeloInput"].as<std::vector<double>>() };
     desiredPose = Eigen::Map<Eigen::Matrix<double, 6, 1>>(desiredPoseConfig.data(), desiredPoseConfig.size());
     desiredVelo = Eigen::Map<Eigen::Matrix<double, 6, 1>>(desiredVeloConfig.data(), desiredVeloConfig.size());
-    controlJointDOF0 = parameters["controlJointDOF0"].as<int>();
+    controlJointDOF0 = paramTask["controlJointDOF0"].as<int>();
     // trajectories
     dKCon.resize(NTS);
     // indices to move
@@ -48,10 +48,10 @@ CitoSQOPT::CitoSQOPT()
     cvxProb.setProbName("SubQP");
     cvxProb.setIntParameter("Print level", 0);
     // set the weights
-    ru[0] = parameters["w1"].as<double>();
-    ru[1] = parameters["w2"].as<double>();
-    ru[2] = parameters["w3"].as<double>();
-    ru[3] = parameters["w4"].as<double>();
+    ru[0] = paramTask["w1"].as<double>();
+    ru[1] = paramTask["w2"].as<double>();
+    ru[2] = paramTask["w3"].as<double>();
+    ru[3] = paramTask["w4"].as<double>();
     cvxProb.setUserR(ru, lenru);
 }
 // ***** FUNCTIONS *************************************************************
@@ -136,7 +136,7 @@ void CitoSQOPT::setCost(const stateVecThread X, const ctrlVecThread U,
 {
     // *********** set linear and constant objective terms ****************/
     // desired change in the pose
-    dPose.setZero();
+    dPose.setZero(); dVelo.setZero();
     for( int i=0; i<6; i++ )
     {
         dPose[i] = desiredPose[i] - X[NTS][controlJointDOF0+i];
@@ -399,6 +399,7 @@ void CitoSQOPT::moveRowBounds(double *bl, double *bu, int iMove)
 void CitoSQOPT::sortX(double *x, int *moveIndices)
 {
     int k = 0;
+    xTemp = new double[n];
     for( int i=0; i<n; i++ )
     {
         xTemp[i] = x[nnH+k];

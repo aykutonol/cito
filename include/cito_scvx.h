@@ -10,6 +10,7 @@
 #define CITO_SCVX_H
 
 #include <iostream>
+#include <chrono>
 #include "cito_numdiff.h"
 #include "cito_sqopt.h"
 
@@ -29,14 +30,14 @@ private:
     // ***** PARAMETERS ************************************************************
     const mjModel* m;
     // SCvx parameters
-    static const int maxIter = 10;  // maximum number of iterations
-    double r0 = 5e1;                // initial trust region radius
-    double JTemp[maxIter+1], J[maxIter+1], JTilde[maxIter+1];
-    double r[maxIter+1], rho[maxIter+1], dL[maxIter+1], dJ[maxIter+1];
-    double dLTol = 1e-4;
-    double rho0 = 0, rho1 = 0.25, rho2 = 0.90, rMin = 1e-3, rMax = 1e3;
-    double alpha = 2, beta = 3.2;
-    bool accept[maxIter+1], dLTolMet = 0, stop = 0;
+    int maxIter;                        // maximum number of iterations
+    double *J, *JTemp, *JTilde,         // cost terms
+           *r, *dJ, *dL, *rho,          // trust region radius, change, and similarity
+           dLTol,                       // stopping criteria in terms of dL
+           rho0, rho1, rho2,            // similarity thresholds
+           beta_expand, beta_shrink,    // trust-region expand and shrink factors
+           rMin, rMax;                  // trust-region radius limits
+    bool *accept, dLTolMet = false, stop = false;
     // state/control vectors/matrices for the succession, change, and linear approximation
     stateVecThread XSucc, dX, XTilde;   ctrlVecThread USucc, dU, UTemp;
     stateDerThread Fx;                  ctrlDerThread Fu;
@@ -45,7 +46,7 @@ private:
     // getCost
     double weight[4];
     int controlJointDOF0;
-    Eigen::Matrix<double, 6, 1> finalPose, finalVelo, desiredPose, desiredVelo;
+    Eigen::Matrix<double, 6, 1> desiredPose, desiredVelo, finalPose, finalVelo;
     kConVecThread KCon;
     double KConSN;          // total squared norm of virtual stiffness variables
     double Jf, Ji, Jt;      // final, integrated, and total cost values
