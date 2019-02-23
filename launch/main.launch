@@ -1,0 +1,11 @@
+<launch>
+	<arg  	name="config" default="task"/>
+	<node 	name="anon"
+	      	pkg="cito"
+	      	type="main"
+	      	respawn="false" output="screen" clear_params="true" launch-prefix="">
+		<rosparam file="$(find cito)/config/$(arg config).yaml" command="load"/>
+	</node>
+</launch>
+
+<!--valgrind hyphenhyphenleak-check=full hyphenhyphenshow-leak-kinds=all hyphenhyphentrack-origins=yes"-->

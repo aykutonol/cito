@@ -1,0 +1,16 @@
+# maximum number of iterations
+maxIter: 10
+# initial trust region radius
+r0: 5e1
+# stopping tolerance for the change of the convex cost
+dLTol: 1e-4
+# similarity thresholds
+rho0: 0
+rho1: 0.25
+rho2: 0.90
+# trust-region expand and shrink factors
+beta_expand: 3.2
+beta_shrink: 2
+# trust-region radius limits
+rMin: 1e-3
+rMax: 1e3
