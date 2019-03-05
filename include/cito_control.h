@@ -22,12 +22,12 @@ public:
     /// Destructor
     ~CitoControl();
     /// This function takes a full control step given a control input
-    void takeStep(mjData*d, const ctrlVec_t u, bool save);
+    void takeStep(mjData*d, const ctrlVec u, bool save);
     /// This function sets generalized forces on joints and free bodies
-    void setControl(mjData* d, const ctrlVec_t u);
+    void setControl(mjData* d, const ctrlVec u);
     /** This function converts free joints' quaternions to Euler angles so that
      *  the dimensionality of the state vector is 2*nv instead of nq+nv */
-    stateVec_t getState(const mjData* d);
+    stateVec getState(const mjData* d);
     /// This function gets bounds on joint positions, actuator forces from the model
     void getBounds();
     /// position & torque limits
@@ -40,16 +40,16 @@ public:
 
 private:
     /// This function returns contact wrench given current state and control input
-    Eigen::Matrix<double, 6*params::nfree, 1> contactModel(const mjData* d, const ctrlVec_t u);
+    Eigen::Matrix<double, 6*params::nfree, 1> contactModel(const mjData* d, const ctrlVec u);
     /// MuJoCo model
     const mjModel* m;
     /// Contact wrench
     Eigen::Matrix<double, 6*params::nfree, 1> h, hCon;
     /// Contact model variables
-    double phiE, phiN, zeta, phiC, gamma;
+    double phiE, phiN, zeta, phiC, gamma, alpha, phiR;
     Eigen::Matrix<double, 3, 1> pSR, pSE, pBF, nCS, vRE, vEF, lambda;
     /// getState variables
-    stateVec_t x;
+    stateVec x;
     Eigen::Matrix<mjtNum, 4, 1> jfree_quat;
     /// SaveLog object
     MjSaveLog sl;

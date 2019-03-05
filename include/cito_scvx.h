@@ -25,11 +25,11 @@ public:
     /// Destructor
     ~CitoSCvx() {}
     /// This function returns the nonlinear cost given control trajectory and final state
-    double getCost(const stateVec_t XFinal, const ctrlVecThread U);
+    double getCost(const stateVec XFinal, const ctrlTraj U);
     /// This function rolls-out and linearizes the dynamics given control trajectory
-    trajectory runSimulation(const ctrlVecThread U0, bool linearize, bool save);
+    trajectory runSimulation(const ctrlTraj U0, bool linearize, bool save);
     /// This function executes the successive convexification algorithm
-    ctrlVecThread solveSCvx(const ctrlVecThread U);
+    ctrlTraj solveSCvx(const ctrlTraj U);
 
 private:
     /// MuJoCo model
@@ -44,14 +44,14 @@ private:
            rMin, rMax;                  // trust-region radius limits
     bool *accept, dLTolMet = false, stop = false;
     /// Trajectories
-    stateVecThread XSucc, dX, XTilde;   ctrlVecThread USucc, dU, UTemp;
-    stateDerThread Fx;                  ctrlDerThread Fu;
+    stateTraj XSucc, dX, XTilde;    ctrlTraj USucc, dU, UTemp;
+    stateDerTraj Fx;                ctrlDerTraj Fu;
     trajectory traj, trajS, trajTemp;
     /// Cost function variables
     double weight[4];
     int controlJointDOF0;
     Eigen::Matrix<double, 6, 1> desiredPose, desiredVelo, finalPose, finalVelo;
-    kConVecThread KCon;
+    kConTraj KCon;
     double KConSN;          // total squared norm of virtual stiffness variables
     double Jf, Ji, Jt;      // final, integrated, and total cost values
     /// Control, numerical differentiation, and SQOPT objects

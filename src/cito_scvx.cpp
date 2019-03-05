@@ -37,12 +37,12 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cc(model), nd(model)
     r[0]  = paramSCvx["r0"].as<double>();        // initial trust-region radius
     // set bounds
     cc.getBounds();
-    // trajectories
+    // resize trajectories
     XSucc.resize(NTS+1);    dX.resize(NTS+1);   XTilde.resize(NTS+1);
     USucc.resize(NTS);      UTemp.resize(NTS);  dU.resize(NTS);
     Fx.resize(NTS);         Fu.resize(NTS);
     KCon.resize(NTS);
-    // read task parameters
+    // read cost function weights
     weight[0] = paramTask["w1"].as<double>();
     weight[1] = paramTask["w2"].as<double>();
     weight[2] = paramTask["w3"].as<double>();
@@ -51,7 +51,7 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cc(model), nd(model)
 
 // ***** FUNCTIONS *************************************************************
 // getCost: returns the nonlinear cost given control trajectory and final state
-double CitoSCvx::getCost(stateVec_t XFinal, const ctrlVecThread U)
+double CitoSCvx::getCost(stateVec XFinal, const ctrlTraj U)
 {
     // terminal cost
     for( int i=0; i<6; i++ )
@@ -80,7 +80,7 @@ double CitoSCvx::getCost(stateVec_t XFinal, const ctrlVecThread U)
 }
 
 // runSimulation: rolls-out and linearizes the dynamics given control trajectory
-trajectory CitoSCvx::runSimulation(const ctrlVecThread U, bool linearize, bool save)
+trajectory CitoSCvx::runSimulation(const ctrlTraj U, bool linearize, bool save)
 {
     // make mjData
     mjData* d = NULL;
@@ -118,7 +118,7 @@ trajectory CitoSCvx::runSimulation(const ctrlVecThread U, bool linearize, bool s
 }
 
 // solveSCvx: executes the successive convexification algorithm
-ctrlVecThread CitoSCvx::solveSCvx(const ctrlVecThread U0)
+ctrlTraj CitoSCvx::solveSCvx(const ctrlTraj U0)
 {
     // initialize USucc for the first succession
     for( int i=0; i<NTS; i++ ) { USucc[i] = U0[i]; }

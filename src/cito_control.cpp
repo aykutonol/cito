@@ -7,7 +7,12 @@
 
 
 // ***** CONSTRUCTOR & DESTRUCTOR **********************************************
-CitoControl::CitoControl(const mjModel* model) : m(model), sl(model) {}
+CitoControl::CitoControl(const mjModel* model) : m(model), sl(model)
+{
+    YAML::Node vscm = YAML::LoadFile(workspaceDir+"/src/cito/config/vscm.yaml");
+    alpha = vscm["alpha"].as<double>();
+    phiR  = vscm["phiR"].as<double>();
+}
 CitoControl::~CitoControl()
 {
     delete []qposLB;        delete []qposUB;
@@ -17,7 +22,7 @@ CitoControl::~CitoControl()
 
 // ***** FUNCTIONS *************************************************************
 // takeStep: takes a full control step given a control input
-void CitoControl::takeStep(mjData*d, const ctrlVec_t u, bool save)
+void CitoControl::takeStep(mjData*d, const ctrlVec u, bool save)
 {
     if( save ) { sl.writeData(d); }
     for( int i=0; i<params::ndpc; i++ )
@@ -30,7 +35,7 @@ void CitoControl::takeStep(mjData*d, const ctrlVec_t u, bool save)
 }
 
 // setControl: sets generalized forces on joints and free bodies
-void CitoControl::setControl(mjData* d, const ctrlVec_t u)
+void CitoControl::setControl(mjData* d, const ctrlVec u)
 {
     // set control given the control input
     for( int i=0; i<NU; i++ )
@@ -51,7 +56,7 @@ void CitoControl::setControl(mjData* d, const ctrlVec_t u)
 }
 
 // contactModel: returns contact wrench given current state and control input
-Eigen::Matrix<double, 6*params::nfree, 1> CitoControl::contactModel(const mjData* d, const ctrlVec_t u)
+Eigen::Matrix<double, 6*params::nfree, 1> CitoControl::contactModel(const mjData* d, const ctrlVec u)
 {
     h.setZero();
     // loop for each contact pair
@@ -68,10 +73,10 @@ Eigen::Matrix<double, 6*params::nfree, 1> CitoControl::contactModel(const mjData
         // distance
         phiE = vRE.norm();                                  // Euclidean distance between the end effector and the environment
         phiN = vRE.dot(nCS);                                // normal distance between the end effector and the environment
-        zeta  = tanh(params::phiR*phiE);                    // semi-sphere based on the Euclidean distance
+        zeta  = tanh(phiR*phiE);                            // semi-sphere based on the Euclidean distance
         phiC = zeta*phiE + (1-zeta)*phiN;                   // combined distance
         // normal force in the contact frame
-        gamma = u[NU+p_i]*exp(-params::aCon[p_i]*phiC);
+        gamma = u[NU+p_i]*exp(-alpha*phiC);
         // contact generalized in the world frame
         lambda = gamma*nCS;
         // loop for each free body
@@ -87,7 +92,7 @@ Eigen::Matrix<double, 6*params::nfree, 1> CitoControl::contactModel(const mjData
           h[f_i*6+1] += lambda[1];
           h[f_i*6+2] += lambda[2];
           h[f_i*6+3] += -vEF[2]*lambda[1] + vEF[1]*lambda[2];
-          h[f_i*6+4] += vEF[2]*lambda[0]  - vEF[0]*lambda[2];
+          h[f_i*6+4] +=  vEF[2]*lambda[0] - vEF[0]*lambda[2];
           h[f_i*6+5] += -vEF[1]*lambda[0] + vEF[0]*lambda[1];
         }
     }
@@ -96,7 +101,7 @@ Eigen::Matrix<double, 6*params::nfree, 1> CitoControl::contactModel(const mjData
 
 // getState: converts free joints' quaternions to Euler angles so that
 // the dimensionality of the state vector is 2*nv instead of nq+nv
-stateVec_t CitoControl::getState(const mjData* d)
+stateVec CitoControl::getState(const mjData* d)
 {
     x.setZero();
     int free_count = 0;

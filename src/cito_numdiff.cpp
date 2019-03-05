@@ -5,55 +5,51 @@
 // dynamics including the forces imposed by the contact model.
 
 // ***** CONSTRUCTOR ***********************************************************
-CitoNumDiff::CitoNumDiff(const mjModel* model) : m(model), cc(model)
-{
-
-}
-
+CitoNumDiff::CitoNumDiff(const mjModel* model) : m(model), cc(model) {}
 // ***** FUNCTIONS *************************************************************
-// copyTakeStep: sets newX to the integration of data given a control input
-void CitoNumDiff::copyTakeStep(const mjData* dmain, const ctrlVec_t u, mjtNum* newX)
+// copyTakeStep: sets xNew to the integration of data given a control input
+void CitoNumDiff::copyTakeStep(const mjData* dMain, const ctrlVec u, mjtNum* xNew)
 {
     // create new data
     mjData* d;
     d = mj_makeData(m);
-    // copy state and control from dmain to d
-    d->time = dmain->time;
-    mju_copy(d->qpos, dmain->qpos, m->nq);
-    mju_copy(d->qvel, dmain->qvel, NV);
-    mju_copy(d->qacc, dmain->qacc, NV);
-    mju_copy(d->qacc_warmstart, dmain->qacc_warmstart, NV);
-    mju_copy(d->qfrc_applied, dmain->qfrc_applied, NV);
-    mju_copy(d->xfrc_applied, dmain->xfrc_applied, 6*m->nbody);
-    mju_copy(d->ctrl, dmain->ctrl, m->nu);
-    // run full computation at center point (usually faster than copying dmain)
+    // copy state and control from dMain to d
+    d->time = dMain->time;
+    mju_copy(d->qpos, dMain->qpos, m->nq);
+    mju_copy(d->qvel, dMain->qvel, NV);
+    mju_copy(d->qacc, dMain->qacc, NV);
+    mju_copy(d->qacc_warmstart, dMain->qacc_warmstart, NV);
+    mju_copy(d->qfrc_applied, dMain->qfrc_applied, NV);
+    mju_copy(d->xfrc_applied, dMain->xfrc_applied, 6*m->nbody);
+    mju_copy(d->ctrl, dMain->ctrl, m->nu);
+    // run full computation at center point (usually faster than copying dMain)
     mj_forward(m, d);
     cc.setControl(d, u);
     // take a full control step (i.e., tc/dt steps)
     cc.takeStep(d, u, false);
     // get new state
-    newXtemp.setZero();
-    newXtemp = cc.getState(d);
-    mju_copy(newX, newXtemp.data(), N);
+    xNewTemp.setZero();
+    xNewTemp = cc.getState(d);
+    mju_copy(xNew, xNewTemp.data(), N);
     // delete data
     mj_deleteData(d);
 }
 
 // hardWorker: for full, slow finite-difference computation
-void CitoNumDiff::hardWorker(const mjData* dmain, const ctrlVec_t umain, mjtNum* deriv)
+void CitoNumDiff::hardWorker(const mjData* dMain, const ctrlVec uMain, mjtNum* deriv)
 {
     // create data
     mjData* d;
     d = mj_makeData(m);
-    // copy state and control from dmain to d
-    d->time = dmain->time;
-    mju_copy(d->qpos, dmain->qpos, m->nq);
-    mju_copy(d->qvel, dmain->qvel, NV);
-    mju_copy(d->qacc, dmain->qacc, NV);
-    mju_copy(d->qacc_warmstart, dmain->qacc_warmstart, NV);
-    mju_copy(d->qfrc_applied, dmain->qfrc_applied, NV);
-    mju_copy(d->xfrc_applied, dmain->xfrc_applied, 6*m->nbody);
-    mju_copy(d->ctrl, dmain->ctrl, m->nu);
+    // copy state and control from dMain to d
+    d->time = dMain->time;
+    mju_copy(d->qpos, dMain->qpos, m->nq);
+    mju_copy(d->qvel, dMain->qvel, NV);
+    mju_copy(d->qacc, dMain->qacc, NV);
+    mju_copy(d->qacc_warmstart, dMain->qacc_warmstart, NV);
+    mju_copy(d->qfrc_applied, dMain->qfrc_applied, NV);
+    mju_copy(d->xfrc_applied, dMain->xfrc_applied, 6*m->nbody);
+    mju_copy(d->ctrl, dMain->ctrl, m->nu);
     // finite-difference over positions
     for( int i=0; i<NV; i++ )
     {
@@ -78,10 +74,10 @@ void CitoNumDiff::hardWorker(const mjData* dmain, const ctrlVec_t umain, mjtNum*
             d->qpos[m->jnt_qposadr[jid] + i - m->jnt_dofadr[jid]] += eps;
         }
         // get the positive perturbed state
-        newXp.setZero();
-        this->copyTakeStep(d, umain, newXp.data());
+        xNewP.setZero();
+        this->copyTakeStep(d, uMain, xNewP.data());
         // undo perturbation
-        mju_copy(d->qpos, dmain->qpos, m->nq);
+        mju_copy(d->qpos, dMain->qpos, m->nq);
         // apply quaternion or simple perturbation
         if( quatadr>=0 )
         {
@@ -94,14 +90,14 @@ void CitoNumDiff::hardWorker(const mjData* dmain, const ctrlVec_t umain, mjtNum*
             d->qpos[m->jnt_qposadr[jid] + i - m->jnt_dofadr[jid]] -= eps;
         }
         // get the negative perturbed state
-        newXn.setZero();
-        this->copyTakeStep(d, umain, newXn.data());
+        xNewN.setZero();
+        this->copyTakeStep(d, uMain, xNewN.data());
         // undo perturbation
-        mju_copy(d->qpos, dmain->qpos, m->nq);
+        mju_copy(d->qpos, dMain->qpos, m->nq);
         // compute column i of dx/dqpos
         for( int j=0; j<N; j++ )
         {
-            deriv[i*N + j] = (newXp[j] - newXn[j])/(2*eps);
+            deriv[i*N + j] = (xNewP[j] - xNewN[j])/(2*eps);
         }
     }
     // finite-difference over velocities
@@ -110,51 +106,51 @@ void CitoNumDiff::hardWorker(const mjData* dmain, const ctrlVec_t umain, mjtNum*
         // perturb velocity
         d->qvel[i] += eps;
         // get the positive perturbed state
-        newXp.setZero();
-        this->copyTakeStep(d, umain, newXp.data());
+        xNewP.setZero();
+        this->copyTakeStep(d, uMain, xNewP.data());
         // perturb velocity
-        d->qvel[i] = dmain->qvel[i]-eps;
+        d->qvel[i] = dMain->qvel[i]-eps;
         // get the negative perturbed state
-        newXn.setZero();
-        this->copyTakeStep(d, umain, newXn.data());
+        xNewN.setZero();
+        this->copyTakeStep(d, uMain, xNewN.data());
         // undo perturbation
-        d->qvel[i] = dmain->qvel[i];
+        d->qvel[i] = dMain->qvel[i];
         // compute column i of dx/dqvel
         for( int j=0; j<N; j++ )
         {
-            deriv[N*NV + i*N + j] = (newXp[j] - newXn[j])/(2*eps);
+            deriv[N*NV + i*N + j] = (xNewP[j] - xNewN[j])/(2*eps);
         }
     }
     // finite-difference over control variables
-    // copy umain to utemp for perturbations
-    utemp = umain;
+    // copy uMain to utemp for perturbations
+    utemp = uMain;
     for( int i=0; i<M; i++ )
     {
         // perturbation in the positive direction
         utemp[i] += eps;
         // get the positive perturbed state
-        newXp.setZero();
-        this->copyTakeStep(d, utemp, newXp.data());
+        xNewP.setZero();
+        this->copyTakeStep(d, utemp, xNewP.data());
         // perturbation in the negative direction
         utemp[i] -= 2*eps;
         // get the negative perturbed state
-        newXn.setZero();
-        this->copyTakeStep(d, utemp, newXn.data());
+        xNewN.setZero();
+        this->copyTakeStep(d, utemp, xNewN.data());
         // compute column i of dx/du
         for( int j=0; j<N; j++ )
         {
-            deriv[N*N + i*N + j] = (newXp[j] - newXn[j])/(2*eps);
+            deriv[N*N + i*N + j] = (xNewP[j] - xNewN[j])/(2*eps);
         }
     }
     // delete data
     mj_deleteData(d);
 }
 
-// linDyn: calculates sensitivies of the states to changes in states and controls
-void CitoNumDiff::linDyn(const mjData* dmain, const ctrlVec_t umain, mjtNum* Fxd, mjtNum* Fud)
+// linDyn: calculates derivatives of the state and control trajectories
+void CitoNumDiff::linDyn(const mjData* dMain, const ctrlVec uMain, mjtNum* Fxd, mjtNum* Fud)
 {
     mjtNum* deriv = (mjtNum*) mju_malloc(sizeof(mjtNum)*N*(N+M));
-    this->hardWorker(dmain, umain, deriv);
+    this->hardWorker( dMain, uMain, deriv);
     mju_copy(Fxd, deriv, N*N);
     mju_copy(Fud, deriv+N*N, N*M);
     mju_free(deriv);

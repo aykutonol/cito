@@ -22,21 +22,21 @@ public:
     /// Destructor
     ~CitoSQOPT() {}
     /// This function solves the convex subproblem
-    void solveCvx(double *xTraj, double r, const stateVecThread X, const ctrlVecThread U,
-                  const stateDerThread Fx, const ctrlDerThread Fu, int *isJFree, int *isAFree,
+    void solveCvx(double *xTraj, double r, const stateTraj X, const ctrlTraj U,
+                  const stateDerTraj Fx, const ctrlDerTraj Fu, int *isJFree, int *isAFree,
                   double *qposLB, double *qposUB, double *tauLB, double *tauUB);
 private:
     /// This function sets linear and constant cost terms
-    void setCost(const stateVecThread X, const ctrlVecThread U,
+    void setCost(const stateTraj X, const ctrlTraj U,
                  double *ru, double *cObj, double& ObjAdd);
     /// This function sets bounds of dX, dU, and constraints (dynamics, trust region, etc.)
-    void setBounds(double r, const stateVecThread X, const ctrlVecThread U,
+    void setBounds(double r, const stateTraj X, const ctrlTraj U,
                    double *bl, double *bu, int *isJFree, int *isAFree,
                    double *qposLB, double *qposUB, double *tauLB, double *tauUB);
     /* This function creates the sparse A matrix for linearized dynamics, auxiliary
      *  variables, and trust region constraints */
     void setA(double *valA, int *indA, int *locA,
-              const stateDerThread Fx, const ctrlDerThread Fu);
+              const stateDerTraj Fx, const ctrlDerTraj Fu);
     /// This function modifies A and the bounds such that non-zero elements in H come first
     void sortToMatch(double *valA, int *indA, int *locA, int *indMove, double *bl, double *bu);
     /// This function moves column iMove in A to left
@@ -54,15 +54,15 @@ private:
     int nc  = (NTS+1)*N + ((NTS+1)*N+NTS*M)*2 + 1;
     int iObj = -1;
     int nS, nInf;
-    double *cObj   = new double[lencObj];
-    double *ru     = new double[lenru];
+    double *cObj = new double[lencObj];
+    double *ru   = new double[lenru];
     double ObjAdd = 0, sInf = 0, objective;
     double infBnd = 1.0e20;
     int Cold = 0, Basis = 1, Warm = 2;
     /// Cost parameters
     int controlJointDOF0;
     Eigen::Matrix<double, 6, 1> desiredPose, desiredVelo, dPose, dVelo;
-    kConVecThread dKCon;
+    kConTraj dKCon;
     double dKConSN;
     /// Sort parameters
     int nMove    = nnH;
@@ -71,6 +71,7 @@ private:
     /// setBounds parameters
     int dUOffset  = (NTS+1)*N;
     int auxOffset = (NTS+1)*N+NTS*M;
+    double kCon0;
     /// SQOPT problem object
     sqoptProblem cvxProb;
 };

@@ -1,9 +1,9 @@
 /*! Parameters */
 /**
- *  \brief citoParams contains user-specific definitions
+ *  \brief CitoParams contains user-specific and general definitions
  *
  *  This header defines global variables that are specific to simulation,
- *  robot, and environment.
+ *  robot, and environment as well as general types and structures.
  *
  *  \author Aykut Onol
  */
@@ -35,10 +35,10 @@ namespace params {
     const int nact = 8;                                   // number of actuated joints
     const int nfree = 1;                                  // number of free joints
     // specific joint and body indices
-    const int jact[nact] = {6, 7, 8, 9, 10, 11, 12, 13};  // actuated joints
-    const int jfree[nfree] = {0};                         // free joints
-    const int bfree[nfree] = {5};                         // free bodies
-    /// Contact
+    const int jact[nact] = {6, 7, 8, 9, 10, 11, 12, 13};  // indices of actuated DOF
+    const int jfree[nfree] = {0};                         // indices free joints
+    const int bfree[nfree] = {5};                         // indices free bodies
+    /// Contact: flymanoid.xml
     const int ncrbt = 4;              // number of contact candidates on the robot (end effectors)
     const int ncenv = 8;              // number of contact candidates in the environment
     const int nsite = ncrbt + ncenv;  // number of sites
@@ -57,11 +57,8 @@ namespace params {
                                  0,1,0, 0,-1,0, 0,1,0, 0,-1,0,
                                  0,1,0, 0,-1,0, 0,1,0, 0,-1,0,
                                  0,1,0, 0,-1,0, 0,1,0, 0,-1,0};
-    // initial pose of the robot and controls
-    const double kCon0[npair] = {10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10};
-    const double aCon[npair]  = {10,10,10,10,10,10,10,10,10,10,10,10,10,10,10,10};
-    const double phiR = 200;        // parameter for the radius of the distance sphere (200 ~ 1 cm)
 }
+// The following constants and types are not changed */
 /// Constants
 const int NU    = params::nact;         // number of actuated joints
 const int NPAIR = params::npair;        // number of contact pairs
@@ -71,25 +68,25 @@ const int M     = NU + NPAIR;           // dimensionality of controls
 const int NTS   = params::ncts;         // number of control time
 const int NTRAJ = (NTS+1)*N + NTS*M;    // number of trajectory variables
 /// Types
-// eigen+mujoco types for a time instant
-typedef Eigen::Matrix<mjtNum, N, 1>                  stateVec_t;
-typedef Eigen::Matrix<mjtNum, N, N, Eigen::ColMajor> stateDer_t;
-typedef Eigen::Matrix<mjtNum, M, 1>                  ctrlVec_t;
-typedef Eigen::Matrix<mjtNum, N, M, Eigen::ColMajor> ctrlDer_t;
-typedef Eigen::Matrix<mjtNum, NPAIR, 1>              kConVec_t;
-// threaded types for trajecrories
-typedef std::vector<stateVec_t, Eigen::aligned_allocator<stateVec_t>> stateVecThread;
-typedef std::vector<stateDer_t, Eigen::aligned_allocator<stateDer_t>> stateDerThread;
-typedef std::vector<ctrlVec_t,  Eigen::aligned_allocator<ctrlVec_t>>  ctrlVecThread;
-typedef std::vector<ctrlDer_t,  Eigen::aligned_allocator<ctrlDer_t>>  ctrlDerThread;
-typedef std::vector<kConVec_t,  Eigen::aligned_allocator<kConVec_t>>  kConVecThread;
+/* eigen+mujoco types for a time instant */
+typedef Eigen::Matrix<mjtNum, N, 1>                  stateVec;
+typedef Eigen::Matrix<mjtNum, N, N, Eigen::ColMajor> stateDer;
+typedef Eigen::Matrix<mjtNum, M, 1>                  ctrlVec;
+typedef Eigen::Matrix<mjtNum, N, M, Eigen::ColMajor> ctrlDer;
+typedef Eigen::Matrix<mjtNum, NPAIR, 1>              kConVec;
+/* threaded types for trajecrories */
+typedef std::vector<stateVec, Eigen::aligned_allocator<stateVec>> stateTraj;
+typedef std::vector<stateDer, Eigen::aligned_allocator<stateDer>> stateDerTraj;
+typedef std::vector<ctrlVec,  Eigen::aligned_allocator<ctrlVec>>  ctrlTraj;
+typedef std::vector<ctrlDer,  Eigen::aligned_allocator<ctrlDer>>  ctrlDerTraj;
+typedef std::vector<kConVec,  Eigen::aligned_allocator<kConVec>>  kConTraj;
 /// Structs
 struct trajectory
 {
-    stateVecThread X;
-    ctrlVecThread  U;
-    stateDerThread Fx;
-    ctrlDerThread  Fu;
+    stateTraj X;
+    ctrlTraj  U;
+    stateDerTraj Fx;
+    ctrlDerTraj  Fu;
 };
 
 #endif //CITO_PARAMS_H

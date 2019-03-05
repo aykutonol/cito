@@ -14,6 +14,9 @@ CitoSQOPT::CitoSQOPT()
     desiredPose = Eigen::Map<Eigen::Matrix<double, 6, 1>>(desiredPoseConfig.data(), desiredPoseConfig.size());
     desiredVelo = Eigen::Map<Eigen::Matrix<double, 6, 1>>(desiredVeloConfig.data(), desiredVeloConfig.size());
     controlJointDOF0 = paramTask["controlJointDOF0"].as<int>();
+    // read contact model parameters
+    YAML::Node vscm = YAML::LoadFile(workspaceDir+"/src/cito/config/vscm.yaml");
+    kCon0 = vscm["kCon0"].as<double>();
     // trajectories
     dKCon.resize(NTS);
     // indices to move
@@ -75,21 +78,21 @@ void qpHx(int *nnH, double x[], double Hx[], int *nState,
 }
 
 // solveCvx: solves the convex subproblem
-void CitoSQOPT::solveCvx(double *xTraj, double r, const stateVecThread X, const ctrlVecThread U,
-                         const stateDerThread Fx, const ctrlDerThread Fu, int *isJFree, int *isAFree,
+void CitoSQOPT::solveCvx(double *xTraj, double r, const stateTraj X, const ctrlTraj U,
+                         const stateDerTraj Fx, const ctrlDerTraj Fu, int *isJFree, int *isAFree,
                          double *qposLB, double *qposUB, double *tauLB, double *tauUB)
 {
     // fresh start
-    int    *indA  = new int[neA];
-    int    *locA  = new int[n+1];
-    double *valA  = new double[neA];
-    double *x     = new double[n+nc];
-    double *bl    = new double[n+nc];
-    double *bu    = new double[n+nc];
-    double *pi    = new double[nc];
-    double *rc    = new double[n+nc];
-    int    *hs    = new int[n+nc];
-    int    *eType = new int[n+nc];
+    auto *indA  = new int[neA];
+    auto *locA  = new int[n+1];
+    auto *valA  = new double[neA];
+    auto *x     = new double[n+nc];
+    auto *bl    = new double[n+nc];
+    auto *bu    = new double[n+nc];
+    auto *pi    = new double[nc];
+    auto *rc    = new double[n+nc];
+    auto *hs    = new int[n+nc];
+    auto *eType = new int[n+nc];
     // initial guess
     for( int i=0; i<n+nc; i++ )
     {
@@ -123,7 +126,7 @@ void CitoSQOPT::solveCvx(double *xTraj, double r, const stateVecThread X, const 
 }
 
 // setCost: sets linear and constant cost terms
-void CitoSQOPT::setCost(const stateVecThread X, const ctrlVecThread U,
+void CitoSQOPT::setCost(const stateTraj X, const ctrlTraj U,
                         double *ru, double *cObj, double& ObjAdd)
 {
     // *********** set linear and constant objective terms ****************/
@@ -170,7 +173,7 @@ void CitoSQOPT::setCost(const stateVecThread X, const ctrlVecThread U,
 }
 
 // setBounds: sets bounds of dX, dU, and constraints (dynamics, trust region, etc.)
-void CitoSQOPT::setBounds(double r, const stateVecThread X, const ctrlVecThread U,
+void CitoSQOPT::setBounds(double r, const stateTraj X, const ctrlTraj U,
                           double *bl, double *bu, int *isJFree, int *isAFree,
                           double *qposLB, double *qposUB, double *tauLB, double *tauUB)
 {
@@ -205,7 +208,7 @@ void CitoSQOPT::setBounds(double r, const stateVecThread X, const ctrlVecThread 
             for( int j=0; j< NPAIR; j++ )
             {
                 bl[dUOffset+i*M+NU+j] = 0 - U[i][NU+j];
-                bu[dUOffset+i*M+NU+j] = params::kCon0[j] - U[i][NU+j];
+                bu[dUOffset+i*M+NU+j] = kCon0 - U[i][NU+j];
             }
         }
     }
@@ -234,7 +237,7 @@ void CitoSQOPT::setBounds(double r, const stateVecThread X, const ctrlVecThread 
 // setA: creates the sparse A matrix for linearized dynamics, auxiliary
 // variables, and trust region constraints
 void CitoSQOPT::setA(double *valA, int *indA, int *locA,
-                     const stateDerThread Fx, const ctrlDerThread Fu)
+                     const stateDerTraj Fx, const ctrlDerTraj Fu)
 {
     int colNo = 0, indNo = 0, indTS = 0;
 
