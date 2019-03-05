@@ -1,20 +1,13 @@
-// =============================== //
-// *** Developed by Aykut Onol *** //
-// =============================== //
-
-// ***** DESCRIPTION ***********************************************************
-// CITO_CONTROl class consists of functions for calculating and setting control-
-// and contact-related variables such as joint torques and external forces on
-// the bodies.
-
-// ***** CLASS TYPE ************************************************************
-// Physics engine specific
-
 #include "cito_control.h"
 
-// ***** CONSTRUCTOR ***********************************************************
-CitoControl::CitoControl(const mjModel* model) : m(model), sl(model) {}
+// ***** DESCRIPTION ***********************************************************
+// CitoControl class defines functions for calculating and setting control- and
+// contact-related variables such as joint torques and external forces on
+// the bodies.
 
+
+// ***** CONSTRUCTOR & DESTRUCTOR **********************************************
+CitoControl::CitoControl(const mjModel* model) : m(model), sl(model) {}
 CitoControl::~CitoControl()
 {
     delete []qposLB;        delete []qposUB;
@@ -57,7 +50,7 @@ void CitoControl::setControl(mjData* d, const ctrlVec_t u)
     }
 }
 
-// contactModel: returns contact wrench given finalPose
+// contactModel: returns contact wrench given current state and control input
 Eigen::Matrix<double, 6*params::nfree, 1> CitoControl::contactModel(const mjData* d, const ctrlVec_t u)
 {
     h.setZero();
@@ -75,7 +68,7 @@ Eigen::Matrix<double, 6*params::nfree, 1> CitoControl::contactModel(const mjData
         // distance
         phiE = vRE.norm();                                  // Euclidean distance between the end effector and the environment
         phiN = vRE.dot(nCS);                                // normal distance between the end effector and the environment
-        zeta  = tanh(params::phiR*phiE);                   // semisphere based on the Euclidean distance
+        zeta  = tanh(params::phiR*phiE);                    // semi-sphere based on the Euclidean distance
         phiC = zeta*phiE + (1-zeta)*phiN;                   // combined distance
         // normal force in the contact frame
         gamma = u[NU+p_i]*exp(-params::aCon[p_i]*phiC);

@@ -1,5 +1,3 @@
-#include <iostream>
-#include <string.h>
 #include <stdio.h>
 #include <fstream>
 
@@ -8,7 +6,9 @@
 
 #include "cito_params.h"
 
-//-------------------------------- global variables -------------------------------------
+/// global variables
+YAML::Node paths;
+
 const int maxgeom= 5000;
 
 // model and data
@@ -111,9 +111,7 @@ char opt_title[1000] = "";
 char opt_content[1000];
 
 
-//-------------------------------- initialization ---------------------------------------
-
-// init GLFW and OpenGL
+/// initialize GLFW and OpenGL
 void initOpenGL(const char* modelFilePath, const char* logFilePath)
 {
     // init GLFW
@@ -165,7 +163,7 @@ void initOpenGL(const char* modelFilePath, const char* logFilePath)
 }
 
 
-// set one frame, from global frame counter
+/// set one frame, from global frame counter
 void setFrame(void)
 {
     d->time = (mjtNum)data[recsz*frame];
@@ -178,7 +176,7 @@ void setFrame(void)
 }
 
 
-// load model, init simulation and rendering
+/// load model, init simulation and rendering
 void initMuJoCo(const char* modelFilePath, const char* logFilePath)
 {
     // activate MuJoCo license
@@ -251,7 +249,7 @@ void initMuJoCo(const char* modelFilePath, const char* logFilePath)
 }
 
 
-// deallocate everything
+/// deallocate everything
 void closeMuJoCo(void)
 {
     free(npoints);
@@ -267,7 +265,7 @@ void closeMuJoCo(void)
 }
 
 
-// bar dimensions
+/// bar dimensions
 typedef struct
 {
     int width;          // framebuffer width (bar is from 1/4 to 3/4 width)
@@ -279,7 +277,7 @@ typedef struct
 } Bar;
 
 
-// compute scroll bar sizes
+/// compute scroll bar sizes
 Bar getBar(int width)
 {
     Bar b;
@@ -295,7 +293,7 @@ Bar getBar(int width)
 }
 
 
-// reposition frame based on mouse horizontal position
+/// reposition frame based on mouse horizontal position
 void repositionFrame(Bar b, int x)
 {
     double relpos = (double)(x-b.width/4) / (double)(b.width/2);
@@ -310,8 +308,7 @@ void repositionFrame(Bar b, int x)
 }
 
 
-//--------------------------------- GLFW callbacks --------------------------------------
-
+///GLFW callbacks
 // keyboard
 void keyboard(GLFWwindow* window, int key, int scancode, int act, int mods)
 {
@@ -566,8 +563,7 @@ void scroll(GLFWwindow* window, double xoffset, double yoffset)
 }
 
 
-//-------------------------------- simulation and rendering -----------------------------
-
+/// simulation and rendering
 // make option string
 void makeoptionstring(const char* name, char key, char* buf)
 {
@@ -724,24 +720,24 @@ void render(GLFWwindow* window)
     jumped = false;
 
     std::ofstream outFile;
-    outFile.open(paths::trajFile, std::fstream::app);
+    outFile.open(paths["trajFile"].as<std::string>(), std::fstream::app);
     // write to outFile
     if( outFile.is_open() )
     {
       outFile << d->time << ",";
-      for( int i=0; i<params::nact; i++ )
+      for( int i=0; i<NU; i++ )
       {
           outFile << d->qpos[params::jact[i]] << ",";
       }
-      for( int i=0; i<params::nact; i++ )
+      for( int i=0; i<NU; i++ )
       {
           outFile << d->qvel[params::jact[i]] << ",";
       }
-      for( int i=0; i<params::nact; i++ )
+      for( int i=0; i<NU; i++ )
       {
           outFile << d->qacc[params::jact[i]] << ",";
       }
-      for( int i=0; i<params::nact; i++ )
+      for( int i=0; i<NU; i++ )
       {
           outFile << d->ctrl[i] << ",";
       }
@@ -896,19 +892,16 @@ void render(GLFWwindow* window)
     glfwSwapBuffers(window);
 }
 
-//-------------------------------- main function ----------------------------------------
+
 int main(int argc, const char** argv)
 {
-    // internal version check
-    if( mjVERSION_HEADER!=mj_version() )
-        mju_error("MuJoCo headers and library have different versions");
-    // check arguments
+    /// check arguments
     if( argc!=1 && argc!=2 )
     {
         printf("USAGE: playlog [fontscale]\n");
         return 1;
     }
-    // parse fontscale
+    /// parse fontscale
     if( argc==2 )
     {
         sscanf(argv[2], "%lf", &fontscale);
@@ -919,28 +912,34 @@ int main(int argc, const char** argv)
         else
             fontscale = 1.5;
     }
-    // init log file
+    /// parse file names
+    paths = YAML::LoadFile(workspaceDir+"/src/cito/config/path.yaml");
+    std::string modelFileTemp = paths["modelFile"].as<std::string>();
+    const char *modelFile = modelFileTemp.c_str();
+    std::string logFileTemp = paths["logFile"].as<std::string>();
+    const char *logFile = logFileTemp.c_str();
+    /// init log file
     std::ofstream outFile;
-    outFile.open(paths::trajFile);
-    // write header to outFile
+    outFile.open(paths["trajFile"].as<std::string>());
+    /// write header to outFile
     if( outFile.is_open() )
     {
-        outFile << "Total DOF: " << params::nact+6*params::nfree << ", actuated DOF: " << params::nact << "\n";
+        outFile << "Total DOF: " << NV << ", actuated DOF: " << NU << "\n";
         outFile << "time,positions,velocities,accelerations,controls\n";
         outFile.close();
     }
     else std::cout << "Unable to open the trajectory file." << '\n';
-    // initialize OpenGL and MuJoCo
-    initOpenGL(paths::modelFile, paths::logFile);
-    initMuJoCo(paths::modelFile, paths::logFile);
-    // set GLFW callbacks
+    /// initialize OpenGL and MuJoCo
+    initOpenGL(modelFile, logFile);
+    initMuJoCo(modelFile, logFile);
+    /// set GLFW callbacks
     glfwSetKeyCallback(window, keyboard);
     glfwSetCursorPosCallback(window, mouse_move);
     glfwSetMouseButtonCallback(window, mouse_button);
     glfwSetScrollCallback(window, scroll);
     glfwSetWindowRefreshCallback(window, render);
     InitSensor();
-    // main loop
+    /// main loop
     while( !glfwWindowShouldClose(window) )
     {
         // simulate and render
@@ -948,9 +947,9 @@ int main(int argc, const char** argv)
         // handle events (this calls all callbacks)
         glfwPollEvents();
     }
-    // free and terminate
+    /// free and terminate
     closeMuJoCo();
-    // terminate GLFW (crashes with Linux NVidia drivers)
+    /// terminate GLFW (crashes with Linux NVidia drivers)
     #if defined(__APPLE__) || defined(_WIN32)
         glfwTerminate();
     #endif

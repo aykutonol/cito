@@ -1,35 +1,33 @@
-// =============================== //
-// *** Developed by Aykut Onol *** //
-// =============================== //
-
-// ***** DESCRIPTION ***********************************************************
-// MJ_SAVE class consists of functions that save MuJoCo logs.
-
-// ***** CLASS TYPE ************************************************************
-// Physics engine specific
+/*! Save Log */
+/**
+ *  \brief MjSaveLog saves MuJoCo log
+ *
+ *  This class consists of functions for saving data from a MuJoCo simulation.
+ *
+ *  \author Aykut Onol
+ */
 
 #ifndef MJ_SAVELOG_H
 #define MJ_SAVELOG_H
-
-#include <stdio.h>
-#include <string.h>
-#include "mujoco.h"
 
 #include "cito_params.h"
 
 class MjSaveLog{
 public:
-    // ***** CONSTRUCTOR/DESTRUCTOR ************************************************
-//    MjSaveLog();
+    /// Constructor
     MjSaveLog(const mjModel* model);
+    /// Destructor
     ~MjSaveLog();
-    // ***** FUNCTIONS *************************************************************
+    /// writes simulation data to the print file
     void writeData(const mjData *d);
 private:
-    // ***** PARAMETERS ************************************************************
+    /// MuJoCo model file
     const mjModel* m;
+    /// Output file
     FILE* printFile;
+    /// Data header
     int header[6];
+    /// Data size
     int dataSize;
 };
 

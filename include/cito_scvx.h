@@ -1,15 +1,17 @@
-// =============================== //
-// *** Developed by Aykut Onol *** //
-// =============================== //
+/*! Successive Convexification */
+/**
+ *  \brief CitoSCvx class consists of functions to run the SCvx algorithm
+ *
+ *  This class defines functions that are used to roll-out the dynamics,
+ *  evaluate the cost, and execute the SCvx algorithm.
+ *
+ *  \author Aykut Onol
+ */
 
-// ***** DESCRIPTION ***********************************************************
-// CITO_SCVX class consists of functions that setup the successive
-// convexification algorithm.
 
 #ifndef CITO_SCVX_H
 #define CITO_SCVX_H
 
-#include <iostream>
 #include <chrono>
 #include "cito_numdiff.h"
 #include "cito_sqopt.h"
@@ -18,18 +20,21 @@
 class CitoSCvx
 {
 public:
-    // ***** CONSTRUCTOR/DESTRUCTOR ************************************************
+    /// Constructor
     CitoSCvx(const mjModel* model);
+    /// Destructor
     ~CitoSCvx() {}
-    // ***** FUNCTIONS *************************************************************
+    /// This function returns the nonlinear cost given control trajectory and final state
     double getCost(const stateVec_t XFinal, const ctrlVecThread U);
+    /// This function rolls-out and linearizes the dynamics given control trajectory
     trajectory runSimulation(const ctrlVecThread U0, bool linearize, bool save);
+    /// This function executes the successive convexification algorithm
     ctrlVecThread solveSCvx(const ctrlVecThread U);
 
 private:
-    // ***** PARAMETERS ************************************************************
+    /// MuJoCo model
     const mjModel* m;
-    // SCvx parameters
+    /// SCvx parameters
     int maxIter;                        // maximum number of iterations
     double *J, *JTemp, *JTilde,         // cost terms
            *r, *dJ, *dL, *rho,          // trust region radius, change, and similarity
@@ -38,19 +43,18 @@ private:
            beta_expand, beta_shrink,    // trust-region expand and shrink factors
            rMin, rMax;                  // trust-region radius limits
     bool *accept, dLTolMet = false, stop = false;
-    // state/control vectors/matrices for the succession, change, and linear approximation
+    /// Trajectories
     stateVecThread XSucc, dX, XTilde;   ctrlVecThread USucc, dU, UTemp;
     stateDerThread Fx;                  ctrlDerThread Fu;
-    // trajectories
     trajectory traj, trajS, trajTemp;
-    // getCost
+    /// Cost function variables
     double weight[4];
     int controlJointDOF0;
     Eigen::Matrix<double, 6, 1> desiredPose, desiredVelo, finalPose, finalVelo;
     kConVecThread KCon;
     double KConSN;          // total squared norm of virtual stiffness variables
     double Jf, Ji, Jt;      // final, integrated, and total cost values
-    // ***** OBJECTS ***************************************************************
+    /// Control, numerical differentiation, and SQOPT objects
     CitoControl cc;
     CitoNumDiff nd;
     CitoSQOPT   sq;

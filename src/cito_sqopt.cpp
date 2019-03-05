@@ -1,22 +1,14 @@
-// =============================== //
-// *** Developed by Aykut Onol *** //
-// =============================== //
+#include "cito_sqopt.h"
 
 // ***** DESCRIPTION ***********************************************************
-// CITO_SQOPT class consists of functions that setup the CITO problem for the
-// convex programming solver SQOPT.
-
-// ***** CLASS TYPE ************************************************************
-// Solver specific
-
-#include <iostream>
-#include "cito_sqopt.h"
+// CitoSQOPT class consists of functions that are used to convert the convex
+// subproblems used in SCvx to the appropriate form for SQOPT.
 
 // ***** CONSTRUCTOR & DESTRUCTOR **********************************************
 CitoSQOPT::CitoSQOPT()
 {
     // read task parameters
-    YAML::Node paramTask = YAML::LoadFile(paths::taskConfig);
+    YAML::Node paramTask = YAML::LoadFile(workspaceDir+"/src/cito/config/task.yaml");
     std::vector<double> desiredPoseConfig = { paramTask["desiredPoseInput"].as<std::vector<double>>() };
     std::vector<double> desiredVeloConfig = { paramTask["desiredVeloInput"].as<std::vector<double>>() };
     desiredPose = Eigen::Map<Eigen::Matrix<double, 6, 1>>(desiredPoseConfig.data(), desiredPoseConfig.size());
@@ -346,7 +338,7 @@ void CitoSQOPT::sortToMatch(double *valA, int *indA, int *locA, int *moveIndices
     }
 }
 
-// moveColA: moves iMove to left
+// moveColA: moves column iMove in A to left
 void CitoSQOPT::moveColA(double *valA, int *indA, int *locA, int iMove)
 {
     int indAtemp[neA], neCol[n]; double valAtemp[neA];
@@ -377,7 +369,7 @@ void CitoSQOPT::moveColA(double *valA, int *indA, int *locA, int iMove)
     }
 }
 
-// moveRowBounds: moves iMove to top
+// moveRowBounds: moves row iMove in bounds to top
 void CitoSQOPT::moveRowBounds(double *bl, double *bu, int iMove)
 {
     double bLTemp[iMove], bUTemp[iMove];
@@ -395,7 +387,7 @@ void CitoSQOPT::moveRowBounds(double *bl, double *bu, int iMove)
     }
 }
 
-// sortX: sorts decision variables back to original
+// sortX: sorts decision variables back to original order
 void CitoSQOPT::sortX(double *x, int *moveIndices)
 {
     int k = 0;

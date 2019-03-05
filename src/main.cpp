@@ -2,33 +2,35 @@
 // *** Developed by Aykut Onol *** //
 // =============================== //
 
-#include <iostream>
-
-
 #include "cito_scvx.h"
 
 // ********* mujoco model & data ************************************************/
 mjModel *m = NULL;
 mjData  *d = NULL;
-// ********* threads & structs **************************************************/
-ctrlVecThread U0, UOpt;
-trajectory trajOpt;
 //==============================================================================
 int main(int argc, char const *argv[]) {
+    // ********* model file *****************************************************/
+    YAML::Node paths = YAML::LoadFile(workspaceDir+"/src/cito/config/path.yaml");
+    std::string modelFileTemp = paths["modelFile"].as<std::string>();
+    const char *modelFile = modelFileTemp.c_str();
+    std::cout << "Model file: " << modelFile << "\n";
+    // ********* threads & structs **********************************************/
+    ctrlVecThread U0, UOpt;
+    trajectory trajOpt;
     // ********* mujoco initialization ******************************************/
     // activate mujoco
     const char* mjKeyPath = std::getenv("MJ_KEY");
     mj_activate(mjKeyPath);
     // load xml model
-    if( strlen(paths::modelFile)>4 && !strcmp(paths::modelFile+strlen(paths::modelFile)-4, ".mjb") )
-    {       m = mj_loadModel(paths::modelFile, NULL); }
-    else {  m = mj_loadXML(paths::modelFile, NULL, NULL, 0); }
+    if( strlen(modelFile)>4 && !strcmp(modelFile+strlen(modelFile)-4, ".mjb") )
+    {       m = mj_loadModel(modelFile, NULL); }
+    else {  m = mj_loadXML(modelFile, NULL, NULL, 0); }
     if( !m ) { mju_error("Cannot load the model"); }
     // create data
     d = mj_makeData(m);
     // ********* create objects for CITO ****************************************/
-    CitoControl cc(m);
-    CitoNumDiff nd(m);
+//    CitoControl cc(m);
+//    CitoNumDiff nd(m);
     CitoSCvx    scvx(m);
     // ********* create objects for CITO ****************************************/
     U0.resize(NTS); UOpt.resize(NTS);

@@ -1,10 +1,12 @@
-// =============================== //
-// *** Developed by Aykut Onol *** //
-// =============================== //
-
-// ***** DESCRIPTION ***********************************************************
-// CITO_NUMDIFF class consists of functions for numerical differentiation of the
-// MuJoCo dynamics including the contact forces imposed by the contact model.
+/*! Numerical Differentiation */
+/**
+ *  \brief CitoSCvx class consists of functions for numerical differentiation.
+ *
+ *  This class defines functions for numerical differentiation of the MuJoCo
+ *  dynamics including the forces imposed by the contact model.
+ *
+ *  \author Aykut Onol
+ */
 
 #include "cito_control.h"
 
@@ -14,24 +16,26 @@
 class CitoNumDiff
 {
 public:
-    // ***** CONSTRUCTOR/DESTRUCTOR ************************************************
+    /// Constructor
     CitoNumDiff(const mjModel* model);
+    /// Destructor
     ~CitoNumDiff() {}
-    // ***** FUNCTIONS *************************************************************
+    /// This function calculates derivatives of the state and control trajectories
     void linDyn(const mjData* dmain, const ctrlVec_t umain, mjtNum* Fxd, mjtNum* Fud);
 
 private:
-    // ***** FUNCTIONS *************************************************************
-    void copyTakeStep(const mjData* dmain, const ctrlVec_t u, mjtNum* newXd);
+    /// This function sets newXd to the integration of data given a control input
+    void copyTakeStep(const mjData* dmain, const ctrlVec_t u, mjtNum* newX);
+    /// This function calculates central differences by taking full steps
     void hardWorker(const mjData* dmain, const ctrlVec_t umain, mjtNum* deriv);
-    // ***** PARAMETERS ************************************************************
+    /// MuJoCo model
     const mjModel* m;
-    // perturbation
+    /// Perturbation for central differences
     double eps = 1e-6;
-    // variables for differentiation
+    /// Variables for differentiation
     stateVec_t newXtemp, newXp, newXn;
     ctrlVec_t  utemp;
-    // ***** OBJECTS ***************************************************************
+    /// Control object
     CitoControl cc;
 };
 

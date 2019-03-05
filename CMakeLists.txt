@@ -63,6 +63,7 @@ target_link_libraries(${NODE_NAME2} ${MUJOCO_DIR}/bin/libmujoco200.so
 				    ${MUJOCO_DIR}/bin/libglew.so
 				    ${MUJOCO_DIR}/bin/libglfw.so.3
 				    GL
+					yaml-cpp
 )
 # model_test: to analyze a model and to run random tests
 add_executable(${NODE_NAME3} src/model_test.cpp)

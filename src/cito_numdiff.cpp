@@ -1,15 +1,8 @@
-// =============================== //
-// *** Developed by Aykut Onol *** //
-// =============================== //
+#include "cito_numdiff.h"
 
 // ***** DESCRIPTION ***********************************************************
-// CITO_NUMDIFF class consists of functions for numerical differentiation of the
-// MuJoCo dynamics including the contact forces imposed by the contact model.
-
-// ***** CLASS TYPE ************************************************************
-// Physics engine specific
-
-#include "cito_numdiff.h"
+// CitoNumDiff class defines functions for numerical differentiation of MuJoCo
+// dynamics including the forces imposed by the contact model.
 
 // ***** CONSTRUCTOR ***********************************************************
 CitoNumDiff::CitoNumDiff(const mjModel* model) : m(model), cc(model)
@@ -18,7 +11,7 @@ CitoNumDiff::CitoNumDiff(const mjModel* model) : m(model), cc(model)
 }
 
 // ***** FUNCTIONS *************************************************************
-// copyTakeStep: sets Xnew to the integration of dmain given a control input
+// copyTakeStep: sets newX to the integration of data given a control input
 void CitoNumDiff::copyTakeStep(const mjData* dmain, const ctrlVec_t u, mjtNum* newX)
 {
     // create new data
@@ -157,7 +150,7 @@ void CitoNumDiff::hardWorker(const mjData* dmain, const ctrlVec_t umain, mjtNum*
     mj_deleteData(d);
 }
 
-// linDyn function calculates sensitivies of the states to changes in states and controls
+// linDyn: calculates sensitivies of the states to changes in states and controls
 void CitoNumDiff::linDyn(const mjData* dmain, const ctrlVec_t umain, mjtNum* Fxd, mjtNum* Fud)
 {
     mjtNum* deriv = (mjtNum*) mju_malloc(sizeof(mjtNum)*N*(N+M));

@@ -1,20 +1,14 @@
-// =============================== //
-// *** Developed by Aykut Onol *** //
-// =============================== //
+#include "mj_savelog.h"
 
 // ***** DESCRIPTION ***********************************************************
-// MJ_SAVE class consists of functions that save MuJoCo logs.
+// This class consists of functions for saving data from a MuJoCo simulation.
 
-// ***** CLASS TYPE ************************************************************
-// Physics engine specific
-
-#include "mj_savelog.h"
-#include <iostream>
-// ***** CONSTRUCTOR ***********************************************************
+// ***** CONSTRUCTOR & DESTRUCTOR **********************************************
 MjSaveLog::MjSaveLog(const mjModel* model) : m(model)
 {
     // open the log file
-    printFile = fopen(paths::logFile, "wb");
+    YAML::Node paths = YAML::LoadFile(workspaceDir+"/src/cito/config/path.yaml");
+    printFile = fopen(paths["logFile"].as<std::string>().c_str(), "wb");
     if( printFile == NULL ) { mju_error("Unable to open the log file."); }
     // create and write the header
     header[0] = m->nq;
@@ -33,7 +27,7 @@ MjSaveLog::~MjSaveLog()
 }
 
 // ***** FUNCTIONS *************************************************************
-// writeData: writes simulation data to the print file
+// writeData: writes simulation data to printFile
 void MjSaveLog::writeData(const mjData* d)
 {
     // create data for recording

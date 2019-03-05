@@ -1,25 +1,21 @@
-// =============================== //
-// *** Developed by Aykut Onol *** //
-// =============================== //
+#include "cito_scvx.h"
 
 // ***** DESCRIPTION ***********************************************************
-// CITO_SCVX class consists of functions that setup and execute the successive
-// convexification algorithm.
-
-#include "cito_scvx.h"
+// CitoSCvx class defines functions that are used to roll-out the dynamics,
+// evaluate the cost, and execute the SCvx algorithm.
 
 // ***** CONSTRUCTOR ***********************************************************
 CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cc(model), nd(model)
 {
     // read task parameters
-    YAML::Node paramTask = YAML::LoadFile(paths::taskConfig);
+    YAML::Node paramTask = YAML::LoadFile(workspaceDir+"/src/cito/config/task.yaml");
     std::vector<double> desiredPoseInput = { paramTask["desiredPoseInput"].as<std::vector<double>>() };
     std::vector<double> desiredVeloInput = { paramTask["desiredVeloInput"].as<std::vector<double>>() };
     desiredPose = Eigen::Map<Eigen::Matrix<double, 6, 1>>(desiredPoseInput.data(), desiredPoseInput.size());
     desiredVelo = Eigen::Map<Eigen::Matrix<double, 6, 1>>(desiredVeloInput.data(), desiredVeloInput.size());
     controlJointDOF0 = paramTask["controlJointDOF0"].as<int>();
     // read SCvx parameters
-    YAML::Node paramSCvx = YAML::LoadFile(paths::scvxConfig);
+    YAML::Node paramSCvx = YAML::LoadFile(workspaceDir+"/src/cito/config/scvx.yaml");
     // create new arrays for the max. number of iterations
     beta_expand = paramSCvx["beta_expand"].as<double>();
     beta_shrink = paramSCvx["beta_shrink"].as<double>();
@@ -54,7 +50,7 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cc(model), nd(model)
 }
 
 // ***** FUNCTIONS *************************************************************
-// getCost: returns the nonlinear cost given state matrix X
+// getCost: returns the nonlinear cost given control trajectory and final state
 double CitoSCvx::getCost(stateVec_t XFinal, const ctrlVecThread U)
 {
     // terminal cost
@@ -83,7 +79,7 @@ double CitoSCvx::getCost(stateVec_t XFinal, const ctrlVecThread U)
     return Jt;
 }
 
-// runSimulation: rollouts and linearizes the dynamics given a control trajectory
+// runSimulation: rolls-out and linearizes the dynamics given control trajectory
 trajectory CitoSCvx::runSimulation(const ctrlVecThread U, bool linearize, bool save)
 {
     // make mjData

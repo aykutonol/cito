@@ -1,11 +1,12 @@
-// =============================== //
-// *** Developed by Aykut Onol *** //
-// =============================== //
-
-// ***** DESCRIPTION ***********************************************************
-// CITO_CONTROL class consists of functions for calculating and setting control-
-// and contact-related variables such as joint torques and external forces on
-// the bodies.
+/*! Control and Contact Model */
+/**
+ *  \brief CitoControl class consists of functions for control and contact model
+ *
+ *  This class defines functions for calculating and setting control- and contact-
+ *  related variables, i.e., joint torques and external forces on the bodies.
+ *
+ *  \author Aykut Onol
+ */
 
 #include "cito_params.h"
 #include "mj_savelog.h"
@@ -16,16 +17,20 @@
 class CitoControl
 {
 public:
-    // ***** CONSTRUCTOR/DESTRUCTOR ************************************************
+    /// Constructor
     CitoControl(const mjModel* model);
+    /// Destructor
     ~CitoControl();
-    // ***** FUNCTIONS *************************************************************
+    /// This function takes a full control step given a control input
     void takeStep(mjData*d, const ctrlVec_t u, bool save);
+    /// This function sets generalized forces on joints and free bodies
     void setControl(mjData* d, const ctrlVec_t u);
+    /** This function converts free joints' quaternions to Euler angles so that
+     *  the dimensionality of the state vector is 2*nv instead of nq+nv */
     stateVec_t getState(const mjData* d);
+    /// This function gets bounds on joint positions, actuator forces from the model
     void getBounds();
-    // ***** PARAMETERS ************************************************************
-    // position & torque limits
+    /// position & torque limits
     double *qposLB  = new double[NV];
     double *qposUB  = new double[NV];
     double *tauLB   = new double[NU];
@@ -34,19 +39,19 @@ public:
     int    *isAFree = new int[NU];
 
 private:
-    // ***** FUNCTIONS *************************************************************
+    /// This function returns contact wrench given current state and control input
     Eigen::Matrix<double, 6*params::nfree, 1> contactModel(const mjData* d, const ctrlVec_t u);
-    // ***** PARAMETERS ************************************************************
+    /// MuJoCo model
     const mjModel* m;
-    // control variables
+    /// Contact wrench
     Eigen::Matrix<double, 6*params::nfree, 1> h, hCon;
-    // contact model variables
+    /// Contact model variables
     double phiE, phiN, zeta, phiC, gamma;
     Eigen::Matrix<double, 3, 1> pSR, pSE, pBF, nCS, vRE, vEF, lambda;
-    // variables for getState
+    /// getState variables
     stateVec_t x;
     Eigen::Matrix<mjtNum, 4, 1> jfree_quat;
-    // objects
+    /// SaveLog object
     MjSaveLog sl;
 };
 
