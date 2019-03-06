@@ -10,10 +10,9 @@ mjData  *d = NULL;
 //================================================================================
 int main(int argc, char const *argv[]) {
     // ***** Model file **********************************************************/
-    YAML::Node paths = YAML::LoadFile(workspaceDir+"/src/cito/config/path.yaml");
-    std::string modelFileTemp = paths["modelFile"].as<std::string>();
-    const char *modelFile = modelFileTemp.c_str();
-    std::cout << "\n\nModel file: " << modelFile << "\n\n\n";
+    std::string modelPathStr = paths::workspaceDir + "/src/cito/model/"  + paths::modelFile;
+    const char *modelPath = modelPathStr.c_str();
+    std::cout << "\n\nModel path: " << modelPath << "\n\n\n";
     // ***** Trajectories ********************************************************/
     ctrlTraj U0, U; U0.resize(NTS); U.resize(NTS);
     trajectory traj;
@@ -22,16 +21,16 @@ int main(int argc, char const *argv[]) {
     const char* mjKeyPath = std::getenv("MJ_KEY");
     mj_activate(mjKeyPath);
     // Load xml model
-    if( strlen(modelFile)>4 && !strcmp(modelFile+strlen(modelFile)-4, ".mjb") )
-    {       m = mj_loadModel(modelFile, NULL); }
-    else {  m = mj_loadXML(modelFile, NULL, NULL, 0); }
+    if( strlen(modelPath)>4 && !strcmp(modelPath+strlen(modelPath)-4, ".mjb") )
+    {       m = mj_loadModel(modelPath, NULL); }
+    else {  m = mj_loadXML(modelPath, NULL, NULL, 0); }
     if( !m ) { mju_error("Cannot load the model"); }
     // Create data
     d = mj_makeData(m);
     // ***** Create objects for CITO *********************************************/
     CitoSCvx scvx(m);
     // ***** Initial control trajectory ******************************************/
-    YAML::Node vscm = YAML::LoadFile(workspaceDir+"/src/cito/config/vscm.yaml");
+    YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
     double kCon0 = vscm["kCon0"].as<double>();
     for (int i = 0; i < NTS; i++)
     {

@@ -1,6 +1,0 @@
-# model file
-modelFile: "/home/aykut/Development/cito/src/cito/model/flymanoid.xml"
-# log file for rendering
-logFile: "/home/aykut/Development/cito/cito-logs/mjLog_flymanoid"
-# trajectory file for execution
-trajFile: "/home/aykut/Development/cito/cito-logs/traj_flymanoid.txt"

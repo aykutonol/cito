@@ -22,32 +22,41 @@
 /// User-specific paths
 namespace paths {
     const std::string workspaceDir = "/home/aykut/Development/cito";
-    const std::string modelFile    = "sawyer_push.xml";
+    const std::string modelFile    = "flymanoid.xml";
 }
 
 /// Specify the parameters related to simulation, model, and contact candidates
 /// Parameters
 namespace params {
     /// Simulation
-    const double tf = 1.00;                 // [s] final time
-    const double tc = 5e-2;                 // [s] control sampling period
+    const double tf = 2.00;                 // [s] final time
+    const double tc = 1e-1;                 // [s] control sampling period
     const double dt = 2e-3;                 // [s] dynamic sampling period
     const int ncts = (int) floor(tf/tc);    // number of control time steps
     const int ndpc = (int) floor(tc/dt);    // number of dynamic time steps per a control step
-    /// Model: sawyer_push.xml
-    const int nact  = 7;                    // number of actuated joints
-    const int nfree = 1;                    // number of free joints
+    /// Model
+    const int nact = 8;                                     // number of actuated joints
+    const int nfree = 1;                                    // number of free joints
     // specific joint and body indices
-    const int jact[nact] = {6, 7, 8, 9, 10, 11, 12};    // indices of actuated DOF
-    const int jfree[nfree] = {0};                       // indices free joints
-    const int bfree[nfree] = {1};                       // indices free bodies
-    /// Contact: sawyer_push.xml
-    const int npair = 1;                // number of contact pairs
+    const int jact[nact] = {6, 7, 8, 9, 10, 11, 12, 13};    // indices of actuated DOF
+    const int jfree[nfree] = {0};                           // indices free joints
+    const int bfree[nfree] = {5};                           // indices free bodies
+    /// Contact
+    const int npair = 16;                                   // number of contact pairs
     // site indices for each contact pair
-    const int spair1[npair] = {1};      // indices of the sites on the robot
-    const int spair2[npair] = {0};      // indices of the corresponding sites in the environment
+    const int spair1[npair] = {8,8,8,8,               // indices of the sites on the robot
+                               9,9,9,9,
+                               10,10,10,10,
+                               11,11,11,11};
+    const int spair2[npair] = {2,3,6,7,               // indices of the corresponding sites in the environment
+                               0,1,4,5,
+                               2,3,6,7,
+                               0,1,4,5};
     // contact surface normals for each contact pair
-    const double csn[npair*3] = {1, 0, 0};
+    const double csn[npair*3] = {0,1,0, 0,-1,0, 0,1,0, 0,-1,0,
+                                 0,1,0, 0,-1,0, 0,1,0, 0,-1,0,
+                                 0,1,0, 0,-1,0, 0,1,0, 0,-1,0,
+                                 0,1,0, 0,-1,0, 0,1,0, 0,-1,0};
 }
 // The following constants and types are not changed */
 /// Constants

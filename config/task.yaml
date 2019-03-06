@@ -1,10 +1,11 @@
-# desired pose and velocity of the control joint
-desiredPoseInput: [0.0, 1.25, 0.0, 0.0, 0.0, 0.0]
-desiredVeloInput: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+### Sawyer Push ############################################
+# desired final pose and velocity of the control joint
+desiredFinalPose: [1.2, 0, 0.0647, 0.0, 0.0, 0.0]
+desiredFinalVelo: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 # initial index of the DOF associated with the control joint
 controlJointDOF0: 0
 # cost function weights
-w1: 1e2		# weight on deviations in x and y directions
-w2: 1e0		# weight on deviations in z and orientation
-w3: 5e-3	# weight on virtual stiffness
-w4: 1e2		# weight on final velocities
+w1: 1e3		# weight on deviations in x and y directions
+w2: 0e-1	# weight on deviations in z and orientation
+w3: 1e0		# weight on final velocities
+w4: 2e-1	# weight on virtual stiffness

@@ -50,7 +50,8 @@ private:
     /// Cost function variables
     double weight[4];
     int controlJointDOF0;
-    Eigen::Matrix<double, 6, 1> desiredPose, desiredVelo, finalPose, finalVelo;
+    Eigen::Matrix<double,  6, 1> desiredPose, finalPose;
+    Eigen::Matrix<double, NV, 1> desiredVelo, finalVelo;
     kConTraj KCon;
     double KConSN;          // total squared norm of virtual stiffness variables
     double Jf, Ji, Jt;      // final, integrated, and total cost values

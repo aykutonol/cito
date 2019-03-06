@@ -1,19 +1,18 @@
-<mujoco model='sawyer_scvx_tabletop'>
-  <compiler meshdir="/home/aykut/Development/cito_manipulation/src/mujoco/model/mesh/" angle='radian'/>
-  <option timestep='0.005' integrator='RK4' solver='Newton' tolerance='1e-10' iterations='50' cone='elliptic' collision='predefined'/>
+<mujoco model='sawyer_push'>
+  <compiler meshdir="/home/aykut/Development/cito/src/cito/model/mesh/sawyer/" angle='radian'/>
+  <option collision='predefined'/>
 
-  <size njmax="500" nconmax="100" nuserdata="0"/>
   <asset>
-      <mesh name="pedestal" file="pedestal.stl" />
-      <mesh name="base" file="base.stl" />
-      <mesh name="l0" file="l0.stl" />
-      <mesh name="head" file="head.stl" />
-      <mesh name="l1" file="l1.stl" />
-      <mesh name="l2" file="l2.stl" />
-      <mesh name="l3" file="l3.stl" />
-      <mesh name="l4" file="l4.stl" />
-      <mesh name="l5" file="l5.stl" />
-      <mesh name="l6" file="l6.stl" />
+      <mesh name="pedestal"   file="pedestal.stl" />
+      <mesh name="base"       file="base.stl" />
+      <mesh name="l0"         file="l0.stl" />
+      <mesh name="head"       file="head.stl" />
+      <mesh name="l1"         file="l1.stl" />
+      <mesh name="l2"         file="l2.stl" />
+      <mesh name="l3"         file="l3.stl" />
+      <mesh name="l4"         file="l4.stl" />
+      <mesh name="l5"         file="l5.stl" />
+      <mesh name="l6"         file="l6.stl" />
       <texture name="texplane" type="2d" builtin="checker" rgb1=".2 .3 .4" rgb2=".1 0.15 0.2" width="512" height="512"/>
       <material name="MatPlane" reflectance="0.3" texture="texplane" texrepeat="1 1" texuniform="true"/>
   </asset>
@@ -27,7 +26,7 @@
     <geom name="floor" pos="0 0 -.913" size="5 5 .125" type="plane" material="MatPlane" condim="3"/>
     <geom name="table" pos="1.1 0 0.025" type="plane" size=".6 .375 0.1" group = "1" rgba=".5 .5 .5 .5"/>
 
-    <geom name="ghost_object" pos="1.25 0 0.066" type="box" size="0.15075 0.0745 0.038" group="1" rgba="0 .9 0 0.3"/>
+    <!-- <geom name="ghost_object" pos="1.25 0 0.066" type="box" size="0.15075 0.0745 0.038" group="1" rgba="0 .9 0 0.3"/> -->
 
     <!-- melissa & doug red, large cardboard -->
     <body name="object" pos="1.2 0 0.066" quat="1 0 0 0" >
@@ -152,7 +151,6 @@
   <!-- Actuators -->
   <actuator>
     <motor name="right_j0"    joint="right_j0" ctrllimited="true" ctrlrange="-80 80" />
-    <!-- <motor name="head_pan"    joint="head_pan" ctrllimited="false" /> -->
     <motor name="right_j1"    joint="right_j1" ctrllimited="true" ctrlrange="-80 80" />
     <motor name="right_j2"    joint="right_j2" ctrllimited="true" ctrlrange="-40 40" />
     <motor name="right_j3"    joint="right_j3" ctrllimited="true" ctrlrange="-40 40" />
@@ -174,7 +172,7 @@
 
   <!-- Key frames -->
   <keyframe>
-    <key time="0" qpos="1.25 -.1 0.3 1 0 0 0 0 0 0 0 0 0 0" />
+    <key name="init_pose" qpos="1.1 0 0.066 1 0 0 0   -0.2618   -0.6283         0    1.8850   -0.5236   -1.2566         0" />
   </keyframe>
 
 

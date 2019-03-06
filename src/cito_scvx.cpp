@@ -8,14 +8,14 @@
 CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cc(model), nd(model)
 {
     // read task parameters
-    YAML::Node paramTask = YAML::LoadFile(workspaceDir+"/src/cito/config/task.yaml");
-    std::vector<double> desiredPoseInput = { paramTask["desiredPoseInput"].as<std::vector<double>>() };
-    std::vector<double> desiredVeloInput = { paramTask["desiredVeloInput"].as<std::vector<double>>() };
-    desiredPose = Eigen::Map<Eigen::Matrix<double, 6, 1>>(desiredPoseInput.data(), desiredPoseInput.size());
-    desiredVelo = Eigen::Map<Eigen::Matrix<double, 6, 1>>(desiredVeloInput.data(), desiredVeloInput.size());
+    YAML::Node paramTask = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/task.yaml");
+    std::vector<double> desiredPoseInput = { paramTask["desiredFinalPose"].as<std::vector<double>>() };
+    std::vector<double> desiredVeloInput = { paramTask["desiredFinalVelo"].as<std::vector<double>>() };
+    desiredPose = Eigen::Map<Eigen::Matrix<double,  6, 1>>(desiredPoseInput.data(), desiredPoseInput.size());
+    desiredVelo = Eigen::Map<Eigen::Matrix<double, NV, 1>>(desiredVeloInput.data(), desiredVeloInput.size());
     controlJointDOF0 = paramTask["controlJointDOF0"].as<int>();
     // read SCvx parameters
-    YAML::Node paramSCvx = YAML::LoadFile(workspaceDir+"/src/cito/config/scvx.yaml");
+    YAML::Node paramSCvx = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/scvx.yaml");
     // create new arrays for the max. number of iterations
     beta_expand = paramSCvx["beta_expand"].as<double>();
     beta_shrink = paramSCvx["beta_shrink"].as<double>();
@@ -57,11 +57,14 @@ double CitoSCvx::getCost(stateVec XFinal, const ctrlTraj U)
     for( int i=0; i<6; i++ )
     {
         finalPose[i] = XFinal[controlJointDOF0 + i];
+    }
+    for( int i=0; i<NV; i++ )
+    {
         finalVelo[i] = XFinal[controlJointDOF0 + NV + i];
     }
     Jf = 0.5*(weight[0]*(desiredPose.block<2,1>(0,0)-finalPose.block<2,1>(0,0)).squaredNorm()+
               weight[1]*(desiredPose.block<4,1>(2,0)-finalPose.block<4,1>(2,0)).squaredNorm()+
-              weight[3]*(desiredVelo - finalVelo).squaredNorm());
+              weight[2]*(desiredVelo - finalVelo).squaredNorm());
     // integrated cost
     KConSN = 0;
     for( int i=0; i<NTS; i++ )
@@ -73,7 +76,7 @@ double CitoSCvx::getCost(stateVec XFinal, const ctrlTraj U)
         }
         KConSN += KCon[i].squaredNorm();
     }
-    Ji = 0.5*weight[2]*KConSN;
+    Ji = 0.5*weight[3]*KConSN;
     // total cost
     Jt = Jf + Ji;
     return Jt;
@@ -141,9 +144,12 @@ ctrlTraj CitoSCvx::solveSCvx(const ctrlTraj U0)
         if( iter == 0 ) { J[iter] = this->getCost(trajS.X[NTS], USucc); }
         // convex optimization =================================================
         double *dTraj = new double[NTRAJ];
-
+        std::cout << "INFO: QP solver is starting\n\n";
+        auto tQPStart = std::chrono::system_clock::now();
         sq.solveCvx(dTraj, r[iter], trajS.X, USucc, trajS.Fx, trajS.Fu, cc.isJFree, cc.isAFree,
                     cc.qposLB, cc.qposUB, cc.tauLB, cc.tauUB);
+        auto tQPEnd = std::chrono::system_clock::now();
+        std::cout << "\nINFO: QP solver took " << std::chrono::duration<double>(tQPEnd-tQPStart).count() << " s \n\n";
         // apply the change
         for( int i=0; i<NTS+1; i++ )
         {
@@ -167,12 +173,7 @@ ctrlTraj CitoSCvx::solveSCvx(const ctrlTraj U0)
         }
         // evaluate the dynamics for the change and get the cost values ========
         trajTemp = {};
-        std::cout << "INFO: QP solver is starting\n";
-        auto tQPStart = std::chrono::system_clock::now();
         trajTemp = this->runSimulation(UTemp, false, false);
-        auto tQPEnd = std::chrono::system_clock::now();
-        std::cout << "INFO: QP solver took " << std::chrono::duration<double>(tQPEnd-tQPStart).count() << " s \n";
-
         // get the linear and nonlinear costs
         JTilde[iter] = this->getCost(XTilde[NTS], UTemp);
         JTemp[iter]  = this->getCost(trajTemp.X[NTS], UTemp);

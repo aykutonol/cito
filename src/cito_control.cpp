@@ -2,19 +2,25 @@
 
 // ***** DESCRIPTION ***********************************************************
 // CitoControl class defines functions for calculating and setting control- and
-// contact-related variables such as joint torques and external forces on
-// the bodies.
+// contact-related variables, i.e., joint torques and external forces on the free
+// bodies.
 
 
 // ***** CONSTRUCTOR & DESTRUCTOR **********************************************
 CitoControl::CitoControl(const mjModel* model) : m(model), sl(model)
 {
-    YAML::Node vscm = YAML::LoadFile(workspaceDir+"/src/cito/config/vscm.yaml");
+    // read contact model parameters
+    YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
     alpha = vscm["alpha"].as<double>();
     phiR  = vscm["phiR"].as<double>();
+    // bound variables
+    qposLB  = new double[NV];   qposUB  = new double[NV];
+    tauLB   = new double[NU];   tauUB   = new double[NU];
+    isJFree = new int[NV];      isAFree = new int[NU];
 }
 CitoControl::~CitoControl()
 {
+    // delete bound variables
     delete []qposLB;        delete []qposUB;
     delete []tauLB;         delete []tauUB;
     delete []isJFree;       delete []isAFree;

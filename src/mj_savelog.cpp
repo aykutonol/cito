@@ -7,8 +7,11 @@
 MjSaveLog::MjSaveLog(const mjModel* model) : m(model)
 {
     // open the log file
-    YAML::Node paths = YAML::LoadFile(workspaceDir+"/src/cito/config/path.yaml");
-    printFile = fopen(paths["logFile"].as<std::string>().c_str(), "wb");
+    std::string modelName = paths::modelFile;
+    modelName.erase(modelName.end()-4, modelName.end());
+    std::string logPathStr = paths::workspaceDir + "/cito-logs/mjLog_" + modelName;
+    const char *logPath = logPathStr.c_str();
+    printFile = fopen(logPath, "wb");
     if( printFile == NULL ) { mju_error("Unable to open the log file."); }
     // create and write the header
     header[0] = m->nq;

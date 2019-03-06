@@ -1,0 +1,4 @@
+# Variable smooth contact model (VSCM) parameters
+kCon0: 10.0	# initial value and upper bound for stiffness (virtual force at zero distance)
+alpha: 10.0	# curvature of the exponential curve, i.e., gamma = kCon*exp(-alpha*phi)
+phiR:  200.0	# parameter for the radius of the sphere for distance calculation (200 ~ 1 cm)

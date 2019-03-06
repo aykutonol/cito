@@ -3,7 +3,7 @@
  *  \brief CitoControl class consists of functions for control and contact model
  *
  *  This class defines functions for calculating and setting control- and contact-
- *  related variables, i.e., joint torques and external forces on the bodies.
+ *  related variables, i.e., joint torques and external forces on the free bodies.
  *
  *  \author Aykut Onol
  */
@@ -31,12 +31,8 @@ public:
     /// This function gets bounds on joint positions, actuator forces from the model
     void getBounds();
     /// position & torque limits
-    double *qposLB  = new double[NV];
-    double *qposUB  = new double[NV];
-    double *tauLB   = new double[NU];
-    double *tauUB   = new double[NU];
-    int    *isJFree = new int[NV];
-    int    *isAFree = new int[NU];
+    double *qposLB, *qposUB, *tauLB, *tauUB;
+    int    *isJFree, *isAFree;
 
 private:
     /// This function returns contact wrench given current state and control input

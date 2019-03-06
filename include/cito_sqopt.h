@@ -26,9 +26,9 @@ public:
                   const stateDerTraj Fx, const ctrlDerTraj Fu, int *isJFree, int *isAFree,
                   double *qposLB, double *qposUB, double *tauLB, double *tauUB);
 private:
-    /// This function sets linear and constant cost terms
-    void setCost(const stateTraj X, const ctrlTraj U,
-                 double *ru, double *cObj, double& ObjAdd);
+    /// This function sets linear and constant cost terms of the cost
+    void setCObj(const stateTraj X, const ctrlTraj U,
+                 double *ru, double *cObj, double &ObjAdd);
     /// This function sets bounds of dX, dU, and constraints (dynamics, trust region, etc.)
     void setBounds(double r, const stateTraj X, const ctrlTraj U,
                    double *bl, double *bu, int *isJFree, int *isAFree,
@@ -46,7 +46,7 @@ private:
     /// This function sorts decision variables back to original order
     void sortX(double *x, int *indMove);
     /// SQOPT parameters
-    int nnH     = 6 + 6 + NTS*NPAIR;    // number of non-zero elements of the Hessian
+    int nnH     = 6 + NV + NTS*NPAIR;   // number of non-zero elements of the Hessian
     int lencObj = nnH;                  // number of non-zero elements of the linear term
     int lenru   = 4;                    // number of weights
     int neA = NTS*N*N + (NTS+1)*N + NTS*N*M + ((NTS+1)*N+NTS*M)*5;
@@ -61,12 +61,12 @@ private:
     int Cold = 0, Basis = 1, Warm = 2;
     /// Cost parameters
     int controlJointDOF0;
-    Eigen::Matrix<double, 6, 1> desiredPose, desiredVelo, dPose, dVelo;
+    Eigen::Matrix<double,  6, 1> desiredPose, deltaPose;
+    Eigen::Matrix<double, NV, 1> desiredVelo, deltaVelo;
     kConTraj dKCon;
     double dKConSN;
     /// Sort parameters
-    int nMove    = nnH;
-    int *indMove = new int[nMove];
+    int *indMove = new int[nnH];
     double *xTemp;
     /// setBounds parameters
     int dUOffset  = (NTS+1)*N;

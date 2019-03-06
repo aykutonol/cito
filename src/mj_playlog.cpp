@@ -7,7 +7,8 @@
 #include "cito_params.h"
 
 /// global variables
-YAML::Node paths;
+std::string modelName;
+const char *modelPath, *logPath, *trajPath;
 
 const int maxgeom= 5000;
 
@@ -187,12 +188,14 @@ void initMuJoCo(const char* modelFilePath, const char* logFilePath)
          m = mj_loadModel(modelFilePath, NULL);
     else m = mj_loadXML(modelFilePath, NULL, NULL, 0);
     if( !m ) mju_error("ERROR:  Model cannot be loaded");
+    std::cout << "\nINFO: Model loaded: " << modelFilePath << "\n";
     // copy timestep, adjust later
     timestep = m->opt.timestep;
     // open log file
     FILE* logFile = fopen(logFilePath, "rb");
     if( !logFile )
         mju_error("Unable to open the log file.");
+    std::cout << "\nINFO: Log file opened: " << logFilePath << "\n";
     // get header with sizes, check
     int header[6];
     if( fread(header, sizeof(int), 6, logFile) != 6 )
@@ -720,7 +723,7 @@ void render(GLFWwindow* window)
     jumped = false;
 
     std::ofstream outFile;
-    outFile.open(paths["trajFile"].as<std::string>(), std::fstream::app);
+    outFile.open(trajPath, std::fstream::app);
     // write to outFile
     if( outFile.is_open() )
     {
@@ -913,14 +916,18 @@ int main(int argc, const char** argv)
             fontscale = 1.5;
     }
     /// parse file names
-    paths = YAML::LoadFile(workspaceDir+"/src/cito/config/path.yaml");
-    std::string modelFileTemp = paths["modelFile"].as<std::string>();
-    const char *modelFile = modelFileTemp.c_str();
-    std::string logFileTemp = paths["logFile"].as<std::string>();
-    const char *logFile = logFileTemp.c_str();
+    modelName = paths::modelFile;
+    modelName.erase(modelName.end()-4, modelName.end());
+    std::string modelPathStr = paths::workspaceDir + "/src/cito/model/"  + paths::modelFile;
+    std::string logPathStr   = paths::workspaceDir + "/cito-logs/mjLog_" + modelName;
+    std::string trajPathStr  = paths::workspaceDir + "/cito-logs/traj_"  + modelName + ".txt";
+    modelPath = modelPathStr.c_str();
+    logPath   = logPathStr.c_str();
+    trajPath  = trajPathStr.c_str();
     /// init log file
     std::ofstream outFile;
-    outFile.open(paths["trajFile"].as<std::string>());
+    outFile.open(trajPath);
+    std::cout << "\nINFO: Trajectory will be saved to " << trajPath << "\n";
     /// write header to outFile
     if( outFile.is_open() )
     {
@@ -930,8 +937,8 @@ int main(int argc, const char** argv)
     }
     else std::cout << "Unable to open the trajectory file." << '\n';
     /// initialize OpenGL and MuJoCo
-    initOpenGL(modelFile, logFile);
-    initMuJoCo(modelFile, logFile);
+    initOpenGL(modelPath, logPath);
+    initMuJoCo(modelPath, logPath);
     /// set GLFW callbacks
     glfwSetKeyCallback(window, keyboard);
     glfwSetCursorPosCallback(window, mouse_move);

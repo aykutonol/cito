@@ -8,14 +8,14 @@
 CitoSQOPT::CitoSQOPT()
 {
     // read task parameters
-    YAML::Node paramTask = YAML::LoadFile(workspaceDir+"/src/cito/config/task.yaml");
-    std::vector<double> desiredPoseConfig = { paramTask["desiredPoseInput"].as<std::vector<double>>() };
-    std::vector<double> desiredVeloConfig = { paramTask["desiredVeloInput"].as<std::vector<double>>() };
-    desiredPose = Eigen::Map<Eigen::Matrix<double, 6, 1>>(desiredPoseConfig.data(), desiredPoseConfig.size());
-    desiredVelo = Eigen::Map<Eigen::Matrix<double, 6, 1>>(desiredVeloConfig.data(), desiredVeloConfig.size());
+    YAML::Node paramTask = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/task.yaml");
+    std::vector<double> desiredPoseInput = { paramTask["desiredFinalPose"].as<std::vector<double>>() };
+    std::vector<double> desiredVeloInput = { paramTask["desiredFinalVelo"].as<std::vector<double>>() };
+    desiredPose = Eigen::Map<Eigen::Matrix<double,  6, 1>>(desiredPoseInput.data(), desiredPoseInput.size());
+    desiredVelo = Eigen::Map<Eigen::Matrix<double, NV, 1>>(desiredVeloInput.data(), desiredVeloInput.size());
     controlJointDOF0 = paramTask["controlJointDOF0"].as<int>();
     // read contact model parameters
-    YAML::Node vscm = YAML::LoadFile(workspaceDir+"/src/cito/config/vscm.yaml");
+    YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
     kCon0 = vscm["kCon0"].as<double>();
     // trajectories
     dKCon.resize(NTS);
@@ -29,9 +29,9 @@ CitoSQOPT::CitoSQOPT()
         }
     }
     // *** final velocity variables for the control joint
-    for( int i=0; i<6; i++ )
+    for( int i=0; i<NV; i++ )
     {
-        indMove[nnH-1-6-i] = NTS*N + controlJointDOF0 + NV + i;
+        indMove[nnH-1-6-i] = NTS*N + NV + i;
     }
     // *** final pose variables for the control joint
     for( int i=0; i<6; i++ )
@@ -66,15 +66,65 @@ void qpHx(int *nnH, double x[], double Hx[], int *nState,
         Hx[i] = ru[1]*x[i];
     }
     // final velocity terms
-    for( int i=6; i<12; i++ )
-    {
-        Hx[i] = ru[3]*x[i];
-    }
-    // kCon terms
-    for( int i=12; i<12+NTS*NPAIR; i++ )
+    for( int i=6; i<6+NV; i++ )
     {
         Hx[i] = ru[2]*x[i];
     }
+    // stiffness terms
+    for( int i=6+NV; i<6+NV+NTS*NPAIR; i++ )
+    {
+        Hx[i] = ru[3]*x[i];
+    }
+}
+
+// setCObj: sets linear and constant cost terms of the cost
+void CitoSQOPT::setCObj(const stateTraj X, const ctrlTraj U,
+                        double *ru, double *cObj, double &ObjAdd)
+{
+    // set linear objective terms
+    // desired change in the final pose and velocity
+    deltaPose.setZero(); deltaVelo.setZero();
+    for( int i=0; i<6; i++ )
+    {
+        deltaPose[i] = desiredPose[i] - X[NTS][controlJointDOF0+i];
+    }
+    for( int i=0; i<NV; i++ )
+    {
+        deltaVelo[i] = desiredVelo[i] - X[NTS][controlJointDOF0+NV+i];
+    }
+    // final position
+    for( int i=0; i<2; i++ )
+    {
+        cObj[i] = -ru[0]*deltaPose[i];
+    }
+    // final orientation
+    for( int i=2; i<6; i++ )
+    {
+        cObj[i] = -ru[1]*deltaPose[i];
+    }
+    // final velocity
+    for( int i=0; i<NV; i++ )
+    {
+        cObj[6+i] = -ru[2]*deltaVelo[i];
+    }
+    // virtual stiffness
+    dKConSN = 0;
+    for( int i=0; i<NTS; i++ )
+    {
+        dKCon[i].setZero();
+        for( int j=0; j<NPAIR; j++ )
+        {
+            dKCon[i][j] = -U[i][NU+j];
+            cObj[6+NV+i*NPAIR+j] = -ru[3]*dKCon[i][j];
+        }
+//        cObj[6+i] = -ru[2]*dKCon[i].squaredNorm();
+        dKConSN += dKCon[i].squaredNorm();
+    }
+    // constant objective term
+    ObjAdd = 0.5*(ru[0]*deltaPose.block<2,1>(0,0).squaredNorm() +
+                  ru[1]*deltaPose.block<4,1>(2,0).squaredNorm() +
+                  ru[2]*deltaVelo.squaredNorm() +
+                  ru[3]*dKConSN);
 }
 
 // solveCvx: solves the convex subproblem
@@ -107,7 +157,7 @@ void CitoSQOPT::solveCvx(double *xTraj, double r, const stateTraj X, const ctrlT
     // sort A and bounds w.r.t. the order in qpHX
     this->sortToMatch(valA, indA, locA, indMove, bl, bu);
     // set linear and constant cost terms
-    this->setCost(X, U, ru, cObj, ObjAdd);
+    this->setCObj(X, U, ru, cObj, ObjAdd);
     // solve the convex subproblem
     cvxProb.solve(Cold, qpHx, nc, n, neA, lencObj, nnH, iObj,
                   ObjAdd, valA, indA, locA, bl, bu, cObj,
@@ -123,53 +173,6 @@ void CitoSQOPT::solveCvx(double *xTraj, double r, const stateTraj X, const ctrlT
     delete []indA;  delete []locA; delete []valA;
     delete []x;     delete []bl;   delete []bu;
     delete []pi;    delete []rc;   delete []hs;   delete[]eType;
-}
-
-// setCost: sets linear and constant cost terms
-void CitoSQOPT::setCost(const stateTraj X, const ctrlTraj U,
-                        double *ru, double *cObj, double& ObjAdd)
-{
-    // *********** set linear and constant objective terms ****************/
-    // desired change in the pose
-    dPose.setZero(); dVelo.setZero();
-    for( int i=0; i<6; i++ )
-    {
-        dPose[i] = desiredPose[i] - X[NTS][controlJointDOF0+i];
-        dVelo[i] = desiredVelo[i] - X[NTS][controlJointDOF0+NV+i];
-    }
-    // final position
-    for( int i=0; i<2; i++ )
-    {
-        cObj[i] = -ru[0]*dPose[i];
-    }
-    // final orientation
-    for( int i=2; i<6; i++ )
-    {
-        cObj[i] = -ru[1]*dPose[i];
-    }
-    // final velocity
-    for( int i=0; i<6; i++ )
-    {
-        cObj[6+i] = -ru[3]*dVelo[i];
-    }
-    // virtual stiffness
-    dKConSN = 0;
-    for( int i=0; i<NTS; i++ )
-    {
-        dKCon[i].setZero();
-        for( int j=0; j<NPAIR; j++ )
-        {
-            dKCon[i][j] = -U[i][NU+j];
-            cObj[12+i*NPAIR+j] = -ru[2]*dKCon[i][j];
-        }
-//        cObj[6+i] = -ru[2]*dKCon[i].squaredNorm();
-        dKConSN += dKCon[i].squaredNorm();
-    }
-    // constant objective term
-    ObjAdd = 0.5*(ru[0]*dPose.block<2,1>(0,0).squaredNorm() +
-                  ru[1]*dPose.block<4,1>(2,0).squaredNorm() +
-                  ru[3]*dVelo.squaredNorm() +
-                  ru[2]*dKConSN);
 }
 
 // setBounds: sets bounds of dX, dU, and constraints (dynamics, trust region, etc.)
