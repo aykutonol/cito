@@ -37,7 +37,6 @@
         </body>
 
         <!-- Robot -->
-        <geom name="desired_torso_shadow" type="box" pos="0 1.25 0" size="0.5 0.5 0.005" mass="1" group="2" rgba="0.2 0.8 0.2 0.2" />
         <body name="torso" pos="0 0 0" >
             <joint name="torso" type="free" />
             <geom name="torso" type="box" size="0.5 0.5 0.01" mass="1" group="1" rgba="0.8 0.2 0.2 1" />
@@ -79,6 +78,11 @@
                       <site name="right_arm_ee" pos="0 0.5 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
                 </body>
             </body>
+        </body>
+
+        <!-- Ghost representing desired pose -->
+        <body name="ghost" pos="0 0 0" >
+            <geom name="ghost" type="box" pos="0 0 0" size="0.5 0.5 0.005" mass="1" group="2" rgba="0.2 0.8 0.2 0.2" />
         </body>
     </worldbody>
 

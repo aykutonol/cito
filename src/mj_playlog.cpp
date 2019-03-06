@@ -189,6 +189,16 @@ void initMuJoCo(const char* modelFilePath, const char* logFilePath)
     else m = mj_loadXML(modelFilePath, NULL, NULL, 0);
     if( !m ) mju_error("ERROR:  Model cannot be loaded");
     std::cout << "\nINFO: Model loaded: " << modelFilePath << "\n";
+    // read the desired final pose and put the ghost there, if there is a ghost in the model
+    if( mj_name2id(m, mjOBJ_BODY, "ghost") != -1 )
+    {
+        YAML::Node paramTask = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/task.yaml");
+        std::vector<double> desiredPose = { paramTask["desiredFinalPose"].as<std::vector<double>>() };
+        for( int i=0; i<3; i++ )
+        {
+            m->body_pos[mj_name2id(m, mjOBJ_BODY, "ghost")*3+i] = desiredPose[i];
+        }
+    }
     // copy timestep, adjust later
     timestep = m->opt.timestep;
     // open log file

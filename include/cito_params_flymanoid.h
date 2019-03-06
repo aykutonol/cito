@@ -39,8 +39,8 @@ namespace params {
     const int nfree = 1;                                    // number of free joints
     // specific joint and body indices
     const int jact[nact] = {6, 7, 8, 9, 10, 11, 12, 13};    // indices of actuated DOF
-    const int jfree[nfree] = {0};                           // indices free joints
-    const int bfree[nfree] = {5};                           // indices free bodies
+    const int jfree[nfree] = {0};                           // indices of free joints
+    const int bfree[nfree] = {5};                           // indices of free bodies
     /// Contact
     const int npair = 16;                                   // number of contact pairs
     // site indices for each contact pair
@@ -79,7 +79,7 @@ typedef std::vector<stateVec, Eigen::aligned_allocator<stateVec>> stateTraj;
 typedef std::vector<stateDer, Eigen::aligned_allocator<stateDer>> stateDerTraj;
 typedef std::vector<ctrlVec,  Eigen::aligned_allocator<ctrlVec>>  ctrlTraj;
 typedef std::vector<ctrlDer,  Eigen::aligned_allocator<ctrlDer>>  ctrlDerTraj;
-typedef std::vector<kConVec,  Eigen::aligned_allocator<kConVec>>  kConTraj;
+typedef std::vector<kConVec,  Eigen::aligned_allocator<kConVec>>  KConTraj;
 /// Structs
 struct trajectory
 {

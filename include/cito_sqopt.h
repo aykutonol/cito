@@ -63,7 +63,7 @@ private:
     int controlJointDOF0;
     Eigen::Matrix<double,  6, 1> desiredPose, deltaPose;
     Eigen::Matrix<double, NV, 1> desiredVelo, deltaVelo;
-    kConTraj dKCon;
+    KConTraj dKCon;
     double dKConSN;
     /// Sort parameters
     int *indMove = new int[nnH];

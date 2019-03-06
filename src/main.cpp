@@ -4,10 +4,9 @@
 
 #include "cito_scvx.h"
 
-// ***** MuJoCo model & data ****************************************************/
+// MuJoCo model
 mjModel *m = NULL;
-mjData  *d = NULL;
-//================================================================================
+
 int main(int argc, char const *argv[]) {
     // ***** Model file **********************************************************/
     std::string modelPathStr = paths::workspaceDir + "/src/cito/model/"  + paths::modelFile;
@@ -20,13 +19,11 @@ int main(int argc, char const *argv[]) {
     // Activate MuJoCo
     const char* mjKeyPath = std::getenv("MJ_KEY");
     mj_activate(mjKeyPath);
-    // Load xml model
+    // Load the model
     if( strlen(modelPath)>4 && !strcmp(modelPath+strlen(modelPath)-4, ".mjb") )
     {       m = mj_loadModel(modelPath, NULL); }
     else {  m = mj_loadXML(modelPath, NULL, NULL, 0); }
     if( !m ) { mju_error("Cannot load the model"); }
-    // Create data
-    d = mj_makeData(m);
     // ***** Create objects for CITO *********************************************/
     CitoSCvx scvx(m);
     // ***** Initial control trajectory ******************************************/
@@ -61,7 +58,6 @@ int main(int argc, char const *argv[]) {
     double J = scvx.getCost(traj.X[NTS], traj.U);
     std::cout << "J = " << J;
     // ***** MuJoCo shut down ****************************************************/
-    mj_deleteData(d);
     mj_deleteModel(m);
     mj_deactivate();
 

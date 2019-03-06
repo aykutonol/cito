@@ -5,9 +5,9 @@ nq             15
 nv             14
 nu             8
 na             0
-nbody          14
+nbody          15
 njnt           9
-ngeom          14
+ngeom          15
 nsite          12
 ncam           0
 nlight         1
@@ -27,7 +27,7 @@ nhfielddata    0
 ntex           2
 ntexdata       5505024
 nmat           1
-npair          16
+npair          24
 nexclude       0
 neq            0
 ntendon        0
@@ -48,17 +48,17 @@ nuser_cam      0
 nuser_tendon   0
 nuser_actuator 0
 nuser_sensor   0
-nnames         775
+nnames         795
 
 nM             81
 nemax          0
 njmax          500
 nconmax        100
-nstack         1322700
+nstack         1322740
 nuserdata      0
 nmocap         0
 nsensordata    0
-nbuffer        5522807
+nbuffer        5524347
 
 timestep       0.002   
 apirate        1e+02   
@@ -86,11 +86,11 @@ mpr_iterations 50
 disableflags   0
 enableflags    0
 
-totalmass      13      
+totalmass      14      
 
 meaninertia    2       
 meanmass       1       
-meansize       0.25    
+meansize       0.28    
 extent         3.6     
 center         0         0.31     -0.4     
 
@@ -118,7 +118,7 @@ BODY 0:
   ipos         0         0         0       
   iquat        1         0         0         0       
   mass         0       
-  subtreemass  13      
+  subtreemass  14      
   inertia      0         0         0       
   invweight0   0         0       
 
@@ -420,6 +420,29 @@ BODY 13:
   subtreemass  0.5     
   inertia      0.01      0.01      2.5e-05 
   invweight0   0.96      19      
+
+BODY 14:
+  name         ghost
+  parentid     0
+  rootid       14
+  weldid       0
+  mocapid      -1
+  jntnum       0
+  jntadr       -1
+  dofnum       0
+  dofadr       -1
+  geomnum      1
+  geomadr      14
+  simple       1
+  sameframe    1
+  pos          0         0         0       
+  quat         1         0         0         0       
+  ipos         0         0         0       
+  iquat        1         0         0         0       
+  mass         1       
+  subtreemass  1       
+  inertia      0.083     0.083     0.17    
+  invweight0   0         0       
 
 
 JOINT 0:
@@ -1114,6 +1137,31 @@ GEOM 13:
   rgba         0.2       0.2       0.8       1       
 
 
+GEOM 14:
+  name         ghost
+  type         6
+  contype      1
+  conaffinity  1
+  condim       3
+  bodyid       14
+  dataid       -1
+  matid        -1
+  group        2
+  priority     0
+  sameframe    1
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.5       0.5       0.005   
+  rbound       0.71    
+  pos          0         0         0       
+  quat         1         0         0         0       
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.2       0.8       0.2       0.2     
+
+
 
 SITE 0:
   name         rbar0_front
@@ -1282,7 +1330,7 @@ LIGHT 0:
   active       1
   pos          0         0         5       
   dir          0         0        -1       
-  poscom0      0        -0.92      5       
+  poscom0      0        -0.86      5       
   pos0         0         0         5       
   dir0         0         0        -1       
   attenuation  1         0         0       
@@ -1325,6 +1373,18 @@ PAIR 0:
   name         
   dim          3
   geom1        1
+  geom2        8
+  signature    131081
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 1:
+  name         
+  dim          3
+  geom1        1
   geom2        9
   signature    131082
   solref       0.02      1       
@@ -1333,7 +1393,19 @@ PAIR 0:
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
-PAIR 1:
+PAIR 2:
+  name         
+  dim          3
+  geom1        1
+  geom2        12
+  signature    131085
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 3:
   name         
   dim          3
   geom1        1
@@ -1345,7 +1417,19 @@ PAIR 1:
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
-PAIR 2:
+PAIR 4:
+  name         
+  dim          3
+  geom1        2
+  geom2        6
+  signature    196615
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 5:
   name         
   dim          3
   geom1        2
@@ -1357,7 +1441,19 @@ PAIR 2:
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
-PAIR 3:
+PAIR 6:
+  name         
+  dim          3
+  geom1        2
+  geom2        10
+  signature    196619
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 7:
   name         
   dim          3
   geom1        2
@@ -1369,7 +1465,19 @@ PAIR 3:
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
-PAIR 4:
+PAIR 8:
+  name         
+  dim          3
+  geom1        3
+  geom2        8
+  signature    262153
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 9:
   name         
   dim          3
   geom1        3
@@ -1381,7 +1489,19 @@ PAIR 4:
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
-PAIR 5:
+PAIR 10:
+  name         
+  dim          3
+  geom1        3
+  geom2        12
+  signature    262157
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 11:
   name         
   dim          3
   geom1        3
@@ -1393,7 +1513,19 @@ PAIR 5:
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
-PAIR 6:
+PAIR 12:
+  name         
+  dim          3
+  geom1        4
+  geom2        6
+  signature    327687
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 13:
   name         
   dim          3
   geom1        4
@@ -1405,7 +1537,19 @@ PAIR 6:
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
-PAIR 7:
+PAIR 14:
+  name         
+  dim          3
+  geom1        4
+  geom2        10
+  signature    327691
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 15:
   name         
   dim          3
   geom1        4
@@ -1417,7 +1561,7 @@ PAIR 7:
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
-PAIR 8:
+PAIR 16:
   name         
   dim          3
   geom1        5
@@ -1429,7 +1573,7 @@ PAIR 8:
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
-PAIR 9:
+PAIR 17:
   name         
   dim          3
   geom1        5
@@ -1441,7 +1585,7 @@ PAIR 9:
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
-PAIR 10:
+PAIR 18:
   name         
   dim          3
   geom1        5
@@ -1453,7 +1597,7 @@ PAIR 10:
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
-PAIR 11:
+PAIR 19:
   name         
   dim          3
   geom1        5
@@ -1465,7 +1609,7 @@ PAIR 11:
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
-PAIR 12:
+PAIR 20:
   name         
   dim          3
   geom1        7
@@ -1477,7 +1621,7 @@ PAIR 12:
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
-PAIR 13:
+PAIR 21:
   name         
   dim          3
   geom1        7
@@ -1489,7 +1633,7 @@ PAIR 13:
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
-PAIR 14:
+PAIR 22:
   name         
   dim          3
   geom1        9
@@ -1501,7 +1645,7 @@ PAIR 14:
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
-PAIR 15:
+PAIR 23:
   name         
   dim          3
   geom1        11

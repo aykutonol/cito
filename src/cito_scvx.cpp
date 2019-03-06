@@ -133,7 +133,7 @@ ctrlTraj CitoSCvx::solveSCvx(const ctrlTraj U0)
         // simulation and convexification ======================================
         if( iter == 0 || accept[iter-1] )
         {
-            std::cout << "INFO: convexification is starting\n";
+            std::cout << "INFO: convexification in progress\n";
             auto tDiffStart = std::chrono::system_clock::now();
             trajS = {};
             trajS = this->runSimulation(USucc, true, false);
@@ -144,7 +144,7 @@ ctrlTraj CitoSCvx::solveSCvx(const ctrlTraj U0)
         if( iter == 0 ) { J[iter] = this->getCost(trajS.X[NTS], USucc); }
         // convex optimization =================================================
         double *dTraj = new double[NTRAJ];
-        std::cout << "INFO: QP solver is starting\n\n";
+        std::cout << "INFO: QP solver in progress\n\n";
         auto tQPStart = std::chrono::system_clock::now();
         sq.solveCvx(dTraj, r[iter], trajS.X, USucc, trajS.Fx, trajS.Fu, cc.isJFree, cc.isAFree,
                     cc.qposLB, cc.qposUB, cc.tauLB, cc.tauUB);
@@ -181,7 +181,7 @@ ctrlTraj CitoSCvx::solveSCvx(const ctrlTraj U0)
         dJ[iter] = J[iter] - JTemp[iter];
         dL[iter] = J[iter] - JTilde[iter];
         rho[iter] = dJ[iter]/dL[iter];
-        if( dL[iter] > 0 && dL[iter] < dLTol )
+        if( fabs(dL[iter]) < dLTol )
         {
             dLTolMet = 1;
         }
@@ -216,17 +216,19 @@ ctrlTraj CitoSCvx::solveSCvx(const ctrlTraj U0)
         if( iter+1 == maxIter )
         {
             stop = true;
-            std::cout << "\n\n\tWARNING: Maximum number of iterations reached\n\n";
+            std::cout << "\n\n\tINFO: Maximum number of iterations reached\n\n";
         }
         if( dLTolMet )
         {
             stop = true;
-            std::cout << "\n\n\tWARNING: dL<dLTol\n\n";
+            std::cout << "\n\n\tINFO: dL = " << fabs(dL[iter]) << " < dLTol = " << dLTol << "\n\n";
         }
         // screen output for the iteration =====================================
-        std::cout << "X:      " << trajTemp.X[NTS].transpose() << "\n";
-        std::cout << "XTilde: " << XTilde[NTS].transpose() << "\n";
-        std::cout << "JTilde = " << JTilde[iter] << ", J = " << JTemp[iter] << "\n\n\n";
+        std::cout << "Actual:\nFinal pos: " << trajTemp.X[NTS].block<NV,1>(0,0).transpose() << "\n";
+        std::cout << "Final vel: " << trajTemp.X[NTS].block<NV,1>(NV,0).transpose() << "\n";
+        std::cout << "Predicted:\nFinal pos: " << XTilde[NTS].block<NV,1>(0,0).transpose() << "\n";
+        std::cout << "Final vel: " << XTilde[NTS].block<NV,1>(NV,0).transpose() << "\n";
+        std::cout << "J = " << JTemp[iter] << ", JTilde = " << JTilde[iter] << "\n\n\n";
         // next iteration ======================================================
         iter++;
     }

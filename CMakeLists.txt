@@ -8,6 +8,7 @@ find_package(Eigen3 REQUIRED)
 find_package(yaml-cpp REQUIRED)
 
 set(MUJOCO_DIR "$ENV{MJ_HOME}")
+set(SNOPT_DIR  "$ENV{SN_HOME}")
 
 ###################################
 ## catkin specific configuration ##rosrun 
@@ -23,9 +24,9 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
  include
- ${MUJOCO_DIR}/include
  ${EIGEN3_INCLUDE_DIR}
- /home/aykut/Development/snopt-interface/include
+ ${MUJOCO_DIR}/include
+ ${SNOPT_DIR}/include
 )
 
 ## Declare a C++ library
@@ -42,7 +43,6 @@ add_library(${PROJECT_NAME}
 ################
 set(NODE_NAME1 main)
 set(NODE_NAME2 playlog)
-set(NODE_NAME3 model_test)
 
 #################
 ## Executables ##
@@ -54,7 +54,7 @@ target_link_libraries(${NODE_NAME1} ${MUJOCO_DIR}/bin/libmujoco200nogl.so
 				    pthread
 				    ${PROJECT_NAME}
 				    /home/aykut/Development/snopt-interface/lib/libsnopt7_cpp.so
-					yaml-cpp
+				    yaml-cpp
 )
 # playlog: shows motions generated
 add_executable(${NODE_NAME2} src/mj_playlog.cpp)
@@ -63,14 +63,6 @@ target_link_libraries(${NODE_NAME2} ${MUJOCO_DIR}/bin/libmujoco200.so
 				    ${MUJOCO_DIR}/bin/libglew.so
 				    ${MUJOCO_DIR}/bin/libglfw.so.3
 				    GL
-					yaml-cpp
-)
-# model_test: to analyze a model and to run random tests
-add_executable(${NODE_NAME3} src/model_test.cpp)
-### mujoco w/ rendering
-target_link_libraries(${NODE_NAME3} ${MUJOCO_DIR}/bin/libmujoco200.so
-				    ${MUJOCO_DIR}/bin/libglew.so
-				    ${MUJOCO_DIR}/bin/libglfw.so.3
-				    GL
+				    yaml-cpp
 )
 

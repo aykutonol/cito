@@ -26,8 +26,6 @@
     <geom name="floor" pos="0 0 -.913" size="5 5 .125" type="plane" material="MatPlane" condim="3"/>
     <geom name="table" pos="1.1 0 0.025" type="plane" size=".6 .375 0.1" group = "1" rgba=".5 .5 .5 .5"/>
 
-    <!-- <geom name="ghost_object" pos="1.25 0 0.066" type="box" size="0.15075 0.0745 0.038" group="1" rgba="0 .9 0 0.3"/> -->
-
     <!-- melissa & doug red, large cardboard -->
     <body name="object" pos="1.2 0 0.066" quat="1 0 0 0" >
       <inertial pos="0 0 0" mass=".155" diaginertia="0.0003686049833333333 0.001255996129167 0.001460916979167" />
@@ -146,6 +144,11 @@
              </body>
          </body>
      </body>
+
+      <!-- Ghost representing desired pose -->
+      <body name="ghost" pos="0 0 0" >
+          <geom name="ghost" pos="0 0 0" type="box" size="0.15075 0.0745 0.038" group="1" rgba="0 .9 0 0.3"/>
+      </body>
   </worldbody>
 
   <!-- Actuators -->

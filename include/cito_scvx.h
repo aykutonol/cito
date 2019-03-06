@@ -52,7 +52,7 @@ private:
     int controlJointDOF0;
     Eigen::Matrix<double,  6, 1> desiredPose, finalPose;
     Eigen::Matrix<double, NV, 1> desiredVelo, finalVelo;
-    kConTraj KCon;
+    KConTraj KCon;
     double KConSN;          // total squared norm of virtual stiffness variables
     double Jf, Ji, Jt;      // final, integrated, and total cost values
     /// Control, numerical differentiation, and SQOPT objects

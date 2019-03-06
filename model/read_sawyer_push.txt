@@ -5,7 +5,7 @@ nq             14
 nv             13
 nu             7
 na             0
-nbody          26
+nbody          27
 njnt           8
 ngeom          32
 nsite          2
@@ -48,17 +48,17 @@ nuser_cam      0
 nuser_tendon   0
 nuser_actuator 0
 nuser_sensor   0
-nnames         891
+nnames         890
 
 nM             49
 nemax          0
 njmax          500
 nconmax        100
-nstack         1317885
+nstack         1317905
 nuserdata      0
 nmocap         0
 nsensordata    0
-nbuffer        2997123
+nbuffer        2997334
 
 timestep       0.002   
 apirate        1e+02   
@@ -89,10 +89,10 @@ enableflags    0
 totalmass      3e+02   
 
 meaninertia    0.54    
-meanmass       12      
+meanmass       11      
 meansize       0.2     
 extent         2.1     
-center         0.4       0.0016   -0.37    
+center         0.37      0.0016   -0.37    
 
 qpos0          1.2       0         0.066     1         0         0         0         0         0         0         0         0         0         0        
 
@@ -109,7 +109,7 @@ BODY 0:
   jntadr       -1
   dofnum       0
   dofadr       -1
-  geomnum      3
+  geomnum      2
   geomadr      0
   simple       1
   sameframe    1
@@ -133,7 +133,7 @@ BODY 1:
   dofnum       6
   dofadr       0
   geomnum      1
-  geomadr      3
+  geomadr      2
   simple       1
   sameframe    1
   pos          1.2       0         0.066   
@@ -179,7 +179,7 @@ BODY 3:
   dofnum       0
   dofadr       -1
   geomnum      1
-  geomadr      4
+  geomadr      3
   simple       0
   sameframe    0
   pos          0         0         0       
@@ -202,7 +202,7 @@ BODY 4:
   dofnum       0
   dofadr       -1
   geomnum      1
-  geomadr      5
+  geomadr      4
   simple       0
   sameframe    0
   pos          0         0         0       
@@ -225,7 +225,7 @@ BODY 5:
   dofnum       0
   dofadr       -1
   geomnum      1
-  geomadr      6
+  geomadr      5
   simple       1
   sameframe    1
   pos          0         0         0       
@@ -248,7 +248,7 @@ BODY 6:
   dofnum       0
   dofadr       -1
   geomnum      2
-  geomadr      7
+  geomadr      6
   simple       0
   sameframe    0
   pos          0         0         0       
@@ -271,7 +271,7 @@ BODY 7:
   dofnum       0
   dofadr       -1
   geomnum      2
-  geomadr      9
+  geomadr      8
   simple       0
   sameframe    0
   pos          0         0         0       
@@ -294,7 +294,7 @@ BODY 8:
   dofnum       1
   dofadr       6
   geomnum      2
-  geomadr      11
+  geomadr      10
   simple       0
   sameframe    0
   pos          0         0         0.08    
@@ -317,7 +317,7 @@ BODY 9:
   dofnum       0
   dofadr       -1
   geomnum      1
-  geomadr      13
+  geomadr      12
   simple       0
   sameframe    0
   pos          0         0         0.3     
@@ -340,7 +340,7 @@ BODY 10:
   dofnum       0
   dofadr       -1
   geomnum      2
-  geomadr      14
+  geomadr      13
   simple       0
   sameframe    1
   pos          0.03      0         0.1     
@@ -409,7 +409,7 @@ BODY 13:
   dofnum       1
   dofadr       7
   geomnum      2
-  geomadr      16
+  geomadr      15
   simple       0
   sameframe    0
   pos          0.081     0.05      0.24    
@@ -432,7 +432,7 @@ BODY 14:
   dofnum       1
   dofadr       8
   geomnum      2
-  geomadr      18
+  geomadr      17
   simple       0
   sameframe    0
   pos          0        -0.14      0.14    
@@ -455,7 +455,7 @@ BODY 15:
   dofnum       1
   dofadr       9
   geomnum      2
-  geomadr      20
+  geomadr      19
   simple       0
   sameframe    0
   pos          0        -0.042     0.26    
@@ -478,7 +478,7 @@ BODY 16:
   dofnum       1
   dofadr       10
   geomnum      2
-  geomadr      22
+  geomadr      21
   simple       0
   sameframe    0
   pos          0        -0.12     -0.13    
@@ -524,7 +524,7 @@ BODY 18:
   dofnum       1
   dofadr       11
   geomnum      2
-  geomadr      24
+  geomadr      23
   simple       0
   sameframe    0
   pos          0         0.031     0.28    
@@ -593,7 +593,7 @@ BODY 21:
   dofnum       1
   dofadr       12
   geomnum      2
-  geomadr      26
+  geomadr      25
   simple       0
   sameframe    0
   pos          0        -0.11      0.11    
@@ -616,7 +616,7 @@ BODY 22:
   dofnum       0
   dofadr       -1
   geomnum      1
-  geomadr      28
+  geomadr      27
   simple       0
   sameframe    0
   pos          0         0         0.025   
@@ -639,7 +639,7 @@ BODY 23:
   dofnum       0
   dofadr       -1
   geomnum      1
-  geomadr      29
+  geomadr      28
   simple       0
   sameframe    0
   pos          0         0         0       
@@ -662,7 +662,7 @@ BODY 24:
   dofnum       0
   dofadr       -1
   geomnum      1
-  geomadr      30
+  geomadr      29
   simple       0
   sameframe    0
   pos          0         0         0       
@@ -685,7 +685,7 @@ BODY 25:
   dofnum       0
   dofadr       -1
   geomnum      1
-  geomadr      31
+  geomadr      30
   simple       0
   sameframe    0
   pos          0         0         0       
@@ -696,6 +696,29 @@ BODY 25:
   subtreemass  1e-08   
   inertia      1e-08     1e-08     1e-08   
   invweight0   0.00088   1.5     
+
+BODY 26:
+  name         ghost
+  parentid     0
+  rootid       26
+  weldid       0
+  mocapid      -1
+  jntnum       0
+  jntadr       -1
+  dofnum       0
+  dofadr       -1
+  geomnum      1
+  geomadr      31
+  simple       1
+  sameframe    1
+  pos          0         0         0       
+  quat         1         0         0         0       
+  ipos         0         0         0       
+  iquat        1         0         0         0       
+  mass         3.4     
+  subtreemass  3.4     
+  inertia      0.008     0.028     0.032   
+  invweight0   0         0       
 
 
 JOINT 0:
@@ -1061,31 +1084,6 @@ GEOM 1:
 
 
 GEOM 2:
-  name         ghost_object
-  type         6
-  contype      1
-  conaffinity  1
-  condim       3
-  bodyid       0
-  dataid       -1
-  matid        -1
-  group        1
-  priority     0
-  sameframe    0
-  solmix       1       
-  solref       0.02      1       
-  solimp       0.9       0.95      0.001     0.5       2       
-  size         0.15      0.074     0.038   
-  rbound       0.17    
-  pos          1.2       0         0.066   
-  quat         1         0         0         0       
-  friction     1         0.005     0.0001  
-  margin       0       
-  gap          0       
-  rgba         0         0.9       0         0.3     
-
-
-GEOM 3:
   name         object
   type         6
   contype      1
@@ -1110,7 +1108,7 @@ GEOM 3:
   rgba         0.9       0         0         1       
 
 
-GEOM 4:
+GEOM 3:
   name         controller_box
   type         6
   contype      1
@@ -1135,7 +1133,7 @@ GEOM 4:
   rgba         0.5       0.5       0.5       1       
 
 
-GEOM 5:
+GEOM 4:
   name         pedestal_feet
   type         6
   contype      1
@@ -1160,7 +1158,7 @@ GEOM 5:
   rgba         0.5       0.5       0.5       1       
 
 
-GEOM 6:
+GEOM 5:
   name         torso
   type         6
   contype      0
@@ -1185,7 +1183,7 @@ GEOM 6:
   rgba         0.2       0.2       0.2       1       
 
 
-GEOM 7:
+GEOM 6:
   name         pedestal
   type         7
   contype      0
@@ -1210,7 +1208,7 @@ GEOM 7:
   rgba         0.2       0.2       0.2       1       
 
 
-GEOM 8:
+GEOM 7:
   name         pedestal_coll
   type         5
   contype      1
@@ -1235,7 +1233,7 @@ GEOM 8:
   rgba         0.2       0.2       0.2       1       
 
 
-GEOM 9:
+GEOM 8:
   name         right_arm_base_link
   type         7
   contype      0
@@ -1260,7 +1258,7 @@ GEOM 9:
   rgba         0.5       0.1       0.1       1       
 
 
-GEOM 10:
+GEOM 9:
   name         right_base_coll
   type         5
   contype      1
@@ -1285,7 +1283,7 @@ GEOM 10:
   rgba         0.5       0.1       0.1       1       
 
 
-GEOM 11:
+GEOM 10:
   name         right_l0
   type         7
   contype      0
@@ -1310,7 +1308,7 @@ GEOM 11:
   rgba         0.5       0.1       0.1       1       
 
 
-GEOM 12:
+GEOM 11:
   name         right_l0_coll
   type         2
   contype      1
@@ -1335,7 +1333,7 @@ GEOM 12:
   rgba         0.5       0.1       0.1       1       
 
 
-GEOM 13:
+GEOM 12:
   name         head
   type         7
   contype      0
@@ -1360,7 +1358,7 @@ GEOM 13:
   rgba         0.5       0.1       0.1       1       
 
 
-GEOM 14:
+GEOM 13:
   name         screen
   type         6
   contype      0
@@ -1385,7 +1383,7 @@ GEOM 14:
   rgba         0.2       0.2       0.2       1       
 
 
-GEOM 15:
+GEOM 14:
   name         screen_coll
   type         2
   contype      1
@@ -1410,7 +1408,7 @@ GEOM 15:
   rgba         0.2       0.2       0.2       1       
 
 
-GEOM 16:
+GEOM 15:
   name         right_l1
   type         7
   contype      0
@@ -1435,7 +1433,7 @@ GEOM 16:
   rgba         0.5       0.1       0.1       1       
 
 
-GEOM 17:
+GEOM 16:
   name         right_l1_coll
   type         2
   contype      1
@@ -1460,7 +1458,7 @@ GEOM 17:
   rgba         0.5       0.1       0.1       1       
 
 
-GEOM 18:
+GEOM 17:
   name         right_l2
   type         7
   contype      0
@@ -1485,7 +1483,7 @@ GEOM 18:
   rgba         0.5       0.1       0.1       1       
 
 
-GEOM 19:
+GEOM 18:
   name         right_l2_coll
   type         5
   contype      1
@@ -1510,7 +1508,7 @@ GEOM 19:
   rgba         0.5       0.1       0.1       1       
 
 
-GEOM 20:
+GEOM 19:
   name         right_l3
   type         7
   contype      0
@@ -1535,7 +1533,7 @@ GEOM 20:
   rgba         0.5       0.1       0.1       1       
 
 
-GEOM 21:
+GEOM 20:
   name         right_l3_coll
   type         2
   contype      1
@@ -1560,7 +1558,7 @@ GEOM 21:
   rgba         0.5       0.1       0.1       1       
 
 
-GEOM 22:
+GEOM 21:
   name         right_l4
   type         7
   contype      0
@@ -1585,7 +1583,7 @@ GEOM 22:
   rgba         0.5       0.1       0.1       1       
 
 
-GEOM 23:
+GEOM 22:
   name         right_l4_coll
   type         5
   contype      1
@@ -1610,7 +1608,7 @@ GEOM 23:
   rgba         0.5       0.1       0.1       1       
 
 
-GEOM 24:
+GEOM 23:
   name         right_l5
   type         7
   contype      0
@@ -1635,7 +1633,7 @@ GEOM 24:
   rgba         0.5       0.1       0.1       1       
 
 
-GEOM 25:
+GEOM 24:
   name         right_l5_coll
   type         2
   contype      1
@@ -1660,7 +1658,7 @@ GEOM 25:
   rgba         0.5       0.1       0.1       1       
 
 
-GEOM 26:
+GEOM 25:
   name         right_l6
   type         7
   contype      0
@@ -1685,7 +1683,7 @@ GEOM 26:
   rgba         0.5       0.1       0.1       1       
 
 
-GEOM 27:
+GEOM 26:
   name         right_l6_coll
   type         5
   contype      1
@@ -1710,7 +1708,7 @@ GEOM 27:
   rgba         0.5       0.1       0.1       1       
 
 
-GEOM 28:
+GEOM 27:
   name         right_hand_coll
   type         5
   contype      1
@@ -1735,7 +1733,7 @@ GEOM 28:
   rgba         0.5       0.5       0.5       1       
 
 
-GEOM 29:
+GEOM 28:
   name         right_l4_2
   type         2
   contype      1
@@ -1760,7 +1758,7 @@ GEOM 29:
   rgba         0.5       0.5       0.5       1       
 
 
-GEOM 30:
+GEOM 29:
   name         right_l2_2
   type         2
   contype      1
@@ -1785,7 +1783,7 @@ GEOM 30:
   rgba         0.5       0.5       0.5       1       
 
 
-GEOM 31:
+GEOM 30:
   name         right_l1_2
   type         5
   contype      1
@@ -1808,6 +1806,31 @@ GEOM 31:
   margin       0       
   gap          0       
   rgba         0.5       0.5       0.5       1       
+
+
+GEOM 31:
+  name         ghost
+  type         6
+  contype      1
+  conaffinity  1
+  condim       3
+  bodyid       26
+  dataid       -1
+  matid        -1
+  group        1
+  priority     0
+  sameframe    1
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.15      0.074     0.038   
+  rbound       0.17    
+  pos          0         0         0       
+  quat         1         0         0         0       
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0         0.9       0         0.3     
 
 
 
@@ -1848,7 +1871,7 @@ LIGHT 0:
   active       1
   pos          0         0         3       
   dir          0         0        -1       
-  poscom0     -0.15     -0.005     3.5     
+  poscom0     -0.15     -0.0049    3.5     
   pos0         0         0         3       
   dir0         0         0        -1       
   attenuation  1         0         0       
@@ -1868,7 +1891,7 @@ LIGHT 1:
   active       1
   pos          1        -1        -0.1     
   dir         -0.58      0.58      0.58    
-  poscom0      0.85     -1         0.37    
+  poscom0      0.85     -1         0.36    
   pos0         1        -1        -0.1     
   dir0        -0.58      0.58      0.58    
   attenuation  1         0         0       
@@ -1888,7 +1911,7 @@ LIGHT 2:
   active       1
   pos          1.5       0         3       
   dir          0         0        -1       
-  poscom0      1.4      -0.005     3.5     
+  poscom0      1.4      -0.0049    3.5     
   pos0         1.5       0         3       
   dir0         0         0        -1       
   attenuation  1         0         0       
@@ -2015,7 +2038,7 @@ PAIR 0:
   name         
   dim          3
   geom1        1
-  geom2        3
+  geom2        2
   signature    65538
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
@@ -2027,7 +2050,7 @@ PAIR 1:
   name         
   dim          3
   geom1        1
-  geom2        22
+  geom2        21
   signature    65553
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
@@ -2039,7 +2062,7 @@ PAIR 2:
   name         
   dim          3
   geom1        1
-  geom2        24
+  geom2        23
   signature    65555
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
@@ -2051,7 +2074,7 @@ PAIR 3:
   name         
   dim          3
   geom1        1
-  geom2        26
+  geom2        25
   signature    65558
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
@@ -2062,8 +2085,8 @@ PAIR 3:
 PAIR 4:
   name         
   dim          3
-  geom1        3
-  geom2        22
+  geom1        2
+  geom2        21
   signature    131089
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
@@ -2074,8 +2097,8 @@ PAIR 4:
 PAIR 5:
   name         
   dim          3
-  geom1        3
-  geom2        24
+  geom1        2
+  geom2        23
   signature    131091
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
@@ -2086,8 +2109,8 @@ PAIR 5:
 PAIR 6:
   name         
   dim          3
-  geom1        3
-  geom2        26
+  geom1        2
+  geom2        25
   signature    131094
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
@@ -2244,5 +2267,5 @@ ACTUATOR 6:
   lengthrange  0         0       
 
 key_name0    init_pose
-key_qpos0    1.2       0         0.066     1         0         0         0        -0.26     -0.63      0         1.9      -0.52     -1.3       0        
+key_qpos0    1.1       0         0.066     1         0         0         0        -0.26     -0.63      0         1.9      -0.52     -1.3       0        
 

@@ -1,7 +1,7 @@
 ### Flymanoid ##############################################
 # desired pose and velocity of the control joint
-desiredPoseInput: [0.0, 1.25, 0.0, 0.0, 0.0, 0.0]
-desiredVeloInput: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+desiredFinalPose: [0.0, 1.25, 0.0, 0.0, 0.0, 0.0]
+desiredFinalVelo: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 # initial index of the DOF associated with the control joint
 controlJointDOF0: 0
 # cost function weights
