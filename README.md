@@ -19,7 +19,7 @@ The libraries are implemented in C++ and catkin is used to compile them.
 - [Eigen 3](https://eigen.tuxfamily.org/dox/GettingStarted.html)
 - [MuJoCo 2.00](http://www.mujoco.org/)
 - [SNOPT 7](https://ccom.ucsd.edu/~optimizers/solvers/snopt/)
-- [YAML](yaml-cpp)
+- [YAML](https://github.com/jbeder/yaml-cpp)
 
 ## Installation
 1. Create a workspace and download the code:  
