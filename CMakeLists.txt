@@ -10,7 +10,7 @@ find_package(yaml-cpp REQUIRED)
 set(MUJOCO_DIR "$ENV{MJ_HOME}")
 set(SNOPT_DIR  "$ENV{SN_HOME}")
 
-MESSAGE(SNOPT_DIR ${SNOPT_DIR})
+
 ###################################
 ## catkin specific configuration ##rosrun 
 ###################################
