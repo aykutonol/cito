@@ -10,6 +10,7 @@ find_package(yaml-cpp REQUIRED)
 set(MUJOCO_DIR "$ENV{MJ_HOME}")
 set(SNOPT_DIR  "$ENV{SN_HOME}")
 
+MESSAGE(SNOPT_DIR ${SNOPT_DIR})
 ###################################
 ## catkin specific configuration ##rosrun 
 ###################################
@@ -53,7 +54,7 @@ add_executable(${NODE_NAME1} src/main.cpp)
 target_link_libraries(${NODE_NAME1} ${MUJOCO_DIR}/bin/libmujoco200nogl.so
 				    pthread
 				    ${PROJECT_NAME}
-				    /home/aykut/Development/snopt-interface/lib/libsnopt7_cpp.so
+				    ${SNOPT_DIR}/lib/libsnopt7_cpp.so
 				    yaml-cpp
 )
 # playlog: shows motions generated
