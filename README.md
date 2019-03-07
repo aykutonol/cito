@@ -83,7 +83,7 @@ If you use this package, please cite the following papers:
 
 [1] [Onol, A. O., Long, P., & Padir, T. (2019). Contact-Implicit TrajectoryOptimization
 Based on a Variable Smooth Contact Model and Successive Convexification.
-In 2019 IEEE International Conference on Robotics and Automation (ICRA). IEEE.](https://arxiv.org/abs/1810.10462
+In _2019 IEEE International Conference on Robotics and Automation (ICRA)_. IEEE.](https://arxiv.org/abs/1810.10462
 ) [Accepted]
 ```
 @inproceedings{onol2019contact,
@@ -93,9 +93,8 @@ In 2019 IEEE International Conference on Robotics and Automation (ICRA). IEEE.](
   year={2019}
 }
 ```
-[2] [Onol, A. O., Long, P., & Padir, T. (2019). Contact-Implicit TrajectoryOptimization
-    Based on a Variable Smooth Contact Model and Successive Convexification.
-    In 2019 IEEE International Conference on Robotics and Automation (ICRA). IEEE.](https://arxiv.org/abs/1806.01425)
+[2] [Onol, A. O., Long, P., & Padir, T. (2018). A Comparative Analysis of Contact Models in Trajectory Optimization for Manipulation.
+    In _2018 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)_. IEEE.](https://arxiv.org/abs/1806.01425)
 ```
 @inproceedings{onol2018comparative,
      title={A Comparative Analysis of Contact Models in Trajectory Optimization for Manipulation},
