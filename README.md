@@ -25,14 +25,16 @@ The libraries are implemented in C++ and catkin is used to compile them.
 1. Create a workspace and download the code:  
     ```
     mkdir -p ~/cito_ws/src
-    cd ~/cito_ws/src/`
+    cd ~/cito_ws/src/
     git clone https://github.com/aykutonol/cito.git
     ```  
 2. Set the environment variables:  
+    ```
     export CITO_WS=~/cito_ws  
     export MJ_KEY=*path to the licence file for MuJoCo*
     export MJ_HOME=*path to the home directory of MuJoCo*  
     export SN_HOME=*path to the home directory of SNOPT*  
+    ```
 3. Build the package:
     ```
     cd ~/cito_ws/
