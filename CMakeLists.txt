@@ -11,7 +11,7 @@ set(MUJOCO_DIR "$ENV{MJ_HOME}")
 set(SNOPT_DIR  "$ENV{SN_HOME}")
 
 ###################################
-## catkin specific configuration ##rosrun 
+## catkin specific configuration ##
 ###################################
 catkin_package(
  INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIR}

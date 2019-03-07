@@ -929,8 +929,8 @@ int main(int argc, const char** argv)
     modelName = paths::modelFile;
     modelName.erase(modelName.end()-4, modelName.end());
     std::string modelPathStr = paths::workspaceDir + "/src/cito/model/"  + paths::modelFile;
-    std::string logPathStr   = paths::workspaceDir + "/cito-logs/mjLog_" + modelName;
-    std::string trajPathStr  = paths::workspaceDir + "/cito-logs/traj_"  + modelName + ".txt";
+    std::string logPathStr   = paths::workspaceDir + "/logs/mjLog_" + modelName;
+    std::string trajPathStr  = paths::workspaceDir + "/logs/traj_"  + modelName + ".txt";
     modelPath = modelPathStr.c_str();
     logPath   = logPathStr.c_str();
     trajPath  = trajPathStr.c_str();

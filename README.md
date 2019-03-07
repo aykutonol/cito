@@ -30,11 +30,12 @@ The libraries are implemented in C++ and catkin is used to compile them.
     ```  
 2. Set the environment variables:  
     export CITO_WS=~/cito_ws  
+    export MJ_KEY=*path to the licence file for MuJoCo*
     export MJ_HOME=*path to the home directory of MuJoCo*  
     export SN_HOME=*path to the home directory of SNOPT*  
 3. Build the package:
     ```
-    cd ~/catkin_ws/
+    cd ~/cito_ws/
     catkin build
     source devel/setup.bash
     ```
@@ -46,7 +47,7 @@ sizes) are  defined in include/cito_params.h.
 
 A motion can be planned by running the main:  
 `rosrun cito main`.
-This will record the optimal trajectory into /cito-logs in the workspace.
+This will record the optimal trajectory into the logs folder in the workspace.
 
 The planned motion can be played back by:  
 `rosrun cito playlog`.
@@ -55,9 +56,9 @@ Change the model by:
 - modifying include/cito_params.h and
 - modifying config/task.yaml.
 
-Change the task by modifying config/task.yaml
+Change the task by modifying config/task.yaml.
 
-Change the SCvx parameters by modifying config/scvx.yaml
+Change the SCvx parameters by modifying config/scvx.yaml.
 
 
 ## Examples

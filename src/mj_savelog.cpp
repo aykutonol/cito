@@ -9,7 +9,7 @@ MjSaveLog::MjSaveLog(const mjModel* model) : m(model)
     // open the log file
     std::string modelName = paths::modelFile;
     modelName.erase(modelName.end()-4, modelName.end());
-    std::string logPathStr = paths::workspaceDir + "/cito-logs/mjLog_" + modelName;
+    std::string logPathStr = paths::workspaceDir + "/logs/mjLog_" + modelName;
     const char *logPath = logPathStr.c_str();
     printFile = fopen(logPath, "wb");
     if( printFile == NULL ) { mju_error("Unable to open the log file."); }

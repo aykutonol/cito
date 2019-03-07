@@ -21,7 +21,7 @@
 
 /// User-specific paths
 namespace paths {
-    const std::string workspaceDir = "/home/aykut/Development/cito";
+    const std::string workspaceDir = std::getenv("CITO_WS");
     const std::string modelFile    = "flymanoid.xml";
 }
 

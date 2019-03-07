@@ -1,5 +1,5 @@
 <mujoco model='sawyer_push'>
-  <compiler meshdir="/home/aykut/Development/cito/src/cito/model/mesh/sawyer/" angle='radian'/>
+  <compiler meshdir="./mesh/sawyer/" angle='radian'/>
   <option collision='predefined'/>
 
   <asset>

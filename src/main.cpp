@@ -56,7 +56,7 @@ int main(int argc, char const *argv[]) {
     std::cout << "\t\t vel = " << traj.X[NTS].block<NV, 1>(NV, 0).transpose() << "\n";
     // ***** Evaluate the optimal const ******************************************/
     double J = scvx.getCost(traj.X[NTS], traj.U);
-    std::cout << "J = " << J;
+    std::cout << "J = " << J << "\n\nINFO: Planning completed.\n\n";
     // ***** MuJoCo shut down ****************************************************/
     mj_deleteModel(m);
     mj_deactivate();
