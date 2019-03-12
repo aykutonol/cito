@@ -79,7 +79,7 @@ The model for this example is model/flymanoid.xml. To see an example motion, you
 
 
 ## Citing
-If you use this package, please cite the following papers:
+If you use this package, please cite the following paper:
 
 [1] [Onol, A. O., Long, P., & Padir, T. (2019). Contact-Implicit TrajectoryOptimization
 Based on a Variable Smooth Contact Model and Successive Convexification.
@@ -92,16 +92,6 @@ In _2019 IEEE International Conference on Robotics and Automation (ICRA)_. IEEE.
   booktitle={2019 IEEE International Conference on Robotics and Automation (ICRA)},
   year={2019}
 }
-```
-[2] [Onol, A. O., Long, P., & Padir, T. (2018). A Comparative Analysis of Contact Models in Trajectory Optimization for Manipulation.
-    In _2018 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)_. IEEE.](https://arxiv.org/abs/1806.01425)
-```
-@inproceedings{onol2018comparative,
-     title={A Comparative Analysis of Contact Models in Trajectory Optimization for Manipulation},
-     author={Onol, Aykut Ozgun and Long, Philip and Padir, Taskin},
-     booktitle={2018 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
-     year={2018}
-   }
 ```
 
 ## TODOS
