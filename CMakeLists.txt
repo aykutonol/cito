@@ -10,19 +10,8 @@ find_package(yaml-cpp REQUIRED)
 set(MUJOCO_DIR "$ENV{MJ_HOME}")
 set(SNOPT_DIR  "$ENV{SN_HOME}")
 
+catkin_package()
 
-###################################
-## catkin specific configuration ##
-###################################
-catkin_package(
- INCLUDE_DIRS include ${EIGEN3_INCLUDE_DIR}
-)
-
-###########
-## Build ##
-###########
-## Specify additional locations of header files
-## Your package locations should be listed before other locations
 include_directories(
  include
  ${EIGEN3_INCLUDE_DIR}
@@ -30,7 +19,6 @@ include_directories(
  ${SNOPT_DIR}/include
 )
 
-## Declare a C++ library
 add_library(${PROJECT_NAME}
  	src/cito_control.cpp
 	src/cito_numdiff.cpp
@@ -39,15 +27,9 @@ add_library(${PROJECT_NAME}
 	src/mj_savelog.cpp
 )
 
-################
-## Node names ##
-################
 set(NODE_NAME1 main)
 set(NODE_NAME2 playlog)
 
-#################
-## Executables ##
-#################
 # main: runs successive convexification w/ SQOPT and numerical differentiation in MuJoCo
 add_executable(${NODE_NAME1} src/main.cpp)
 ### mujoco w/o rendering
