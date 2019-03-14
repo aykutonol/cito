@@ -63,7 +63,7 @@ In order to change the model, include/cito_params.h and config/task.yaml need to
 The task can be modified through config/task.yaml.
 
 The successive convexification parameters and the variable smooth contact model parameters can be 
-changed in config/scvx.yaml and config/vscm.yaml.
+changed through config/scvx.yaml and config/vscm.yaml.
 
 
 ## Examples
