@@ -2,7 +2,7 @@
 
 This package is developed for planning non-prehensile manipulation and locomotion
 motions without a predefined contact schedule. The optimization-based planning algorithm 
-is based on a variable smooth contact model (VSCM) and successive convexification (SCvx). 
+is based on a variable smooth contact model and successive convexification. 
 Please see [1] for a detailed description of the algorithm.
 
 In this framework, MuJoCo is used to evaluate the nonlinear dynamics. The partial derivatives
@@ -48,19 +48,22 @@ contact pairs, etc.) and simulation (i.e., time horizon length and dynamic and c
 sizes) are  defined in include/cito_params.h.
 
 A motion can be planned by running the main:  
-`rosrun cito main`.
-This will record the optimal trajectory into the logs folder in the workspace.
+`rosrun cito main`  
+which will record the optimal trajectory into cito_ws/logs/mjLog_model_name, a binary file.
 
 The planned motion can be played back by:  
-`rosrun cito playlog`.
+`rosrun cito playlog`
 
-Change the model by:
-- modifying include/cito_params.h and
-- modifying config/task.yaml.
+While rendering, the trajectories (i.e., time, joint positions, velocities, accelerations, and 
+actuation forces) are recorded into logs/traj_model_name (i.e., a readable file) so that they can 
+be sent to the robot.
 
-Change the task by modifying config/task.yaml.
+In order to change the model, include/cito_params.h and config/task.yaml need to be modified.
 
-Change the SCvx parameters by modifying config/scvx.yaml.
+The task can be modified through config/task.yaml.
+
+The successive convexification parameters and the variable smooth contact model parameters can be 
+changed in config/scvx.yaml and config/vscm.yaml.
 
 
 ## Examples
@@ -75,7 +78,6 @@ The goal of this application is to plan a locomotion behavior for a planar human
 The model for this example is model/flymanoid.xml. To see an example motion, you need to:  
 - copy include/cito_params_flymanoid.h and paste into include/cito_params,
 - copy config/task_flymanoid.yaml and paste into config/task.yaml.
-
 
 
 ## Citing
