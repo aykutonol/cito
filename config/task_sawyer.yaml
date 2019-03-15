@@ -1,8 +1,8 @@
 ### Sawyer Push ############################################
 # desired final pose of the control joint
-desiredFinalPose: [1.2, 0, 0.0647, 0.0, 0.0, 0.0]
+desiredFinalPos: [1.2, 0, 0.0647, 0.0, 0.0, 0.0]
 # desired final velocity of the control and robot joints
-desiredFinalVelo: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+desiredFinalVel: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 # initial index of the DOF associated with the control joint
 controlJointDOF0: 0
 # cost function weights

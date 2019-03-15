@@ -61,8 +61,8 @@ private:
     int Cold = 0, Basis = 1, Warm = 2;
     /// Cost parameters
     int controlJointDOF0;
-    Eigen::Matrix<double,  6, 1> desiredPose, deltaPose;
-    Eigen::Matrix<double, NV, 1> desiredVelo, deltaVelo;
+    Eigen::Matrix<double,  6, 1> desiredPos, deltaPos;
+    Eigen::Matrix<double, NV, 1> desiredVel, deltaVel;
     KConTraj dKCon;
     double dKConSN;
     /// Sort parameters
