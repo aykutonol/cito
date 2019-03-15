@@ -73,7 +73,7 @@ The model for this example is model/sawyer_push.xml. To see an example motion, y
 - copy include/cito_params_sawyer.h and paste into include/cito_params,
 - copy config/task_sawyer.yaml and paste into config/task.yaml.
 
-**Simple humanoid locomotion at zero gravity (_Flymanoid_)**
+**Simple humanoid locomotion at zero gravity (_Flymanoid_)**  
 The goal of this application is to plan a locomotion behavior for a planar human-like robot.
 The model for this example is model/flymanoid.xml. To see an example motion, you need to:  
 - copy include/cito_params_flymanoid.h and paste into include/cito_params,
@@ -83,7 +83,7 @@ The model for this example is model/flymanoid.xml. To see an example motion, you
 ## Citing
 If you use this package, please cite the following paper:
 
-[1] [Onol, A. O., Long, P., & Padir, T. (2019). Contact-Implicit TrajectoryOptimization
+[1] [\"{O}nol, A. \"{O}., Long, P., & Padir, T. (2019). Contact-Implicit TrajectoryOptimization
 Based on a Variable Smooth Contact Model and Successive Convexification.
 In _2019 IEEE International Conference on Robotics and Automation (ICRA)_. IEEE.](https://arxiv.org/abs/1810.10462
 ) [Accepted]
