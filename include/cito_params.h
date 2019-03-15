@@ -24,11 +24,14 @@
 class CitoParams{
 public:
     /// Constructor
-    CitoParams();
+    CitoParams(const mjModel *model);
     /// Destructor
     ~CitoParams() {}
-
-    int test;
+    /// Parameters
+    const mjModel *model;
+    double tf, tc, dt;
+    int N, ndpc, nu, nv, n, m, ntraj,
+        npair, spair1, spair2;
 };
 
 /// User-specific paths
@@ -77,7 +80,7 @@ typedef Eigen::Matrix<mjtNum, N, N, Eigen::ColMajor> stateDer;
 typedef Eigen::Matrix<mjtNum, M, 1>                  ctrlVec;
 typedef Eigen::Matrix<mjtNum, N, M, Eigen::ColMajor> ctrlDer;
 typedef Eigen::Matrix<mjtNum, NPAIR, 1>              kConVec;
-// threaded types for trajecrories
+// threaded types for trajectories
 typedef std::vector<stateVec, Eigen::aligned_allocator<stateVec>> stateTraj;
 typedef std::vector<stateDer, Eigen::aligned_allocator<stateDer>> stateDerTraj;
 typedef std::vector<ctrlVec,  Eigen::aligned_allocator<ctrlVec>>  ctrlTraj;

@@ -1,6 +1,0 @@
-# Simulation
-tf: 1.00;	# [s] final time
-tc: 5e-2;	# [s] control sampling period
-dt: 2e-3;	# [s] dynamic sampling period
-
-test: 1

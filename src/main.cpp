@@ -8,29 +8,25 @@
 mjModel *m = NULL;
 
 int main(int argc, char const *argv[]) {
-    // ***** Model file **********************************************************/
-    std::string modelPathStr = paths::workspaceDir + "/src/cito/model/"  + paths::modelFile;
-    const char *modelPath = modelPathStr.c_str();
-    std::cout << "\n\nModel path: " << modelPath << "\n\n\n";
-    // ***** Trajectories ********************************************************/
-    ctrlTraj U0, U; U0.resize(NTS); U.resize(NTS);
-    trajectory traj;
     // ***** MuJoCo initialization ***********************************************/
     // Activate MuJoCo
     const char* mjKeyPath = std::getenv("MJ_KEY");
     mj_activate(mjKeyPath);
+    // Model file
+    std::string modelPathStr = paths::workspaceDir + "/src/cito/model/"  + paths::modelFile;
+    const char *modelPath = modelPathStr.c_str();
+    std::cout << "\n\nModel path: " << modelPath << "\n\n\n";
     // Load the model
     if( strlen(modelPath)>4 && !strcmp(modelPath+strlen(modelPath)-4, ".mjb") )
     {       m = mj_loadModel(modelPath, NULL); }
     else {  m = mj_loadXML(modelPath, NULL, NULL, 0); }
     if( !m ) { mju_error("Cannot load the model"); }
-
-    CitoParams param;
-
-    std::cout << param.test << "\n";
-
     // ***** Create objects for CITO *********************************************/
+    CitoParams param(m);
     CitoSCvx scvx(m);
+    // ***** Trajectories ********************************************************/
+    ctrlTraj U0, U; U0.resize(NTS); U.resize(NTS);
+    trajectory traj;
     // ***** Initial control trajectory ******************************************/
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
     double kCon0 = vscm["kCon0"].as<double>();
