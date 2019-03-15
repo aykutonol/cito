@@ -63,10 +63,9 @@ private:
     int controlJointDOF0;
     Eigen::Matrix<double,  6, 1> desiredPos, deltaPos;
     Eigen::Matrix<double, NV, 1> desiredVel, deltaVel;
-    KConTraj dKCon;
-    double dKConSN;
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> dKCon;
     /// Sort parameters
-    int *indMove = new int[nnH];
+    int *indMove;
     double *xTemp;
     /// setBounds parameters
     int dUOffset  = (NTS+1)*N;

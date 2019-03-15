@@ -18,8 +18,9 @@ CitoSQOPT::CitoSQOPT()
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
     kCon0 = vscm["kCon0"].as<double>();
     // trajectories
-    dKCon.resize(NTS);
+    dKCon.resize(NPAIR,NTS);
     // indices to move
+    indMove = new int[nnH];
     // *** virtual stiffness variables
     for( int i=0; i < NTS; i ++ )
     {
@@ -108,17 +109,16 @@ void CitoSQOPT::setCObj(const stateTraj X, const ctrlTraj U,
         cObj[6+i] = -ru[2]*deltaVel[i];
     }
     // virtual stiffness
-    dKConSN = 0;
+    double dKConSN = 0;
     for( int i=0; i<NTS; i++ )
     {
-        dKCon[i].setZero();
+        dKCon.col(i).setZero();
         for( int j=0; j<NPAIR; j++ )
         {
-            dKCon[i][j] = -U[i][NU+j];
-            cObj[6+NV+i*NPAIR+j] = -ru[3]*dKCon[i][j];
+            dKCon.col(i)[j] = 0-U[i][NU+j];
+            cObj[6+NV+i*NPAIR+j] = -ru[3]*dKCon.col(i)[j];
         }
-//        cObj[6+i] = -ru[2]*dKCon[i].squaredNorm();
-        dKConSN += dKCon[i].squaredNorm();
+        dKConSN += dKCon.col(i).squaredNorm();
     }
     // constant objective term
     ObjAdd = 0.5*(ru[0]*deltaPos.block<2,1>(0,0).squaredNorm() +

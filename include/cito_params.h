@@ -2,7 +2,7 @@
 /**
  *  \brief CitoParams contains user-specific and general definitions
  *
- *  This header defines global variables that are specific to simulation,
+ *  This class defines global variables that are specific to simulation,
  *  robot, and environment as well as general types and structures.
  *
  *  \author Aykut Onol
@@ -14,10 +14,22 @@
 
 #include "mujoco.h"
 #include <Eigen/Dense>
+#include <Eigen/StdVector>
 #include <yaml-cpp/yaml.h>
 
 #ifndef CITO_PARAMS_H
 #define CITO_PARAMS_H
+
+
+class CitoParams{
+public:
+    /// Constructor
+    CitoParams();
+    /// Destructor
+    ~CitoParams() {}
+
+    int test;
+};
 
 /// User-specific paths
 namespace paths {
@@ -71,6 +83,7 @@ typedef std::vector<stateDer, Eigen::aligned_allocator<stateDer>> stateDerTraj;
 typedef std::vector<ctrlVec,  Eigen::aligned_allocator<ctrlVec>>  ctrlTraj;
 typedef std::vector<ctrlDer,  Eigen::aligned_allocator<ctrlDer>>  ctrlDerTraj;
 typedef std::vector<kConVec,  Eigen::aligned_allocator<kConVec>>  KConTraj;
+
 /// Structs
 struct trajectory
 {

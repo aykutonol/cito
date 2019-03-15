@@ -24,6 +24,11 @@ int main(int argc, char const *argv[]) {
     {       m = mj_loadModel(modelPath, NULL); }
     else {  m = mj_loadXML(modelPath, NULL, NULL, 0); }
     if( !m ) { mju_error("Cannot load the model"); }
+
+    CitoParams param;
+
+    std::cout << param.test << "\n";
+
     // ***** Create objects for CITO *********************************************/
     CitoSCvx scvx(m);
     // ***** Initial control trajectory ******************************************/
