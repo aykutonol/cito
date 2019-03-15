@@ -9,10 +9,10 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cc(model), nd(model)
 {
     // read task parameters
     YAML::Node paramTask = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/task.yaml");
-    std::vector<double> desiredPoseInput = { paramTask["desiredFinalPose"].as<std::vector<double>>() };
-    std::vector<double> desiredVeloInput = { paramTask["desiredFinalVelo"].as<std::vector<double>>() };
-    desiredPose = Eigen::Map<Eigen::Matrix<double,  6, 1>>(desiredPoseInput.data(), desiredPoseInput.size());
-    desiredVelo = Eigen::Map<Eigen::Matrix<double, NV, 1>>(desiredVeloInput.data(), desiredVeloInput.size());
+    std::vector<double> desiredPosInput = { paramTask["desiredFinalPos"].as<std::vector<double>>() };
+    std::vector<double> desiredVelInput = { paramTask["desiredFinalVel"].as<std::vector<double>>() };
+    desiredPos = Eigen::Map<Eigen::Matrix<double,  6, 1>>(desiredPosInput.data(), desiredPosInput.size());
+    desiredVel = Eigen::Map<Eigen::Matrix<double, NV, 1>>(desiredVelInput.data(), desiredVelInput.size());
     controlJointDOF0 = paramTask["controlJointDOF0"].as<int>();
     // read SCvx parameters
     YAML::Node paramSCvx = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/scvx.yaml");
@@ -56,15 +56,15 @@ double CitoSCvx::getCost(stateVec XFinal, const ctrlTraj U)
     // terminal cost
     for( int i=0; i<6; i++ )
     {
-        finalPose[i] = XFinal[controlJointDOF0 + i];
+        finalPos[i] = XFinal[controlJointDOF0 + i];
     }
     for( int i=0; i<NV; i++ )
     {
-        finalVelo[i] = XFinal[controlJointDOF0 + NV + i];
+        finalVel[i] = XFinal[controlJointDOF0 + NV + i];
     }
-    Jf = 0.5*(weight[0]*(desiredPose.block<2,1>(0,0)-finalPose.block<2,1>(0,0)).squaredNorm()+
-              weight[1]*(desiredPose.block<4,1>(2,0)-finalPose.block<4,1>(2,0)).squaredNorm()+
-              weight[2]*(desiredVelo - finalVelo).squaredNorm());
+    Jf = 0.5*(weight[0]*(desiredPos.block<2,1>(0,0)-finalPos.block<2,1>(0,0)).squaredNorm()+
+              weight[1]*(desiredPos.block<4,1>(2,0)-finalPos.block<4,1>(2,0)).squaredNorm()+
+              weight[2]*(desiredVel - finalVel).squaredNorm());
     // integrated cost
     KConSN = 0;
     for( int i=0; i<NTS; i++ )

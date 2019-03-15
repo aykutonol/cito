@@ -9,10 +9,10 @@ CitoSQOPT::CitoSQOPT()
 {
     // read task parameters
     YAML::Node paramTask = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/task.yaml");
-    std::vector<double> desiredPoseInput = { paramTask["desiredFinalPose"].as<std::vector<double>>() };
-    std::vector<double> desiredVeloInput = { paramTask["desiredFinalVelo"].as<std::vector<double>>() };
-    desiredPose = Eigen::Map<Eigen::Matrix<double,  6, 1>>(desiredPoseInput.data(), desiredPoseInput.size());
-    desiredVelo = Eigen::Map<Eigen::Matrix<double, NV, 1>>(desiredVeloInput.data(), desiredVeloInput.size());
+    std::vector<double> desiredPosInput = { paramTask["desiredFinalPos"].as<std::vector<double>>() };
+    std::vector<double> desiredVelInput = { paramTask["desiredFinalVel"].as<std::vector<double>>() };
+    desiredPos = Eigen::Map<Eigen::Matrix<double,  6, 1>>(desiredPosInput.data(), desiredPosInput.size());
+    desiredVel = Eigen::Map<Eigen::Matrix<double, NV, 1>>(desiredVelInput.data(), desiredVelInput.size());
     controlJointDOF0 = paramTask["controlJointDOF0"].as<int>();
     // read contact model parameters
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
@@ -83,29 +83,29 @@ void CitoSQOPT::setCObj(const stateTraj X, const ctrlTraj U,
 {
     // set linear objective terms
     // desired change in the final pose and velocity
-    deltaPose.setZero(); deltaVelo.setZero();
+    deltaPos.setZero(); deltaVel.setZero();
     for( int i=0; i<6; i++ )
     {
-        deltaPose[i] = desiredPose[i] - X[NTS][controlJointDOF0+i];
+        deltaPos[i] = desiredPos[i] - X[NTS][controlJointDOF0+i];
     }
     for( int i=0; i<NV; i++ )
     {
-        deltaVelo[i] = desiredVelo[i] - X[NTS][controlJointDOF0+NV+i];
+        deltaVel[i] = desiredVel[i] - X[NTS][controlJointDOF0+NV+i];
     }
     // final position
     for( int i=0; i<2; i++ )
     {
-        cObj[i] = -ru[0]*deltaPose[i];
+        cObj[i] = -ru[0]*deltaPos[i];
     }
     // final orientation
     for( int i=2; i<6; i++ )
     {
-        cObj[i] = -ru[1]*deltaPose[i];
+        cObj[i] = -ru[1]*deltaPos[i];
     }
     // final velocity
     for( int i=0; i<NV; i++ )
     {
-        cObj[6+i] = -ru[2]*deltaVelo[i];
+        cObj[6+i] = -ru[2]*deltaVel[i];
     }
     // virtual stiffness
     dKConSN = 0;
@@ -121,9 +121,9 @@ void CitoSQOPT::setCObj(const stateTraj X, const ctrlTraj U,
         dKConSN += dKCon[i].squaredNorm();
     }
     // constant objective term
-    ObjAdd = 0.5*(ru[0]*deltaPose.block<2,1>(0,0).squaredNorm() +
-                  ru[1]*deltaPose.block<4,1>(2,0).squaredNorm() +
-                  ru[2]*deltaVelo.squaredNorm() +
+    ObjAdd = 0.5*(ru[0]*deltaPos.block<2,1>(0,0).squaredNorm() +
+                  ru[1]*deltaPos.block<4,1>(2,0).squaredNorm() +
+                  ru[2]*deltaVel.squaredNorm() +
                   ru[3]*dKConSN);
 }
 

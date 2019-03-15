@@ -193,10 +193,10 @@ void initMuJoCo(const char* modelFilePath, const char* logFilePath)
     if( mj_name2id(m, mjOBJ_BODY, "ghost") != -1 )
     {
         YAML::Node paramTask = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/task.yaml");
-        std::vector<double> desiredPose = { paramTask["desiredFinalPose"].as<std::vector<double>>() };
+        std::vector<double> desiredPos = { paramTask["desiredFinalPos"].as<std::vector<double>>() };
         for( int i=0; i<3; i++ )
         {
-            m->body_pos[mj_name2id(m, mjOBJ_BODY, "ghost")*3+i] = desiredPose[i];
+            m->body_pos[mj_name2id(m, mjOBJ_BODY, "ghost")*3+i] = desiredPos[i];
         }
     }
     // copy timestep, adjust later
