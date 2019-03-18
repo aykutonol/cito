@@ -31,7 +31,8 @@ public:
     const mjModel *model;
     double tf, tc, dt;
     int N, ndpc, nu, nv, n, m, ntraj,
-        npair, spair1, spair2;
+        npair, spair1, spair2,
+        *quatAdr, *dofAdr;
 };
 
 /// User-specific paths

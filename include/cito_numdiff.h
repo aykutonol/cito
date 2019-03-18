@@ -35,8 +35,9 @@ private:
     /// Variables for differentiation
     stateVec xNewTemp, xNewP, xNewN;
     ctrlVec  utemp;
-    /// Control object
+    /// Objects
     CitoControl cc;
+    CitoParams  cp;
 };
 
 #endif //CITO_NUMDIFF_H
