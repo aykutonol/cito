@@ -21,21 +21,45 @@ CitoParams::CitoParams(const mjModel* model) : model(model)
     nv = model->nv;
     quatAdr = new int[nv];
     dofAdr  = new int[nv];
-    for( int i=0; i<nv; i++ )
+    nFree = 0;
+    for( int i=0; i<model->nv; i++ )
     {
         int jID = model->dof_jntid[i];
         // get quaternion address and dof position within quaternion (-1: not in quaternion)
         quatAdr[i] = -1; dofAdr[i] = 0;
         if( model->jnt_type[jID]==mjJNT_FREE && i>=model->jnt_dofadr[jID]+3 )
         {
+            if( i== model->jnt_dofadr[jID]+3 )
+            {
+                nFree++;
+            }
             quatAdr[i] = model->jnt_qposadr[jID] + 3;
             dofAdr[i]  = i - model->jnt_dofadr[jID] - 3;
         }
     }
+    bFree = new int[nFree];
+    jFree = new int[nFree];
+    int iFree = 0;
+    for( int i=0; i<nv; i++ )
+    {
+        int jID = model->dof_jntid[i];
+        if( model->jnt_type[jID]==mjJNT_FREE )
+        {
+            jFree[iFree] = jID;
+            bFree[iFree] = model->jnt_bodyid[jID];
+            iFree++;
+            i += 5;
+        }
+    }
+    jAct  = new int[nu];
+    for( int i=0; i<nu; i++ )
+    {
+        jAct[i] = model->actuator_trnid[i*2];
+    }
     // contact model parameters
-    npair = vscm["npair"].as<int>();
+    nPair = vscm["npair"].as<int>();
     // dimensions
     n = 2*nv;               // dimensionality of states
-    m = nu+npair;           // dimensionality of controls
-    ntraj = (N+1)*n + N*m;  // number of parameters in discretized trajectory
+    m = nu+nPair;           // dimensionality of controls
+    nTraj = (N+1)*n + N*m;  // number of parameters in discretized trajectory
 }

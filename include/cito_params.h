@@ -20,6 +20,8 @@
 #ifndef CITO_PARAMS_H
 #define CITO_PARAMS_H
 
+typedef Eigen::MatrixXd eigDbl;
+typedef Eigen::Matrix<mjtNum, Eigen::Dynamic, Eigen::Dynamic> eigMjc;
 
 class CitoParams{
 public:
@@ -30,9 +32,10 @@ public:
     /// Parameters
     const mjModel *model;
     double tf, tc, dt;
-    int N, ndpc, nu, nv, n, m, ntraj,
-        npair, spair1, spair2,
-        *quatAdr, *dofAdr;
+    int N, ndpc, nu, nv, n, m, nTraj,
+        nPair, sPair1, sPair2,
+        *quatAdr, *dofAdr, nFree,
+        *jFree, *bFree, *jAct;
 };
 
 /// User-specific paths

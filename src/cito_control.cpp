@@ -7,7 +7,7 @@
 
 
 // ***** CONSTRUCTOR & DESTRUCTOR **********************************************
-CitoControl::CitoControl(const mjModel* model) : m(model), sl(model)
+CitoControl::CitoControl(const mjModel* model) : m(model), sl(model), cp(model)
 {
     // read contact model parameters
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
@@ -17,6 +17,9 @@ CitoControl::CitoControl(const mjModel* model) : m(model), sl(model)
     qposLB  = new double[NV];   qposUB  = new double[NV];
     tauLB   = new double[NU];   tauUB   = new double[NU];
     isJFree = new int[NV];      isAFree = new int[NU];
+    // initialize Eigen variables
+    h.resize(6*cp.nFree,1); hCon.resize(6*cp.nFree,1);
+    x.resize(cp.n,1);
 }
 CitoControl::~CitoControl()
 {
@@ -28,7 +31,7 @@ CitoControl::~CitoControl()
 
 // ***** FUNCTIONS *************************************************************
 // takeStep: takes a full control step given a control input
-void CitoControl::takeStep(mjData*d, const ctrlVec u, bool save)
+void CitoControl::takeStep(mjData*d, const eigDbl u, bool save)
 {
     if( save ) { sl.writeData(d); }
     for( int i=0; i<params::ndpc; i++ )
@@ -41,39 +44,39 @@ void CitoControl::takeStep(mjData*d, const ctrlVec u, bool save)
 }
 
 // setControl: sets generalized forces on joints and free bodies
-void CitoControl::setControl(mjData* d, const ctrlVec u)
+void CitoControl::setControl(mjData* d, const eigDbl u)
 {
     // set control given the control input
-    for( int i=0; i<NU; i++ )
+    for( int i=0; i<m->nu; i++ )
     {
-      d->ctrl[i] = u[i] + d->qfrc_bias[params::jact[i]];
+      d->ctrl[i] = u(i) + d->qfrc_bias[params::jact[i]];
     }
     // contact model
     hCon.setZero();
     hCon = this->contactModel(d, u);
     // set external forces on the free bodies
-    for( int i=0; i<params::nfree; i++ )
+    for( int i=0; i<cp.nFree; i++ )
     {
       for( int j=0; j<6; j++ )
       {
-        d->xfrc_applied[params::bfree[i]*6+j] = hCon[i*6+j];
+        d->xfrc_applied[params::bfree[i]*6+j] = hCon(i*6+j);
       }
     }
 }
 
 // contactModel: returns contact wrench given current state and control input
-Eigen::Matrix<double, 6*params::nfree, 1> CitoControl::contactModel(const mjData* d, const ctrlVec u)
+eigDbl CitoControl::contactModel(const mjData* d, const eigDbl u)
 {
     h.setZero();
     // loop for each contact pair
-    for( int p_i=0; p_i<NPAIR; p_i++ )
+    for( int pI=0; pI<NPAIR; pI++ )
     {
         // vectors in the world frame
         for( int i=0; i<3; i++ )
         {
-          pSR[i] = d->site_xpos[params::spair1[p_i]*3+i];   // position of the site on the robot
-          pSE[i] = d->site_xpos[params::spair2[p_i]*3+i];   // position of the site in the environment
-          nCS[i] = params::csn[p_i*3+i];                    // contact surface normal
+          pSR[i] = d->site_xpos[params::spair1[pI]*3+i];    // position of the site on the robot
+          pSE[i] = d->site_xpos[params::spair2[pI]*3+i];    // position of the site in the environment
+          nCS[i] = params::csn[pI*3+i];                     // contact surface normal
         }
         vRE  = pSE - pSR;                                   // vector from the robot (end effector) to the environment
         // distance
@@ -82,24 +85,24 @@ Eigen::Matrix<double, 6*params::nfree, 1> CitoControl::contactModel(const mjData
         zeta  = tanh(phiR*phiE);                            // semi-sphere based on the Euclidean distance
         phiC = zeta*phiE + (1-zeta)*phiN;                   // combined distance
         // normal force in the contact frame
-        gamma = u[NU+p_i]*exp(-alpha*phiC);
+        gamma = u(m->nu+pI)*exp(-alpha*phiC);
         // contact generalized in the world frame
         lambda = gamma*nCS;
         // loop for each free body
-        for( int f_i=0; f_i<params::nfree; f_i++ )
+        for( int fI=0; fI<cp.nFree; fI++ )
         {
           for( int i=0; i<3; i++ )
           {
-            pBF[i] = d->qpos[params::jfree[f_i]+i];         // position of the center of mass of the free body
+            pBF[i] = d->qpos[params::jfree[fI]+i];          // position of the center of mass of the free body
           }
           vEF = pBF - pSE;                                  // vector from the end effector to the free body
-          // wrench on the free body due to the contact p_i: [lambda; cross(vEF, lambda)]
-          h[f_i*6+0] += lambda[0];
-          h[f_i*6+1] += lambda[1];
-          h[f_i*6+2] += lambda[2];
-          h[f_i*6+3] += -vEF[2]*lambda[1] + vEF[1]*lambda[2];
-          h[f_i*6+4] +=  vEF[2]*lambda[0] - vEF[0]*lambda[2];
-          h[f_i*6+5] += -vEF[1]*lambda[0] + vEF[0]*lambda[1];
+          // wrench on the free body due to the contact pI: [lambda; cross(vEF, lambda)]
+          h(fI*6+0) += lambda[0];
+          h(fI*6+1) += lambda[1];
+          h(fI*6+2) += lambda[2];
+          h(fI*6+3) += -vEF[2]*lambda[1] + vEF[1]*lambda[2];
+          h(fI*6+4) +=  vEF[2]*lambda[0] - vEF[0]*lambda[2];
+          h(fI*6+5) += -vEF[1]*lambda[0] + vEF[0]*lambda[1];
         }
     }
     return h;
@@ -107,29 +110,30 @@ Eigen::Matrix<double, 6*params::nfree, 1> CitoControl::contactModel(const mjData
 
 // getState: converts free joints' quaternions to Euler angles so that
 // the dimensionality of the state vector is 2*nv instead of nq+nv
-stateVec CitoControl::getState(const mjData* d)
+eigMjc CitoControl::getState(const mjData* d)
 {
     x.setZero();
-    int free_count = 0;
-    if ( m->nq != NV )
+    int freeNo = 0;
+    if ( m->nq != m->nv )
     {
         for ( int i=0; i<m->nq; i++ )
         {
             int jid = m->dof_jntid[i];
             if( m->jnt_type[jid]==mjJNT_FREE )
             {
+                jFreeQuat.setZero();
                 mju_copy(x.block<3,1>(i,0).data(), d->qpos+i, 3);
-                mju_copy(jfree_quat.data(), d->qpos+i+3, 4);
+                mju_copy(jFreeQuat.data(), d->qpos+i+3, 4);
                 // calculate the Euler angles from the quaternion
-                x(i+3) = atan2(2*(jfree_quat[0]*jfree_quat[1]+jfree_quat[2]*jfree_quat[3]), 1-2*(pow(jfree_quat[1],2)+pow(jfree_quat[2],2)));
-                x(i+4) =  asin(2*(jfree_quat[0]*jfree_quat[2]-jfree_quat[3]*jfree_quat[1]));
-                x(i+5) = atan2(2*(jfree_quat[0]*jfree_quat[3]+jfree_quat[1]*jfree_quat[2]), 1-2*(pow(jfree_quat[2],2)+pow(jfree_quat[3],2)));
+                x(i+3) = atan2(2*(jFreeQuat[0]*jFreeQuat[1]+jFreeQuat[2]*jFreeQuat[3]), 1-2*(pow(jFreeQuat[1],2)+pow(jFreeQuat[2],2)));
+                x(i+4) =  asin(2*(jFreeQuat[0]*jFreeQuat[2]-jFreeQuat[3]*jFreeQuat[1]));
+                x(i+5) = atan2(2*(jFreeQuat[0]*jFreeQuat[3]+jFreeQuat[1]*jFreeQuat[2]), 1-2*(pow(jFreeQuat[2],2)+pow(jFreeQuat[3],2)));
                 i += 6;             // proceed to next joint
-                free_count++;       // free joint counter
+                freeNo++;           // free joint counter
             }
             else
             {
-                x[i-free_count] = d->qpos[i];
+                x(i-freeNo) = d->qpos[i];
             }
         }
     }
@@ -138,7 +142,7 @@ stateVec CitoControl::getState(const mjData* d)
         mju_copy(x.data(), d->qpos, m->nq);
     }
     // get the velocities
-    mju_copy(x.data() + NV, d->qvel, NV);
+    mju_copy(x.data()+m->nv, d->qvel, m->nv);
 
     return x;
 }
@@ -146,7 +150,7 @@ stateVec CitoControl::getState(const mjData* d)
 // getBounds: gets bounds on joint positions, actuator forces from the model
 void CitoControl::getBounds()
 {
-    for( int i=0; i<NV; i++ )
+    for( int i=0; i<m->nv; i++ )
     {
         int jid =  m->dof_jntid[i];
         if( m->jnt_limited[jid] )
@@ -162,7 +166,7 @@ void CitoControl::getBounds()
             qposUB[i]  = 0;  // to be replaced by +infBnd in the initial guess
         }
     }
-    for( int i=0; i<NU; i++ )
+    for( int i=0; i<m->nu; i++ )
     {
         if( m->actuator_ctrllimited[i] )
         {
