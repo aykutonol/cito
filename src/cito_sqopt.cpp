@@ -5,8 +5,12 @@
 // subproblems used in SCvx to the appropriate form for SQOPT.
 
 // ***** CONSTRUCTOR & DESTRUCTOR **********************************************
-CitoSQOPT::CitoSQOPT()
+CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
 {
+    // resize matrices
+    desiredPos.resize(6,1);     desiredVel.resize(NV,1);
+    deltaPos.resize(6,1);       deltaVel.resize(NV,1);
+    dKCon.resize(NPAIR,NTS);
     // read task parameters
     YAML::Node paramTask = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/task.yaml");
     std::vector<double> desiredPosInput = { paramTask["desiredFinalPos"].as<std::vector<double>>() };
@@ -17,8 +21,15 @@ CitoSQOPT::CitoSQOPT()
     // read contact model parameters
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
     kCon0 = vscm["kCon0"].as<double>();
-    // trajectories
-    dKCon.resize(NPAIR,NTS);
+    // SQOPT parameters
+    nnH     = 6 + NV + NTS*NPAIR;       // number of non-zero elements of the Hessian
+    lencObj = nnH;                      // number of non-zero elements of the linear term
+    lenru   = 4;                        // number of weights
+    neA     = NTS*N*N + (NTS+1)*N + NTS*N*M + ((NTS+1)*N+NTS*M)*5;
+    n       = ((NTS+1)*N + NTS*M)*2;    // *2 is for auxiliary variables for l1-norm (trust region)
+    nc      = (NTS+1)*N + ((NTS+1)*N+NTS*M)*2 + 1;
+    cObj    = new double[lencObj];
+    ru      = new double[lenru];
     // indices to move
     indMove = new int[nnH];
     // *** virtual stiffness variables
@@ -82,33 +93,33 @@ void qpHx(int *nnH, double x[], double Hx[], int *nState,
 void CitoSQOPT::setCObj(const stateTraj X, const ctrlTraj U,
                         double *ru, double *cObj, double &ObjAdd)
 {
-    // set linear objective terms
     // desired change in the final pose and velocity
     deltaPos.setZero(); deltaVel.setZero();
     for( int i=0; i<6; i++ )
     {
-        deltaPos[i] = desiredPos[i] - X[NTS][controlJointDOF0+i];
+        deltaPos(i) = desiredPos(i) - X[NTS][controlJointDOF0+i];
     }
     for( int i=0; i<NV; i++ )
     {
-        deltaVel[i] = desiredVel[i] - X[NTS][controlJointDOF0+NV+i];
+        deltaVel(i) = desiredVel(i) - X[NTS][controlJointDOF0+NV+i];
     }
-    // final position
+    // set linear objective terms
+    // 1) final position
     for( int i=0; i<2; i++ )
     {
-        cObj[i] = -ru[0]*deltaPos[i];
+        cObj[i] = -ru[0]*deltaPos(i);
     }
-    // final orientation
+    // 2) final orientation
     for( int i=2; i<6; i++ )
     {
-        cObj[i] = -ru[1]*deltaPos[i];
+        cObj[i] = -ru[1]*deltaPos(i);
     }
-    // final velocity
+    // 3) final velocity
     for( int i=0; i<NV; i++ )
     {
-        cObj[6+i] = -ru[2]*deltaVel[i];
+        cObj[6+i] = -ru[2]*deltaVel(i);
     }
-    // virtual stiffness
+    // 4) virtual stiffness
     double dKConSN = 0;
     for( int i=0; i<NTS; i++ )
     {

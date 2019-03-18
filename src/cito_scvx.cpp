@@ -5,7 +5,7 @@
 // evaluate the cost, and execute the SCvx algorithm.
 
 // ***** CONSTRUCTOR ***********************************************************
-CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cc(model), nd(model)
+CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cc(model), nd(model), sq(model)
 {
     // read task parameters
     YAML::Node paramTask = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/task.yaml");

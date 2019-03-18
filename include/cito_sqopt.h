@@ -18,7 +18,7 @@ class CitoSQOPT
 {
 public:
     /// Constructor
-    CitoSQOPT();
+    CitoSQOPT(const mjModel* model);
     /// Destructor
     ~CitoSQOPT() {}
     /// This function solves the convex subproblem
@@ -45,25 +45,19 @@ private:
     void moveRowBounds(double *bl, double *bu, int iMove);
     /// This function sorts decision variables back to original order
     void sortX(double *x, int *indMove);
+    /// MuJoCo model
+    const mjModel* m;
     /// SQOPT parameters
-    int nnH     = 6 + NV + NTS*NPAIR;   // number of non-zero elements of the Hessian
-    int lencObj = nnH;                  // number of non-zero elements of the linear term
-    int lenru   = 4;                    // number of weights
-    int neA = NTS*N*N + (NTS+1)*N + NTS*N*M + ((NTS+1)*N+NTS*M)*5;
-    int n   = ((NTS+1)*N + NTS*M)*2;    // *2 is for auxiliary variables for l1-norm
-    int nc  = (NTS+1)*N + ((NTS+1)*N+NTS*M)*2 + 1;
+    int nnH, lencObj, lenru, neA, n, nc;
+    double *cObj, *ru;
     int iObj = -1;
     int nS, nInf;
-    double *cObj = new double[lencObj];
-    double *ru   = new double[lenru];
     double ObjAdd = 0, sInf = 0, objective;
     double infBnd = 1.0e20;
     int Cold = 0, Basis = 1, Warm = 2;
     /// Cost parameters
     int controlJointDOF0;
-    Eigen::Matrix<double,  6, 1> desiredPos, deltaPos;
-    Eigen::Matrix<double, NV, 1> desiredVel, deltaVel;
-    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic> dKCon;
+    Eigen::MatrixXd desiredPos, desiredVel, deltaPos, deltaVel, dKCon;
     /// Sort parameters
     int *indMove;
     double *xTemp;
@@ -71,8 +65,10 @@ private:
     int dUOffset  = (NTS+1)*N;
     int auxOffset = (NTS+1)*N+NTS*M;
     double kCon0;
-    /// SQOPT problem object
+    /// Objects
     sqoptProblem cvxProb;
+    CitoParams   cp;
+
 };
 
 #endif //CITO_SQOPT_H
