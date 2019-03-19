@@ -7,7 +7,7 @@
 // ***** CONSTRUCTOR & DESTRUCTOR **********************************************
 CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
 {
-    // resize matrices
+    // initialize Eigen variables
     desiredPos.resize(6,1);     desiredVel.resize(m->nv,1);
     deltaPos.resize(6,1);       deltaVel.resize(m->nv,1);
     dKCon.resize(cp.nPair,cp.N);

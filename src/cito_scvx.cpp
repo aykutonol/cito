@@ -7,6 +7,10 @@
 // ***** CONSTRUCTOR ***********************************************************
 CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(model), sq(model)
 {
+    // initialize Eigen variables
+    desiredPos.resize(6,1);     desiredVel.resize(m->nv,1);
+    finalPos.resize(6,1);       finalVel.resize(m->nv,1);
+    KCon.resize(cp.nPair,cp.N);
     // read task parameters
     YAML::Node paramTask = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/task.yaml");
     std::vector<double> desiredPosInput = { paramTask["desiredFinalPos"].as<std::vector<double>>() };
@@ -41,7 +45,6 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(mo
     XSucc.resize(cp.N+1);    dX.resize(cp.N+1);   XTilde.resize(cp.N+1);
     USucc.resize(cp.N);      UTemp.resize(cp.N);  dU.resize(cp.N);
     Fx.resize(cp.N);         Fu.resize(cp.N);
-    KCon.resize(cp.N);
     // read cost function weights
     weight[0] = paramTask["w1"].as<double>();
     weight[1] = paramTask["w2"].as<double>();
@@ -51,16 +54,16 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(mo
 
 // ***** FUNCTIONS *************************************************************
 // getCost: returns the nonlinear cost given control trajectory and final state
-double CitoSCvx::getCost(stateVec XFinal, const ctrlTraj U)
+double CitoSCvx::getCost(const eigMjc XFinal, const ctrlTraj U)
 {
     // terminal cost
     for( int i=0; i<6; i++ )
     {
-        finalPos[i] = XFinal[controlJointDOF0 + i];
+        finalPos(i) = XFinal(controlJointDOF0 + i);
     }
     for( int i=0; i<m->nv; i++ )
     {
-        finalVel[i] = XFinal[controlJointDOF0 + m->nv + i];
+        finalVel(i) = XFinal(controlJointDOF0 + m->nv + i);
     }
     Jf = 0.5*(weight[0]*(desiredPos.block<2,1>(0,0)-finalPos.block<2,1>(0,0)).squaredNorm()+
               weight[1]*(desiredPos.block<4,1>(2,0)-finalPos.block<4,1>(2,0)).squaredNorm()+
@@ -69,12 +72,12 @@ double CitoSCvx::getCost(stateVec XFinal, const ctrlTraj U)
     KConSN = 0;
     for( int i=0; i<cp.N; i++ )
     {
-        KCon[i].setZero();
+        KCon.col(i).setZero();
         for( int j=0; j<NPAIR; j++ )
         {
-            KCon[i][j] = U[i][m->nu+j];
+            KCon.col(i)(j) = U[i][m->nu+j];
         }
-        KConSN += KCon[i].squaredNorm();
+        KConSN += KCon.col(i).squaredNorm();
     }
     Ji = 0.5*weight[3]*KConSN;
     // total cost

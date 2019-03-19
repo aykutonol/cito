@@ -5,10 +5,15 @@
 // dynamics including the forces imposed by the contact model.
 
 // ***** CONSTRUCTOR ***********************************************************
-CitoNumDiff::CitoNumDiff(const mjModel* model) : m(model), cp(model), cc(model) {}
+CitoNumDiff::CitoNumDiff(const mjModel* model) : m(model), cp(model), cc(model)
+{
+    // initialize Eigen variables
+    xNewTemp.resize(cp.n,1); xNewP.resize(cp.n,1); xNewN.resize(cp.n,1);
+    uTemp.resize(cp.m,1);
+}
 // ***** FUNCTIONS *************************************************************
 // copyTakeStep: sets xNew to the integration of data given a control input
-void CitoNumDiff::copyTakeStep(const mjData* dMain, const ctrlVec u, mjtNum* xNew)
+void CitoNumDiff::copyTakeStep(const mjData* dMain, const eigDbl u, mjtNum* xNew)
 {
     // create new data
     mjData* d;
@@ -36,7 +41,7 @@ void CitoNumDiff::copyTakeStep(const mjData* dMain, const ctrlVec u, mjtNum* xNe
 }
 
 // hardWorker: for full, slow finite-difference computation
-void CitoNumDiff::hardWorker(const mjData* dMain, const ctrlVec uMain, mjtNum* deriv)
+void CitoNumDiff::hardWorker(const mjData* dMain, const eigDbl uMain, mjtNum* deriv)
 {
     // create data
     mjData* d;
@@ -90,7 +95,7 @@ void CitoNumDiff::hardWorker(const mjData* dMain, const ctrlVec uMain, mjtNum* d
         // compute column i of dx/dqpos
         for( int j=0; j<cp.n; j++ )
         {
-            deriv[i*cp.n + j] = (xNewP[j] - xNewN[j])/(2*eps);
+            deriv[i*cp.n + j] = (xNewP(j) - xNewN(j))/(2*eps);
         }
     }
     // finite-difference over velocities
@@ -111,28 +116,28 @@ void CitoNumDiff::hardWorker(const mjData* dMain, const ctrlVec uMain, mjtNum* d
         // compute column i of dx/dqvel
         for( int j=0; j<cp.n; j++ )
         {
-            deriv[cp.n*m->nv + i*cp.n + j] = (xNewP[j] - xNewN[j])/(2*eps);
+            deriv[cp.n*m->nv + i*cp.n + j] = (xNewP(j) - xNewN(j))/(2*eps);
         }
     }
     // finite-difference over control variables
-    // copy uMain to utemp for perturbations
-    utemp = uMain;
+    // copy uMain to uTemp for perturbations
+    uTemp = uMain;
     for( int i=0; i<cp.m; i++ )
     {
         // perturbation in the positive direction
-        utemp[i] += eps;
+        uTemp(i) += eps;
         // get the positive perturbed state
         xNewP.setZero();
-        this->copyTakeStep(d, utemp, xNewP.data());
+        this->copyTakeStep(d, uTemp, xNewP.data());
         // perturbation in the negative direction
-        utemp[i] -= 2*eps;
+        uTemp(i) -= 2*eps;
         // get the negative perturbed state
         xNewN.setZero();
-        this->copyTakeStep(d, utemp, xNewN.data());
+        this->copyTakeStep(d, uTemp, xNewN.data());
         // compute column i of dx/du
         for( int j=0; j<cp.n; j++ )
         {
-            deriv[cp.n*cp.n + i*cp.n + j] = (xNewP[j] - xNewN[j])/(2*eps);
+            deriv[cp.n*cp.n + i*cp.n + j] = (xNewP(j) - xNewN(j))/(2*eps);
         }
     }
     // delete data
@@ -140,7 +145,7 @@ void CitoNumDiff::hardWorker(const mjData* dMain, const ctrlVec uMain, mjtNum* d
 }
 
 // linDyn: calculates derivatives of the state and control trajectories
-void CitoNumDiff::linDyn(const mjData* dMain, const ctrlVec uMain, mjtNum* Fxd, mjtNum* Fud)
+void CitoNumDiff::linDyn(const mjData* dMain, const eigDbl uMain, mjtNum* Fxd, mjtNum* Fud)
 {
     mjtNum* deriv = (mjtNum*) mju_malloc(sizeof(mjtNum)*cp.n*(cp.n+cp.m));
     this->hardWorker( dMain, uMain, deriv);

@@ -61,7 +61,7 @@ private:
     int Cold = 0, Basis = 1, Warm = 2;
     /// Cost parameters
     int controlJointDOF0;
-    Eigen::MatrixXd desiredPos, desiredVel, deltaPos, deltaVel, dKCon;
+    eigDbl desiredPos, desiredVel, deltaPos, deltaVel, dKCon;
     /// Sort parameters
     int *indMove;
     double *xTemp;
