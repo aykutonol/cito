@@ -31,7 +31,10 @@
       <inertial pos="0 0 0" mass=".155" diaginertia="0.0003686049833333333 0.001255996129167 0.001460916979167" />
        <joint name="object" type="free" limited="false"/>
        <geom name="object" type="box" size="0.15075 0.0745 0.0398" group="1" rgba=".9 0 0 1"/>
-       <site name="site_cc1" pos="-0.15075 0 0" type="sphere" size="1e-3" group="2" rgba="1 1 0 1" />
+       <site name="obj_front" pos="-0.15075 0 0" quat="1 0 0 0"          type="sphere" size="1e-3" group="2" rgba="1 1 0 1" />
+       <site name="obj_right" pos="0 -0.0745 0"  quat="0.707 0 0 0.707"  type="sphere" size="1e-3" group="2" rgba="1 1 0 1" />
+       <site name="obj_left"  pos="0 +0.0745 0"  quat="0.707 0 0 -0.707" type="sphere" size="1e-3" group="2" rgba="1 1 0 1" />
+       <site name="obj_rear"  pos="+0.15075 0 0" quat="0 0 0 1"          type="sphere" size="1e-3" group="2" rgba="1 1 0 1" />
     </body>
     <!-- Robot -->
      <body name="base" pos=".25 0 0">
@@ -121,7 +124,7 @@
                                          <body name="right_hand" pos="0 0 0.0245" quat="0.707107 0 0 0.707107">
                                              <inertial pos="1e-08 1e-08 1e-08" quat="0.820473 0.339851 -0.17592 0.424708" mass="1e-08" diaginertia="1e-08 1e-08 1e-08" />
                                               <geom name="right_hand_coll" size="0.035 0.015" pos="0 0 0.02" type="cylinder" />
-                                              <site name="site_ee" type="sphere" size="1e-3" pos="0 0 6e-3" group="2" rgba="0 1 0 1" />
+                                              <site name="end_effector" type="sphere" size="1e-3" pos="0 0 6e-3" group="2" rgba="0 1 0 1" />
                                          </body>
                                      </body>
                                  </body>

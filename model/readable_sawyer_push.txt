@@ -8,7 +8,7 @@ na             0
 nbody          27
 njnt           8
 ngeom          32
-nsite          2
+nsite          5
 ncam           0
 nlight         3
 nmesh          10
@@ -48,17 +48,17 @@ nuser_cam      0
 nuser_tendon   0
 nuser_actuator 0
 nuser_sensor   0
-nnames         890
+nnames         924
 
 nM             49
 nemax          0
 njmax          500
 nconmax        100
-nstack         1317905
+nstack         1317965
 nuserdata      0
 nmocap         0
 nsensordata    0
-nbuffer        2997334
+nbuffer        2997716
 
 timestep       0.002   
 apirate        1e+02   
@@ -1835,7 +1835,7 @@ GEOM 31:
 
 
 SITE 0:
-  name         site_cc1
+  name         obj_front
   type         2
   bodyid       1
   matid        -1
@@ -1848,7 +1848,46 @@ SITE 0:
 
 
 SITE 1:
-  name         site_ee
+  name         obj_right
+  type         2
+  bodyid       1
+  matid        -1
+  group        2
+  sameframe    0
+  size         0.001     0.005     0.005   
+  pos          0        -0.074     0       
+  quat         0.71      0         0         0.71    
+  rgba         1         1         0         1       
+
+
+SITE 2:
+  name         obj_left
+  type         2
+  bodyid       1
+  matid        -1
+  group        2
+  sameframe    0
+  size         0.001     0.005     0.005   
+  pos          0         0.074     0       
+  quat         0.71      0         0        -0.71    
+  rgba         1         1         0         1       
+
+
+SITE 3:
+  name         obj_rear
+  type         2
+  bodyid       1
+  matid        -1
+  group        2
+  sameframe    0
+  size         0.001     0.005     0.005   
+  pos          0.15      0         0       
+  quat         0         0         0         1       
+  rgba         1         1         0         1       
+
+
+SITE 4:
+  name         end_effector
   type         2
   bodyid       22
   matid        -1

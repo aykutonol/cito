@@ -3,7 +3,6 @@ kCon0: 10.0	# initial value and upper bound for stiffness (virtual force at zero
 alpha: 10.0	# curvature of the exponential curve, i.e., gamma = kCon*exp(-alpha*phi)
 phiR:  200.0	# parameter for the radius of the sphere for distance calculation (200 ~ 1 cm)
 # Contact pairs
-npair: 1 	# number of contact pairs
-spair1: 1	# indices of the sites on the robot
-spair2: 0	# indices of the corresponding sites in the environment
-csn: [1, 0, 0]	# contact surface normals for each contact pair
+npair: 1 		# number of contact pairs
+spair1: [4]	# indices of the sites on the robot
+spair2: [0]	# indices of the corresponding sites in the environment
