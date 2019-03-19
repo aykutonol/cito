@@ -1,6 +1,12 @@
-// =============================== //
-// *** Developed by Aykut Onol *** //
-// =============================== //
+/*! Main */
+/**
+ *  \brief main solves the CITO problem
+ *
+ *  This file initializes MuJoCo and runs the successive convexification algorithm.
+ *  The optimal trajectory is recorded to cito_ws/logs for playback and execution.
+ *
+ *  \author Aykut Onol
+ */
 
 #include "cito_scvx.h"
 

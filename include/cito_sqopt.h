@@ -1,4 +1,4 @@
-/*! SQOPT */
+/*! SQOPT Interface */
 /**
  *  \brief CitoSQOPT class consists of functions for using SQOPT
  *
