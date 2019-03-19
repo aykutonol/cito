@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <fstream>
 
 #include "mujoco.h"
 #include "glfw3.h"
@@ -8,7 +7,7 @@
 
 /// global variables
 std::string modelName;
-const char *modelPath, *logPath, *trajPath;
+const char *modelPath, *logPath;
 
 const int maxgeom= 5000;
 
@@ -732,32 +731,6 @@ void render(GLFWwindow* window)
     // clear flag, so next time we advance automatically
     jumped = false;
 
-    std::ofstream outFile;
-    outFile.open(trajPath, std::fstream::app);
-    // write to outFile
-    if( outFile.is_open() )
-    {
-      outFile << d->time << ",";
-      for( int i=0; i<NU; i++ )
-      {
-          outFile << d->qpos[params::jact[i]] << ",";
-      }
-      for( int i=0; i<NU; i++ )
-      {
-          outFile << d->qvel[params::jact[i]] << ",";
-      }
-      for( int i=0; i<NU; i++ )
-      {
-          outFile << d->qacc[params::jact[i]] << ",";
-      }
-      for( int i=0; i<NU; i++ )
-      {
-          outFile << d->ctrl[i] << ",";
-      }
-      outFile <<"\n";
-      outFile.close();
-    }
-    else { std::cout << "Unable to open the trajectory file." << '\n'; }
     // camera string
     char camstr[20];
     if( cam.type==mjCAMERA_FREE )
@@ -929,23 +902,9 @@ int main(int argc, const char** argv)
     modelName = paths::modelFile;
     modelName.erase(modelName.end()-4, modelName.end());
     std::string modelPathStr = paths::workspaceDir + "/src/cito/model/"  + paths::modelFile;
-    std::string logPathStr   = paths::workspaceDir + "/logs/mjLog_" + modelName;
-    std::string trajPathStr  = paths::workspaceDir + "/logs/traj_"  + modelName + ".txt";
+    std::string logPathStr   = paths::workspaceDir + "/logs/mjLog_" + modelName + ".log";
     modelPath = modelPathStr.c_str();
     logPath   = logPathStr.c_str();
-    trajPath  = trajPathStr.c_str();
-    /// init log file
-    std::ofstream outFile;
-    outFile.open(trajPath);
-    std::cout << "\nINFO: Trajectory will be saved to " << trajPath << "\n";
-    /// write header to outFile
-    if( outFile.is_open() )
-    {
-        outFile << "Total DOF: " << NV << ", actuated DOF: " << NU << "\n";
-        outFile << "time,positions,velocities,accelerations,controls\n";
-        outFile.close();
-    }
-    else std::cout << "Unable to open the trajectory file." << '\n';
     /// initialize OpenGL and MuJoCo
     initOpenGL(modelPath, logPath);
     initMuJoCo(modelPath, logPath);

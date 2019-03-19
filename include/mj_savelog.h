@@ -11,6 +11,7 @@
 #define MJ_SAVELOG_H
 
 #include "cito_params.h"
+#include <fstream>
 
 class MjSaveLog{
 public:
@@ -23,12 +24,17 @@ public:
 private:
     /// MuJoCo model file
     const mjModel* m;
-    /// Output file
-    FILE* printFile;
+    /// Log file for playback
+    FILE* logFile;
     /// Data header
     int header[6];
     /// Data size
     int dataSize;
+    /// Trajectory file for execution
+    std::ofstream trajFile;
+    char *trajPath;
+    /// Objects
+    CitoParams cp;
 };
 
 #endif //MJ_SAVELOG_H
