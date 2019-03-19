@@ -22,20 +22,20 @@ int main(int argc, char const *argv[]) {
     else {  m = mj_loadXML(modelPath, NULL, NULL, 0); }
     if( !m ) { mju_error("Cannot load the model"); }
     // ***** Create objects for CITO *********************************************/
-    CitoParams param(m);
+    CitoParams cp(m);
     CitoSCvx scvx(m);
     // ***** Trajectories ********************************************************/
-    ctrlTraj U0, U; U0.resize(NTS); U.resize(NTS);
+    ctrlTraj U0, U; U0.resize(cp.N); U.resize(cp.N);
     trajectory traj;
     // ***** Initial control trajectory ******************************************/
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
     double kCon0 = vscm["kCon0"].as<double>();
-    for (int i = 0; i < NTS; i++)
+    for (int i=0; i<cp.N; i++)
     {
         U0[i].setZero();
-        for (int j = 0; j < NPAIR; j++)
+        for (int j=0; j<cp.nPair; j++)
         {
-            U0[i][NU + j] = kCon0;
+            U0[i][m->nu + j] = kCon0;
         }
     }
     // ***** Run successive convexification **************************************/
@@ -44,19 +44,19 @@ int main(int argc, char const *argv[]) {
     traj = scvx.runSimulation(U, false, true);
     // Print the trajectory
     std::cout << "\n\nOptimal trajectory:\n";
-    for( int i=0; i<NTS; i++ )
+    for( int i=0; i<cp.N; i++ )
     {
-        std::cout << "time step " << i << ":\n\t\tpos = " << traj.X[i].block<NV, 1>(0, 0).transpose() << "\n";
-        std::cout << "\t\t vel = " << traj.X[i].block<NV, 1>(NV, 0).transpose() << "\n";
+        std::cout << "time step " << i << ":\n\t\tpos = " << traj.X[i].block<NV,1>(0,0).transpose() << "\n";
+        std::cout << "\t\t vel = " << traj.X[i].block<NV, 1>(m->nv,0).transpose() << "\n";
         std::cout << "\t\t tau = ";
-        std::cout << traj.U[i].block<NU, 1>(0, 0).transpose() << "\n";
+        std::cout << traj.U[i].block<NU,1>(0,0).transpose() << "\n";
         std::cout <<"\t\t KCon = ";
-        std::cout << traj.U[i].block<NPAIR, 1>(NU, 0).transpose() << "\n\n";
+        std::cout << traj.U[i].block<NPAIR,1>(m->nu,0).transpose() << "\n\n";
     }
-    std::cout << "time step " << NTS << ":\n\t\tpos = " << traj.X[NTS].block<NV, 1>(0, 0).transpose() << "\n";
-    std::cout << "\t\t vel = " << traj.X[NTS].block<NV, 1>(NV, 0).transpose() << "\n";
+    std::cout << "time step " << cp.N << ":\n\t\tpos = " << traj.X[cp.N].block<NV,1>(0,0).transpose() << "\n";
+    std::cout << "\t\t vel = " << traj.X[cp.N].block<NV, 1>(m->nv, 0).transpose() << "\n";
     // ***** Evaluate the optimal const ******************************************/
-    double J = scvx.getCost(traj.X[NTS], traj.U);
+    double J = scvx.getCost(traj.X[cp.N], traj.U);
     std::cout << "J = " << J << "\n\nINFO: Planning completed.\n\n";
     // ***** MuJoCo shut down ****************************************************/
     mj_deleteModel(m);

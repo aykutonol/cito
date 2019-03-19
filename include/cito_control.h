@@ -37,6 +37,8 @@ public:
 private:
     /// This function returns contact wrench given current state and control input
     eigDbl contactModel(const mjData* d, const eigDbl u);
+    /// MuJoCo model
+    const mjModel* m;
     /// Contact wrench
     eigDbl h, hCon;
     /// Contact model variables
@@ -45,10 +47,9 @@ private:
     /// getState variables
     eigMjc x;
     Eigen::Matrix<mjtNum, 4, 1> jFreeQuat;
-    /// Objects to be initialized
-    const mjModel* m;
-    MjSaveLog  sl;
+    /// Objects
     CitoParams cp;
+    MjSaveLog  sl;
 };
 
 #endif //CITO_CONTROL_H

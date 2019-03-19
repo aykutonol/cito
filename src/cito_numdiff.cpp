@@ -5,7 +5,7 @@
 // dynamics including the forces imposed by the contact model.
 
 // ***** CONSTRUCTOR ***********************************************************
-CitoNumDiff::CitoNumDiff(const mjModel* model) : m(model), cc(model), cp(model) {}
+CitoNumDiff::CitoNumDiff(const mjModel* model) : m(model), cp(model), cc(model) {}
 // ***** FUNCTIONS *************************************************************
 // copyTakeStep: sets xNew to the integration of data given a control input
 void CitoNumDiff::copyTakeStep(const mjData* dMain, const ctrlVec u, mjtNum* xNew)

@@ -36,8 +36,8 @@ private:
     stateVec xNewTemp, xNewP, xNewN;
     ctrlVec  utemp;
     /// Objects
-    CitoControl cc;
     CitoParams  cp;
+    CitoControl cc;
 };
 
 #endif //CITO_NUMDIFF_H

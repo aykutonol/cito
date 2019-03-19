@@ -55,7 +55,8 @@ private:
     KConTraj KCon;
     double KConSN;          // total squared norm of virtual stiffness variables
     double Jf, Ji, Jt;      // final, integrated, and total cost values
-    /// Control, numerical differentiation, and SQOPT objects
+    /// Objects
+    CitoParams  cp;
     CitoControl cc;
     CitoNumDiff nd;
     CitoSQOPT   sq;

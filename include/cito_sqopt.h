@@ -26,6 +26,10 @@ public:
                   const stateDerTraj Fx, const ctrlDerTraj Fu, int *isJFree, int *isAFree,
                   double *qposLB, double *qposUB, double *tauLB, double *tauUB);
 private:
+    /// This callback function sets Hx to the H*x part of the quadratic cost to be multiplied by x'
+    static void qpHx(int *nnH, double x[], double Hx[], int *nState,
+                     char cu[], int *lencu, int iu[], int *leniu,
+                     double ru[], int *lenru);
     /// This function sets linear and constant cost terms of the cost
     void setCObj(const stateTraj X, const ctrlTraj U,
                  double *ru, double *cObj, double &ObjAdd);
@@ -48,7 +52,7 @@ private:
     /// MuJoCo model
     const mjModel* m;
     /// SQOPT parameters
-    int nnH, lencObj, lenru, neA, n, nc;
+    int nnH, neA, n, nc, lencObj, lenru, leniu, *iu;
     double *cObj, *ru;
     int iObj = -1;
     int nS, nInf;
@@ -62,13 +66,11 @@ private:
     int *indMove;
     double *xTemp;
     /// setBounds parameters
-    int dUOffset  = (NTS+1)*N;
-    int auxOffset = (NTS+1)*N+NTS*M;
+    int dUOffset, auxOffset;
     double kCon0;
     /// Objects
+    CitoParams cp;
     sqoptProblem cvxProb;
-    CitoParams   cp;
-
 };
 
 #endif //CITO_SQOPT_H

@@ -5,14 +5,14 @@
 // evaluate the cost, and execute the SCvx algorithm.
 
 // ***** CONSTRUCTOR ***********************************************************
-CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cc(model), nd(model), sq(model)
+CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(model), sq(model)
 {
     // read task parameters
     YAML::Node paramTask = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/task.yaml");
     std::vector<double> desiredPosInput = { paramTask["desiredFinalPos"].as<std::vector<double>>() };
     std::vector<double> desiredVelInput = { paramTask["desiredFinalVel"].as<std::vector<double>>() };
-    desiredPos = Eigen::Map<Eigen::Matrix<double,  6, 1>>(desiredPosInput.data(), desiredPosInput.size());
-    desiredVel = Eigen::Map<Eigen::Matrix<double, NV, 1>>(desiredVelInput.data(), desiredVelInput.size());
+    desiredPos = Eigen::Map<Eigen::VectorXd>(desiredPosInput.data(), desiredPosInput.size());
+    desiredVel = Eigen::Map<Eigen::VectorXd>(desiredVelInput.data(), desiredVelInput.size());
     controlJointDOF0 = paramTask["controlJointDOF0"].as<int>();
     // read SCvx parameters
     YAML::Node paramSCvx = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/scvx.yaml");
@@ -38,10 +38,10 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cc(model), nd(model), sq(mo
     // set bounds
     cc.getBounds();
     // resize trajectories
-    XSucc.resize(NTS+1);    dX.resize(NTS+1);   XTilde.resize(NTS+1);
-    USucc.resize(NTS);      UTemp.resize(NTS);  dU.resize(NTS);
-    Fx.resize(NTS);         Fu.resize(NTS);
-    KCon.resize(NTS);
+    XSucc.resize(cp.N+1);    dX.resize(cp.N+1);   XTilde.resize(cp.N+1);
+    USucc.resize(cp.N);      UTemp.resize(cp.N);  dU.resize(cp.N);
+    Fx.resize(cp.N);         Fu.resize(cp.N);
+    KCon.resize(cp.N);
     // read cost function weights
     weight[0] = paramTask["w1"].as<double>();
     weight[1] = paramTask["w2"].as<double>();
@@ -58,21 +58,21 @@ double CitoSCvx::getCost(stateVec XFinal, const ctrlTraj U)
     {
         finalPos[i] = XFinal[controlJointDOF0 + i];
     }
-    for( int i=0; i<NV; i++ )
+    for( int i=0; i<m->nv; i++ )
     {
-        finalVel[i] = XFinal[controlJointDOF0 + NV + i];
+        finalVel[i] = XFinal[controlJointDOF0 + m->nv + i];
     }
     Jf = 0.5*(weight[0]*(desiredPos.block<2,1>(0,0)-finalPos.block<2,1>(0,0)).squaredNorm()+
               weight[1]*(desiredPos.block<4,1>(2,0)-finalPos.block<4,1>(2,0)).squaredNorm()+
               weight[2]*(desiredVel - finalVel).squaredNorm());
     // integrated cost
     KConSN = 0;
-    for( int i=0; i<NTS; i++ )
+    for( int i=0; i<cp.N; i++ )
     {
         KCon[i].setZero();
         for( int j=0; j<NPAIR; j++ )
         {
-            KCon[i][j] = U[i][NU+j];
+            KCon[i][j] = U[i][m->nu+j];
         }
         KConSN += KCon[i].squaredNorm();
     }
@@ -93,7 +93,7 @@ trajectory CitoSCvx::runSimulation(const ctrlTraj U, bool linearize, bool save)
     mj_forward(m, d);
     cc.setControl(d, U[0]);
     // rollout (and linearize) the dynamics
-    for( int i=0; i<NTS; i++ )
+    for( int i=0; i<cp.N; i++ )
     {
         // get the current state values
         XSucc[i].setZero();
@@ -107,8 +107,8 @@ trajectory CitoSCvx::runSimulation(const ctrlTraj U, bool linearize, bool save)
         // take tc/dt steps
         cc.takeStep(d, U[i], save);
     }
-    XSucc[NTS].setZero();
-    XSucc[NTS] = cc.getState(d);
+    XSucc[cp.N].setZero();
+    XSucc[cp.N] = cc.getState(d);
     // delete data
     mj_deleteData(d);
     // build trajectory
@@ -124,7 +124,7 @@ trajectory CitoSCvx::runSimulation(const ctrlTraj U, bool linearize, bool save)
 ctrlTraj CitoSCvx::solveSCvx(const ctrlTraj U0)
 {
     // initialize USucc for the first succession
-    for( int i=0; i<NTS; i++ ) { USucc[i] = U0[i]; }
+    for( int i=0; i<cp.N; i++ ) { USucc[i] = U0[i]; }
     // start the SCvx algorithm
     int iter = 0;
     while( !stop )
@@ -141,9 +141,9 @@ ctrlTraj CitoSCvx::solveSCvx(const ctrlTraj U0)
             std::cout << "INFO: convexification took " << std::chrono::duration<double>(tDiffEnd-tDiffStart).count() << " s \n";
         }
         // get the nonlinear cost if the first iteration
-        if( iter == 0 ) { J[iter] = this->getCost(trajS.X[NTS], USucc); }
+        if( iter == 0 ) { J[iter] = this->getCost(trajS.X[cp.N], USucc); }
         // convex optimization =================================================
-        double *dTraj = new double[NTRAJ];
+        double *dTraj = new double[cp.nTraj];
         std::cout << "INFO: QP solver in progress\n\n";
         auto tQPStart = std::chrono::system_clock::now();
         sq.solveCvx(dTraj, r[iter], trajS.X, USucc, trajS.Fx, trajS.Fu, cc.isJFree, cc.isAFree,
@@ -151,22 +151,22 @@ ctrlTraj CitoSCvx::solveSCvx(const ctrlTraj U0)
         auto tQPEnd = std::chrono::system_clock::now();
         std::cout << "\nINFO: QP solver took " << std::chrono::duration<double>(tQPEnd-tQPStart).count() << " s \n\n";
         // apply the change
-        for( int i=0; i<NTS+1; i++ )
+        for( int i=0; i<cp.N+1; i++ )
         {
             // states
             dX[i].setZero(); XTilde[i].setZero();
-            for( int j=0; j<N; j++ )
+            for( int j=0; j<cp.n; j++ )
             {
-                dX[i][j] = dTraj[i*N+j];
+                dX[i][j] = dTraj[i*cp.n+j];
             }
             XTilde[i] = trajS.X[i] + dX[i];
             // controls
-            if( i < NTS )
+            if( i < cp.N )
             {
                 dU[i].setZero(); UTemp[i].setZero();
-                for( int j=0; j<M; j++ )
+                for( int j=0; j<cp.m; j++ )
                 {
-                    dU[i][j] = dTraj[(NTS+1)*N+i*M+j];
+                    dU[i][j] = dTraj[(cp.N+1)*cp.n+i*cp.m+j];
                 }
                 UTemp[i] = USucc[i] + dU[i];
             }
@@ -175,8 +175,8 @@ ctrlTraj CitoSCvx::solveSCvx(const ctrlTraj U0)
         trajTemp = {};
         trajTemp = this->runSimulation(UTemp, false, false);
         // get the linear and nonlinear costs
-        JTilde[iter] = this->getCost(XTilde[NTS], UTemp);
-        JTemp[iter]  = this->getCost(trajTemp.X[NTS], UTemp);
+        JTilde[iter] = this->getCost(XTilde[cp.N], UTemp);
+        JTemp[iter]  = this->getCost(trajTemp.X[cp.N], UTemp);
         // similarity measure ==================================================
         dJ[iter] = J[iter] - JTemp[iter];
         dL[iter] = J[iter] - JTilde[iter];
@@ -198,7 +198,7 @@ ctrlTraj CitoSCvx::solveSCvx(const ctrlTraj U0)
         if( accept[iter] )
         {
             J[iter+1] = JTemp[iter];
-            for( int i=0; i<NTS; i++ )
+            for( int i=0; i<cp.N; i++ )
             {
                 USucc[i] = UTemp[i];
             }
@@ -224,10 +224,10 @@ ctrlTraj CitoSCvx::solveSCvx(const ctrlTraj U0)
             std::cout << "\n\n\tINFO: dL = " << fabs(dL[iter]) << " < dLTol = " << dLTol << "\n\n";
         }
         // screen output for the iteration =====================================
-        std::cout << "Actual:\nFinal pos: " << trajTemp.X[NTS].block<NV,1>(0,0).transpose() << "\n";
-        std::cout << "Final vel: " << trajTemp.X[NTS].block<NV,1>(NV,0).transpose() << "\n";
-        std::cout << "Predicted:\nFinal pos: " << XTilde[NTS].block<NV,1>(0,0).transpose() << "\n";
-        std::cout << "Final vel: " << XTilde[NTS].block<NV,1>(NV,0).transpose() << "\n";
+        std::cout << "Actual:\nFinal pos: " << trajTemp.X[cp.N].block<NV,1>(0,0).transpose() << "\n";
+        std::cout << "Final vel: " << trajTemp.X[cp.N].block<NV,1>(NV,0).transpose() << "\n";
+        std::cout << "Predicted:\nFinal pos: " << XTilde[cp.N].block<NV,1>(0,0).transpose() << "\n";
+        std::cout << "Final vel: " << XTilde[cp.N].block<NV,1>(NV,0).transpose() << "\n";
         std::cout << "J = " << JTemp[iter] << ", JTilde = " << JTilde[iter] << "\n\n\n";
         // next iteration ======================================================
         iter++;

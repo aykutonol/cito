@@ -8,65 +8,77 @@
 CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
 {
     // resize matrices
-    desiredPos.resize(6,1);     desiredVel.resize(NV,1);
-    deltaPos.resize(6,1);       deltaVel.resize(NV,1);
-    dKCon.resize(NPAIR,NTS);
+    desiredPos.resize(6,1);     desiredVel.resize(m->nv,1);
+    deltaPos.resize(6,1);       deltaVel.resize(m->nv,1);
+    dKCon.resize(cp.nPair,cp.N);
     // read task parameters
     YAML::Node paramTask = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/task.yaml");
     std::vector<double> desiredPosInput = { paramTask["desiredFinalPos"].as<std::vector<double>>() };
     std::vector<double> desiredVelInput = { paramTask["desiredFinalVel"].as<std::vector<double>>() };
-    desiredPos = Eigen::Map<Eigen::Matrix<double,  6, 1>>(desiredPosInput.data(), desiredPosInput.size());
-    desiredVel = Eigen::Map<Eigen::Matrix<double, NV, 1>>(desiredVelInput.data(), desiredVelInput.size());
+    desiredPos = Eigen::Map<Eigen::VectorXd>(desiredPosInput.data(), desiredPosInput.size());
+    desiredVel = Eigen::Map<Eigen::VectorXd>(desiredVelInput.data(), desiredVelInput.size());
     controlJointDOF0 = paramTask["controlJointDOF0"].as<int>();
     // read contact model parameters
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
     kCon0 = vscm["kCon0"].as<double>();
     // SQOPT parameters
-    nnH     = 6 + NV + NTS*NPAIR;       // number of non-zero elements of the Hessian
-    lencObj = nnH;                      // number of non-zero elements of the linear term
-    lenru   = 4;                        // number of weights
-    neA     = NTS*N*N + (NTS+1)*N + NTS*N*M + ((NTS+1)*N+NTS*M)*5;
-    n       = ((NTS+1)*N + NTS*M)*2;    // *2 is for auxiliary variables for l1-norm (trust region)
-    nc      = (NTS+1)*N + ((NTS+1)*N+NTS*M)*2 + 1;
+    nnH     = 6 + m->nv + cp.N*cp.nPair;        // number of non-zero elements of the Hessian
+    lencObj = nnH;                              // number of non-zero elements of the linear term
+    neA     = cp.N*cp.n*cp.n + (cp.N+1)*cp.n + cp.N*cp.n*cp.m + ((cp.N+1)*cp.n+cp.N*cp.m)*5;
+    n       = ((cp.N+1)*cp.n + cp.N*cp.m)*2;    // *2 is for auxiliary variables for l1-norm (trust region)
+    nc      = (cp.N+1)*cp.n + ((cp.N+1)*cp.n+cp.N*cp.m)*2 + 1;
     cObj    = new double[lencObj];
-    ru      = new double[lenru];
     // indices to move
     indMove = new int[nnH];
     // *** virtual stiffness variables
-    for( int i=0; i < NTS; i ++ )
+    for( int i=0; i<cp.N; i ++ )
     {
-        for( int j=0; j<NPAIR; j++ )
+        for( int j=0; j<cp.nPair; j++ )
         {
-            indMove[i*NPAIR+j] = (NTS+1)*N + NTS*M - 1 - (i*M + j);
+            indMove[i*cp.nPair+j] = (cp.N+1)*cp.n + cp.N*cp.m - 1 - (i*cp.m + j);
         }
     }
     // *** final velocity variables for the control joint
-    for( int i=0; i<NV; i++ )
+    for( int i=0; i<m->nv; i++ )
     {
-        indMove[nnH-1-6-i] = NTS*N + NV + i;
+        indMove[nnH-1-6-i] = cp.N*cp.n + m->nv + i;
     }
     // *** final pose variables for the control joint
     for( int i=0; i<6; i++ )
     {
-        indMove[nnH-1-i] = NTS*N + controlJointDOF0 + i;
+        indMove[nnH-1-i] = cp.N*cp.n + controlJointDOF0 + i;
     }
     // initialize & set options for SQOPT
     cvxProb.initialize("", 1);
     cvxProb.setProbName("SubQP");
     cvxProb.setIntParameter("Print level", 0);
     // set the weights
+    lenru = 4;      // number of weights
+    ru = new double[lenru];
     ru[0] = paramTask["w1"].as<double>();
     ru[1] = paramTask["w2"].as<double>();
     ru[2] = paramTask["w3"].as<double>();
     ru[3] = paramTask["w4"].as<double>();
     cvxProb.setUserR(ru, lenru);
+    // set parameters that are dependent on simulation and model
+    leniu = 3;      // number of parameters
+    iu = new int[leniu];
+    iu[0] = cp.nv;
+    iu[1] = cp.N;
+    iu[2] = cp.nPair;
+    cvxProb.setUserI(iu, leniu);
+    // setBound parameters
+    dUOffset  = (cp.N+1)*cp.n;
+    auxOffset = (cp.N+1)*cp.n+cp.N*cp.m;
 }
 // ***** FUNCTIONS *************************************************************
 // qpHx: sets Hx to the H*x part of the quadratic cost to be multiplied by x'
-void qpHx(int *nnH, double x[], double Hx[], int *nState,
-          char cu[], int *lencu, int iu[], int *leniu,
-          double ru[], int *lenru)
+void CitoSQOPT::qpHx(int *nnH, double x[], double Hx[], int *nState,
+                     char cu[], int *lencu, int iu[], int *leniu,
+                     double ru[], int *lenru)
 {
+    // get the parameters
+    int nv = iu[0], N = iu[1], nPair = iu[2];
     // final x-y position of the control body
     for( int i=0; i<2; i++ )
     {
@@ -78,12 +90,12 @@ void qpHx(int *nnH, double x[], double Hx[], int *nState,
         Hx[i] = ru[1]*x[i];
     }
     // final velocity terms
-    for( int i=6; i<6+NV; i++ )
+    for( int i=6; i<6+nv; i++ )
     {
         Hx[i] = ru[2]*x[i];
     }
     // stiffness terms
-    for( int i=6+NV; i<6+NV+NTS*NPAIR; i++ )
+    for( int i=6+nv; i<6+nv+N*nPair; i++ )
     {
         Hx[i] = ru[3]*x[i];
     }
@@ -97,11 +109,11 @@ void CitoSQOPT::setCObj(const stateTraj X, const ctrlTraj U,
     deltaPos.setZero(); deltaVel.setZero();
     for( int i=0; i<6; i++ )
     {
-        deltaPos(i) = desiredPos(i) - X[NTS][controlJointDOF0+i];
+        deltaPos(i) = desiredPos(i) - X[cp.N][controlJointDOF0+i];
     }
-    for( int i=0; i<NV; i++ )
+    for( int i=0; i<m->nv; i++ )
     {
-        deltaVel(i) = desiredVel(i) - X[NTS][controlJointDOF0+NV+i];
+        deltaVel(i) = desiredVel(i) - X[cp.N][controlJointDOF0+m->nv+i];
     }
     // set linear objective terms
     // 1) final position
@@ -115,19 +127,19 @@ void CitoSQOPT::setCObj(const stateTraj X, const ctrlTraj U,
         cObj[i] = -ru[1]*deltaPos(i);
     }
     // 3) final velocity
-    for( int i=0; i<NV; i++ )
+    for( int i=0; i<m->nv; i++ )
     {
         cObj[6+i] = -ru[2]*deltaVel(i);
     }
     // 4) virtual stiffness
     double dKConSN = 0;
-    for( int i=0; i<NTS; i++ )
+    for( int i=0; i<cp.N; i++ )
     {
         dKCon.col(i).setZero();
-        for( int j=0; j<NPAIR; j++ )
+        for( int j=0; j<cp.nPair; j++ )
         {
-            dKCon.col(i)[j] = 0-U[i][NU+j];
-            cObj[6+NV+i*NPAIR+j] = -ru[3]*dKCon.col(i)[j];
+            dKCon.col(i)[j] = 0-U[i][m->nu+j];
+            cObj[6+m->nv+i*cp.nPair+j] = -ru[3]*dKCon.col(i)[j];
         }
         dKConSN += dKCon.col(i).squaredNorm();
     }
@@ -170,13 +182,13 @@ void CitoSQOPT::solveCvx(double *xTraj, double r, const stateTraj X, const ctrlT
     // set linear and constant cost terms
     this->setCObj(X, U, ru, cObj, ObjAdd);
     // solve the convex subproblem
-    cvxProb.solve(Cold, qpHx, nc, n, neA, lencObj, nnH, iObj,
+    cvxProb.solve(Cold, this->qpHx, nc, n, neA, lencObj, nnH, iObj,
                   ObjAdd, valA, indA, locA, bl, bu, cObj,
                   eType, hs, x, pi, rc, nS, nInf, sInf, objective);
     // sort x to regular form
     this->sortX(x, indMove);
     // set only the trajectory-related variables (X and U)
-    for( int i=0; i<NTRAJ; i++ )
+    for( int i=0; i<cp.nTraj; i++ )
     {
         xTraj[i] = x[i];
     }
@@ -193,36 +205,36 @@ void CitoSQOPT::setBounds(double r, const stateTraj X, const ctrlTraj U,
 {
     // decision variables
     // * states
-    for( int i=0; i<NTS+1; i++ )
+    for( int i=0; i<cp.N+1; i++ )
     {
-        for( int j=0; j<NV; j++ )
+        for( int j=0; j<m->nv; j++ )
         {
             // ** change in free joint positions: unbounded
             // ** change in joint positions
             if( isJFree[j] == 0 )
             {
-                bl[i*N+j] = qposLB[j] - X[i][j];
-                bu[i*N+j] = qposUB[j] - X[i][j];
+                bl[i*cp.n+j] = qposLB[j] - X[i][j];
+                bu[i*cp.n+j] = qposUB[j] - X[i][j];
             }
             // ** change in joint velocities: unbounded (already set)
         }
         // * controls
-        if( i < NTS )
+        if( i < cp.N )
         {
             // ** change in joint torques
-            for( int j=0; j<NU; j++ )
+            for( int j=0; j<m->nu; j++ )
             {
                 if( isAFree == 0 )
                 {
-                    bl[dUOffset+i*M+j] = tauLB[j] - U[i][j];
-                    bu[dUOffset+i*M+j] = tauUB[j] - U[i][j];
+                    bl[dUOffset+i*cp.m+j] = tauLB[j] - U[i][j];
+                    bu[dUOffset+i*cp.m+j] = tauUB[j] - U[i][j];
                 }
             }
             // ** change in virtual stiffness
-            for( int j=0; j< NPAIR; j++ )
+            for( int j=0; j< cp.nPair; j++ )
             {
-                bl[dUOffset+i*M+NU+j] = 0 - U[i][NU+j];
-                bu[dUOffset+i*M+NU+j] = kCon0 - U[i][NU+j];
+                bl[dUOffset+i*cp.m+m->nu+j] = 0 - U[i][m->nu+j];
+                bu[dUOffset+i*cp.m+m->nu+j] = kCon0 - U[i][m->nu+j];
             }
         }
     }
@@ -233,19 +245,19 @@ void CitoSQOPT::setBounds(double r, const stateTraj X, const ctrlTraj U,
     }
     // constraints
     // dynamics == 0
-    for( int i=n; i<n+(NTS+1)*N; i++ )
+    for( int i=n; i<n+(cp.N+1)*cp.n; i++ )
     {
         bl[i] = 0;
         bu[i] = 0;
     }
     // 0 <= absolute value constraints <= inf
-    for( int i=n+(NTS+1)*N; i<n+(NTS+1)*N+((NTS+1)*N+NTS*M)*2; i++ )
+    for( int i=n+(cp.N+1)*cp.n; i<n+(cp.N+1)*cp.n+((cp.N+1)*cp.n+cp.N*cp.m)*2; i++ )
     {
         bl[i] = 0;
     }
     // 0 <= trust region <= r
-    bl[n+(NTS+1)*N+((NTS+1)*N+NTS*M)*2] = 0;
-    bu[n+(NTS+1)*N+((NTS+1)*N+NTS*M)*2] = r;
+    bl[n+(cp.N+1)*cp.n+((cp.N+1)*cp.n+cp.N*cp.m)*2] = 0;
+    bu[n+(cp.N+1)*cp.n+((cp.N+1)*cp.n+cp.N*cp.m)*2] = r;
 }
 
 // setA: creates the sparse A matrix for linearized dynamics, auxiliary
@@ -256,66 +268,66 @@ void CitoSQOPT::setA(double *valA, int *indA, int *locA,
     int colNo = 0, indNo = 0, indTS = 0;
 
     locA[0] = 0;
-    // columns associated with dx[1,...,NTS]
-    for( int i=0; i<NTS*N; i++ )
+    // columns associated with dx[1,...,N]
+    for( int i=0; i<cp.N*cp.n; i++ )
     {
         indA[indNo] = i;
         valA[indNo] = -1;
         indNo++;
         // time step index
-        indTS = (int) floor(i/N);
-        for( int j=0; j<N; j++ )
+        indTS = (int) floor(i/cp.n);
+        for( int j=0; j<cp.n; j++ )
         {
-            indA[indNo] = (indTS+1)*N+j;
-            valA[indNo] = Fx[indTS](j,i%N);
+            indA[indNo] = (indTS+1)*cp.n+j;
+            valA[indNo] = Fx[indTS](j,i%cp.n);
             indNo++;
         }
         // for auxiliary variables
-        indA[indNo] = (NTS+1)*N + colNo;
+        indA[indNo] = (cp.N+1)*cp.n + colNo;
         valA[indNo] = +1.0;
         indNo++; //auxNo1++;
-        indA[indNo] = (NTS+1)*N + (NTS+1)*N + NTS*M + colNo;
+        indA[indNo] = (cp.N+1)*cp.n + (cp.N+1)*cp.n + cp.N*cp.m + colNo;
         valA[indNo] = -1.0;
         indNo++; //auxNo2++;
 
         colNo++;
         locA[colNo] = indNo;
     }
-    // columns associated with dx[NTS+1]
-    for( int i=0; i<N; i++ )
+    // columns associated with dx[N+1]
+    for( int i=0; i<cp.n; i++ )
     {
-        indA[indNo] = NTS*N+i;
+        indA[indNo] = cp.N*cp.n+i;
         valA[indNo] = -1;
         indNo++;
 
         // for auxiliary variables
-        indA[indNo] = (NTS+1)*N + colNo;
+        indA[indNo] = (cp.N+1)*cp.n + colNo;
         valA[indNo] = +1.0;
         indNo++; //auxNo1++;
-        indA[indNo] = (NTS+1)*N + (NTS+1)*N + NTS*M + colNo;
+        indA[indNo] = (cp.N+1)*cp.n + (cp.N+1)*cp.n + cp.N*cp.m + colNo;
         valA[indNo] = -1.0;
         indNo++; //auxNo2++;
 
         colNo++;
         locA[colNo] = indNo;
     }
-    // columns associated with du[1,...,NTS]
-    for( int i=0; i<NTS*M; i++ )
+    // columns associated with du[1,...,N]
+    for( int i=0; i<cp.N*cp.m; i++ )
     {
         // time step index
-        indTS = (int) floor(i/M);
-        for( int j=0; j<N; j++ )
+        indTS = (int) floor(i/cp.m);
+        for( int j=0; j<cp.n; j++ )
         {
-            indA[indNo] = (indTS+1)*N+j;
-            valA[indNo] = Fu[indTS](j,i%M);
+            indA[indNo] = (indTS+1)*cp.n+j;
+            valA[indNo] = Fu[indTS](j,i%cp.m);
             indNo++;
         }
 
         // for auxiliary variables
-        indA[indNo] = (NTS+1)*N + colNo;
+        indA[indNo] = (cp.N+1)*cp.n + colNo;
         valA[indNo] = +1.0;
         indNo++; //auxNo1++;
-        indA[indNo] = (NTS+1)*N + (NTS+1)*N + NTS*M + colNo;
+        indA[indNo] = (cp.N+1)*cp.n + (cp.N+1)*cp.n + cp.N*cp.m + colNo;
         valA[indNo] = -1.0;
         indNo++; //auxNo2++;
 
@@ -324,16 +336,16 @@ void CitoSQOPT::setA(double *valA, int *indA, int *locA,
     }
     // columns associated with auxiliary variables
     int auxNo1 = 0, auxNo2 = 0;
-    for( int i=0; i<(NTS+1)*N+NTS*M; i++ )
+    for( int i=0; i<(cp.N+1)*cp.n+cp.N*cp.m; i++ )
     {
-        indA[indNo] = (NTS+1)*N + auxNo1;
+        indA[indNo] = (cp.N+1)*cp.n + auxNo1;
         valA[indNo] = +1.0;
         indNo++; auxNo1++;
-        indA[indNo] = (NTS+1)*N + (NTS+1)*N + NTS*M + auxNo2;
+        indA[indNo] = (cp.N+1)*cp.n + (cp.N+1)*cp.n + cp.N*cp.m + auxNo2;
         valA[indNo] = +1.0;
         indNo++; auxNo2++;
         // for l1-norm
-        indA[indNo] = (NTS+1)*N + 2*((NTS+1)*N + NTS*M);
+        indA[indNo] = (cp.N+1)*cp.n + 2*((cp.N+1)*cp.n + cp.N*cp.m);
         valA[indNo] = +1.0;
         indNo++;
 

@@ -21,6 +21,7 @@ CitoParams::CitoParams(const mjModel* model) : model(model)
     nv = model->nv;
     quatAdr = new int[nv];
     dofAdr  = new int[nv];
+    // get the indices of free bodies and the addresses of positions and DOF of free joints
     nFree = 0;
     for( int i=0; i<model->nv; i++ )
     {
@@ -37,27 +38,45 @@ CitoParams::CitoParams(const mjModel* model) : model(model)
             dofAdr[i]  = i - model->jnt_dofadr[jID] - 3;
         }
     }
-    bFree = new int[nFree];
-    jFree = new int[nFree];
+    bFree = new int[nFree];     // indices of free bodies
+    pFree = new int[nFree];     // position addresses of free DOF
     int iFree = 0;
     for( int i=0; i<nv; i++ )
     {
         int jID = model->dof_jntid[i];
         if( model->jnt_type[jID]==mjJNT_FREE )
         {
-            jFree[iFree] = jID;
+            pFree[iFree] = model->jnt_qposadr[jID];
             bFree[iFree] = model->jnt_bodyid[jID];
             iFree++;
             i += 5;
         }
     }
-    jAct  = new int[nu];
+    // get the indices of actuated DOF
+    dAct = new int[nu];         // addresses of actuated DOF
     for( int i=0; i<nu; i++ )
     {
-        jAct[i] = model->actuator_trnid[i*2];
+        dAct[i] = model->jnt_dofadr[model->actuator_trnid[i*2]];
     }
     // contact model parameters
-    nPair = vscm["npair"].as<int>();
+    nPair  = vscm["npair"].as<int>();       // number of contact pairs
+    sPair1.resize(nPair);                   // indices of sites on the robot
+    sPair2.resize(nPair);                   // incides of corresponding sites in the environment
+    nCS.resize(3,nPair);                    // contact surface normals
+    std::vector<int> stdVecInt = { vscm["spair1"].as<std::vector<int>>() };
+    sPair1 = Eigen::Map<Eigen::VectorXi>(stdVecInt.data(), stdVecInt.size());
+    stdVecInt = { vscm["spair2"].as<std::vector<int>>() };
+    sPair2 = Eigen::Map<Eigen::VectorXi>(stdVecInt.data(), stdVecInt.size());
+    mjtNum normal[3] = {1, 0, 0};
+    mjtNum mjQuat[4];
+    for( int i=0; i<nPair; i++ )
+    {
+        for( int j=0; j<4; j++ )
+        {
+            mjQuat[j] = model->site_quat[sPair2[i]*4+j];
+        }
+        mju_rotVecQuat(nCS.col(i).data(), normal, mjQuat);
+    }
     // dimensions
     n = 2*nv;               // dimensionality of states
     m = nu+nPair;           // dimensionality of controls

@@ -32,10 +32,11 @@ public:
     /// Parameters
     const mjModel *model;
     double tf, tc, dt;
-    int N, ndpc, nu, nv, n, m, nTraj,
-        nPair, sPair1, sPair2,
-        *quatAdr, *dofAdr, nFree,
-        *jFree, *bFree, *jAct;
+    int N, ndpc, nu, nv, n, m, nTraj, nPair,
+        nFree, *pFree, *bFree, *dAct,
+        *quatAdr, *dofAdr;
+    Eigen::VectorXi sPair1, sPair2;
+    eigMjc nCS;
 };
 
 /// User-specific paths
@@ -63,7 +64,7 @@ namespace params {
     /// Contact
     const int npair = 1;                // number of contact pairs
     // site indices for each contact pair
-    const int spair1[npair] = {1};      // indices of the sites on the robot
+    const int spair1[npair] = {4};      // indices of the sites on the robot
     const int spair2[npair] = {0};      // indices of the corresponding sites in the environment
     // contact surface normals for each contact pair
     const double csn[npair*3] = {1, 0, 0};
@@ -90,7 +91,6 @@ typedef std::vector<stateDer, Eigen::aligned_allocator<stateDer>> stateDerTraj;
 typedef std::vector<ctrlVec,  Eigen::aligned_allocator<ctrlVec>>  ctrlTraj;
 typedef std::vector<ctrlDer,  Eigen::aligned_allocator<ctrlDer>>  ctrlDerTraj;
 typedef std::vector<kConVec,  Eigen::aligned_allocator<kConVec>>  KConTraj;
-
 /// Structs
 struct trajectory
 {
