@@ -44,9 +44,11 @@ private:
            rMin, rMax;                  // trust-region radius limits
     bool *accept, dLTolMet = false, stop = false;
     /// Trajectories
-    stateTraj XSucc, dX, XTilde;    ctrlTraj USucc, dU, UTemp;
+//    stateTraj XSucc, dX, XTilde;
+    ctrlTraj USucc, dU, UTemp;
     stateDerTraj Fx;                ctrlDerTraj Fu;
     trajectory traj, trajS, trajTemp;
+    eigMjc XSucc, dX, XTilde;
     /// Cost function variables
     double weight[4];
     int controlJointDOF0;

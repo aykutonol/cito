@@ -75,7 +75,7 @@ typedef std::vector<ctrlDer,  Eigen::aligned_allocator<ctrlDer>>  ctrlDerTraj;
 /// Structs
 struct trajectory
 {
-    stateTraj X;
+    eigMjc X;
     ctrlTraj  U;
     stateDerTraj Fx;
     ctrlDerTraj  Fu;

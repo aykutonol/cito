@@ -102,18 +102,18 @@ void CitoSQOPT::qpHx(int *nnH, double x[], double Hx[], int *nState,
 }
 
 // setCObj: sets linear and constant cost terms of the cost
-void CitoSQOPT::setCObj(const stateTraj X, const ctrlTraj U,
+void CitoSQOPT::setCObj(const eigMjc X, const ctrlTraj U,
                         double *ru, double *cObj, double &ObjAdd)
 {
     // desired change in the final pose and velocity
     deltaPos.setZero(); deltaVel.setZero();
     for( int i=0; i<6; i++ )
     {
-        deltaPos(i) = desiredPos(i) - X[cp.N][controlJointDOF0+i];
+        deltaPos(i) = desiredPos(i) - X.col(cp.N)[controlJointDOF0+i];
     }
     for( int i=0; i<m->nv; i++ )
     {
-        deltaVel(i) = desiredVel(i) - X[cp.N][controlJointDOF0+m->nv+i];
+        deltaVel(i) = desiredVel(i) - X.col(cp.N)[controlJointDOF0+m->nv+i];
     }
     // set linear objective terms
     // 1) final position
@@ -151,7 +151,7 @@ void CitoSQOPT::setCObj(const stateTraj X, const ctrlTraj U,
 }
 
 // solveCvx: solves the convex subproblem
-void CitoSQOPT::solveCvx(double *xTraj, double r, const stateTraj X, const ctrlTraj U,
+void CitoSQOPT::solveCvx(double *xTraj, double r, const eigMjc X, const ctrlTraj U,
                          const stateDerTraj Fx, const ctrlDerTraj Fu, int *isJFree, int *isAFree,
                          double *qposLB, double *qposUB, double *tauLB, double *tauUB)
 {
@@ -199,7 +199,7 @@ void CitoSQOPT::solveCvx(double *xTraj, double r, const stateTraj X, const ctrlT
 }
 
 // setBounds: sets bounds of dX, dU, and constraints (dynamics, trust region, etc.)
-void CitoSQOPT::setBounds(double r, const stateTraj X, const ctrlTraj U,
+void CitoSQOPT::setBounds(double r, const eigMjc X, const ctrlTraj U,
                           double *bl, double *bu, int *isJFree, int *isAFree,
                           double *qposLB, double *qposUB, double *tauLB, double *tauUB)
 {
@@ -213,8 +213,8 @@ void CitoSQOPT::setBounds(double r, const stateTraj X, const ctrlTraj U,
             // ** change in joint positions
             if( isJFree[j] == 0 )
             {
-                bl[i*cp.n+j] = qposLB[j] - X[i][j];
-                bu[i*cp.n+j] = qposUB[j] - X[i][j];
+                bl[i*cp.n+j] = qposLB[j] - X.col(i)[j];
+                bu[i*cp.n+j] = qposUB[j] - X.col(i)[j];
             }
             // ** change in joint velocities: unbounded (already set)
         }

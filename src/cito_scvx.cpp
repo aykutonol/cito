@@ -42,7 +42,9 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(mo
     // set bounds
     cc.getBounds();
     // resize trajectories
-    XSucc.resize(cp.N+1);    dX.resize(cp.N+1);   XTilde.resize(cp.N+1);
+//    XSucc.resize(cp.N+1);    dX.resize(cp.N+1);   XTilde.resize(cp.N+1);
+    XSucc.resize(cp.n,cp.N+1);  dX.resize(cp.n,cp.N+1); XTilde.resize(cp.n,cp.N+1);
+
     USucc.resize(cp.N);      UTemp.resize(cp.N);  dU.resize(cp.N);
     Fx.resize(cp.N);         Fu.resize(cp.N);
     // read cost function weights
@@ -99,8 +101,8 @@ trajectory CitoSCvx::runSimulation(const ctrlTraj U, bool linearize, bool save)
     for( int i=0; i<cp.N; i++ )
     {
         // get the current state values
-        XSucc[i].setZero();
-        XSucc[i] = cc.getState(d);
+        XSucc.col(i).setZero();
+        XSucc.col(i) = cc.getState(d);
         // linearization
         if( linearize )
         {
@@ -110,8 +112,8 @@ trajectory CitoSCvx::runSimulation(const ctrlTraj U, bool linearize, bool save)
         // take tc/dt steps
         cc.takeStep(d, U[i], save);
     }
-    XSucc[cp.N].setZero();
-    XSucc[cp.N] = cc.getState(d);
+    XSucc.col(cp.N).setZero();
+    XSucc.col(cp.N) = cc.getState(d);
     // delete data
     mj_deleteData(d);
     // build trajectory
@@ -144,7 +146,7 @@ ctrlTraj CitoSCvx::solveSCvx(const ctrlTraj U0)
             std::cout << "INFO: convexification took " << std::chrono::duration<double>(tDiffEnd-tDiffStart).count() << " s \n";
         }
         // get the nonlinear cost if the first iteration
-        if( iter == 0 ) { J[iter] = this->getCost(trajS.X[cp.N], USucc); }
+        if( iter == 0 ) { J[iter] = this->getCost(trajS.X.col(cp.N), USucc); }
         // convex optimization =================================================
         double *dTraj = new double[cp.nTraj];
         std::cout << "INFO: QP solver in progress\n\n";
@@ -157,12 +159,12 @@ ctrlTraj CitoSCvx::solveSCvx(const ctrlTraj U0)
         for( int i=0; i<cp.N+1; i++ )
         {
             // states
-            dX[i].setZero(); XTilde[i].setZero();
+            dX.col(i).setZero(); XTilde.col(i).setZero();
             for( int j=0; j<cp.n; j++ )
             {
-                dX[i][j] = dTraj[i*cp.n+j];
+                dX.col(i)[j] = dTraj[i*cp.n+j];
             }
-            XTilde[i] = trajS.X[i] + dX[i];
+            XTilde.col(i) = trajS.X.col(i) + dX.col(i);
             // controls
             if( i < cp.N )
             {
@@ -178,8 +180,8 @@ ctrlTraj CitoSCvx::solveSCvx(const ctrlTraj U0)
         trajTemp = {};
         trajTemp = this->runSimulation(UTemp, false, false);
         // get the linear and nonlinear costs
-        JTilde[iter] = this->getCost(XTilde[cp.N], UTemp);
-        JTemp[iter]  = this->getCost(trajTemp.X[cp.N], UTemp);
+        JTilde[iter] = this->getCost(XTilde.col(cp.N), UTemp);
+        JTemp[iter]  = this->getCost(trajTemp.X.col(cp.N), UTemp);
         // similarity measure ==================================================
         dJ[iter] = J[iter] - JTemp[iter];
         dL[iter] = J[iter] - JTilde[iter];
@@ -227,10 +229,10 @@ ctrlTraj CitoSCvx::solveSCvx(const ctrlTraj U0)
             std::cout << "\n\n\tINFO: dL = " << fabs(dL[iter]) << " < dLTol = " << dLTol << "\n\n";
         }
         // screen output for the iteration =====================================
-        std::cout << "Actual:\nFinal pos: " << trajTemp.X[cp.N].block<NV,1>(0,0).transpose() << "\n";
-        std::cout << "Final vel: " << trajTemp.X[cp.N].block<NV,1>(NV,0).transpose() << "\n";
-        std::cout << "Predicted:\nFinal pos: " << XTilde[cp.N].block<NV,1>(0,0).transpose() << "\n";
-        std::cout << "Final vel: " << XTilde[cp.N].block<NV,1>(NV,0).transpose() << "\n";
+        std::cout << "Actual:\nFinal pos: " << trajTemp.X.col(cp.N).block<NV,1>(0,0).transpose() << "\n";
+        std::cout << "Final vel: " << trajTemp.X.col(cp.N).block<NV,1>(NV,0).transpose() << "\n";
+        std::cout << "Predicted:\nFinal pos: " << XTilde.col(cp.N).block<NV,1>(0,0).transpose() << "\n";
+        std::cout << "Final vel: " << XTilde.col(cp.N).block<NV,1>(NV,0).transpose() << "\n";
         std::cout << "J = " << JTemp[iter] << ", JTilde = " << JTilde[iter] << "\n\n\n";
         // next iteration ======================================================
         iter++;

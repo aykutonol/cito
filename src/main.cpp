@@ -52,17 +52,17 @@ int main(int argc, char const *argv[]) {
     std::cout << "\n\nOptimal trajectory:\n";
     for( int i=0; i<cp.N; i++ )
     {
-        std::cout << "time step " << i << ":\n\t\tpos = " << traj.X[i].block<NV,1>(0,0).transpose() << "\n";
-        std::cout << "\t\t vel = " << traj.X[i].block<NV, 1>(m->nv,0).transpose() << "\n";
+        std::cout << "time step " << i << ":\n\t\tpos = " << traj.X.col(i).block<NV,1>(0,0).transpose() << "\n";
+        std::cout << "\t\t vel = " << traj.X.col(i).block<NV, 1>(m->nv,0).transpose() << "\n";
         std::cout << "\t\t tau = ";
         std::cout << traj.U[i].block<NU,1>(0,0).transpose() << "\n";
         std::cout <<"\t\t KCon = ";
         std::cout << traj.U[i].block<NPAIR,1>(m->nu,0).transpose() << "\n\n";
     }
-    std::cout << "time step " << cp.N << ":\n\t\tpos = " << traj.X[cp.N].block<NV,1>(0,0).transpose() << "\n";
-    std::cout << "\t\t vel = " << traj.X[cp.N].block<NV, 1>(m->nv, 0).transpose() << "\n";
+    std::cout << "time step " << cp.N << ":\n\t\tpos = " << traj.X.col(cp.N).block<NV,1>(0,0).transpose() << "\n";
+    std::cout << "\t\t vel = " << traj.X.col(cp.N).block<NV, 1>(m->nv, 0).transpose() << "\n";
     // ***** Evaluate the optimal const ******************************************/
-    double J = scvx.getCost(traj.X[cp.N], traj.U);
+    double J = scvx.getCost(traj.X.col(cp.N), traj.U);
     std::cout << "J = " << J << "\n\nINFO: Planning completed.\n\n";
     // ***** MuJoCo shut down ****************************************************/
     mj_deleteModel(m);
