@@ -32,7 +32,6 @@ private:
     int dataSize;
     /// Trajectory file for execution
     std::ofstream trajFile;
-    char *trajPath;
     /// Objects
     CitoParams cp;
 };

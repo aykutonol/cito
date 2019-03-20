@@ -17,23 +17,23 @@
         <!-- Environment -->
         <body name="rbar0" pos="1 1 0" >
             <geom name="rbar0" type="box" size="0.1 0.05 0.05" group="1" rgba="0.7 0.7 0.7 1" />
-            <site name="rbar0_front" pos="0 0.05 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
-            <site name="rbar0_rear" pos="0 -0.05 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
+            <site name="rbar0_front" pos="0 0.05 0"  quat="0.707 0 0  0.707" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
+            <site name="rbar0_rear"  pos="0 -0.05 0" quat="0.707 0 0 -0.707" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
         </body>
         <body name="lbar0" pos="-1 1 0" >
             <geom name="lbar0" type="box" size="0.1 0.05 0.05" group="1" rgba="0.7 0.7 0.7 1" />
-            <site name="lbar0_front" pos="0 0.05 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
-            <site name="lbar0_rear" pos="0 -0.05 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
+            <site name="lbar0_front" pos="0 0.05 0" quat="0.707 0 0  0.707" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
+            <site name="lbar0_rear" pos="0 -0.05 0" quat="0.707 0 0 -0.707" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
         </body>
         <body name="rbar1" pos="1 2 0" >
             <geom name="rbar1" type="box" size="0.1 0.05 0.05" group="1" rgba="0.7 0.7 0.7 1" />
-            <site name="rbar1_front" pos="0 0.05 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
-            <site name="rbar1_rear" pos="0 -0.05 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
+            <site name="rbar1_front" pos="0 0.05 0" quat="0.707 0 0  0.707" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
+            <site name="rbar1_rear" pos="0 -0.05 0" quat="0.707 0 0 -0.707" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
         </body>
         <body name="lbar1" pos="-1 2 0" >
             <geom name="lbar1" type="box" size="0.1 0.05 0.05" group="1" rgba="0.7 0.7 0.7 1" />
-            <site name="lbar1_front" pos="0 0.05 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
-            <site name="lbar1_rear" pos="0 -0.05 0" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
+            <site name="lbar1_front" pos="0 0.05 0" quat="0.707 0 0  0.707" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
+            <site name="lbar1_rear" pos="0 -0.05 0" quat="0.707 0 0 -0.707" type="sphere" size="1e-3" group="2" rgba="1 0 0 1" />
         </body>
 
         <!-- Robot -->

@@ -72,7 +72,7 @@ CitoParams::CitoParams(const mjModel* model) : model(model)
     {
         for( int j=0; j<4; j++ )
         {
-            mjQuat[j] = model->site_quat[sPair2[i]*4+j];
+            mjQuat[j] = model->site_quat[sPair2(i)*4+j];
         }
         mju_rotVecQuat(nCS.col(i).data(), normal, mjQuat);
     }

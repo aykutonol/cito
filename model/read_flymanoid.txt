@@ -1172,7 +1172,7 @@ SITE 0:
   sameframe    0
   size         0.001     0.005     0.005   
   pos          0         0.05      0       
-  quat         1         0         0         0       
+  quat         0.71      0         0         0.71    
   rgba         1         0         0         1       
 
 
@@ -1185,7 +1185,7 @@ SITE 1:
   sameframe    0
   size         0.001     0.005     0.005   
   pos          0        -0.05      0       
-  quat         1         0         0         0       
+  quat         0.71      0         0        -0.71    
   rgba         1         0         0         1       
 
 
@@ -1198,7 +1198,7 @@ SITE 2:
   sameframe    0
   size         0.001     0.005     0.005   
   pos          0         0.05      0       
-  quat         1         0         0         0       
+  quat         0.71      0         0         0.71    
   rgba         1         0         0         1       
 
 
@@ -1211,7 +1211,7 @@ SITE 3:
   sameframe    0
   size         0.001     0.005     0.005   
   pos          0        -0.05      0       
-  quat         1         0         0         0       
+  quat         0.71      0         0        -0.71    
   rgba         1         0         0         1       
 
 
@@ -1224,7 +1224,7 @@ SITE 4:
   sameframe    0
   size         0.001     0.005     0.005   
   pos          0         0.05      0       
-  quat         1         0         0         0       
+  quat         0.71      0         0         0.71    
   rgba         1         0         0         1       
 
 
@@ -1237,7 +1237,7 @@ SITE 5:
   sameframe    0
   size         0.001     0.005     0.005   
   pos          0        -0.05      0       
-  quat         1         0         0         0       
+  quat         0.71      0         0        -0.71    
   rgba         1         0         0         1       
 
 
@@ -1250,7 +1250,7 @@ SITE 6:
   sameframe    0
   size         0.001     0.005     0.005   
   pos          0         0.05      0       
-  quat         1         0         0         0       
+  quat         0.71      0         0         0.71    
   rgba         1         0         0         1       
 
 
@@ -1263,7 +1263,7 @@ SITE 7:
   sameframe    0
   size         0.001     0.005     0.005   
   pos          0        -0.05      0       
-  quat         1         0         0         0       
+  quat         0.71      0         0        -0.71    
   rgba         1         0         0         1       
 
 
