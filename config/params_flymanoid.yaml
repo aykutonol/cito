@@ -1,0 +1,28 @@
+# Model
+model: "flymanoid.xml"
+
+# Contact pairs
+## number of contact pairs
+npair: 16 		
+## indices of the sites on the robot
+spair1: [8, 8, 8, 8, 9, 9, 9, 9,10,10,10,10,11,11,11,11]	
+## indices of the corresponding sites in the environment
+spair2: [2, 3, 6, 7, 0, 1, 4, 5, 2, 3, 6, 7, 0, 1, 4, 5]	
+
+# Task
+## desired final pose of the control joint
+desiredFinalPos: [0.0, 1.2, 0.0, 0.0, 0.0, 0.0]
+## desired final velocity of the control and robot joints
+desiredFinalVel: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+## initial index of the DOF associated with the control joint
+controlJointDOF0: 0
+
+# Weights
+w1: 1e3		# weight on deviations in x and y directions
+w2: 1e3		# weight on deviations in z and orientation
+w3: 1e0		# weight on final velocities
+w4: 5e-2	# weight on virtual stiffness
+
+# Simulation
+tf: 2.00	# [s] final time
+tc: 1e-1	# [s] control sampling period
