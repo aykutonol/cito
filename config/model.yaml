@@ -1,5 +1,0 @@
-model: "sawyer_push.xml"
-# Contact pairs
-npair: 1 		# number of contact pairs
-spair1: [4]	# indices of the sites on the robot
-spair2: [0]	# indices of the corresponding sites in the environment

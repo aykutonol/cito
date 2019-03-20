@@ -12,12 +12,12 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
     desiredVel.resize(m->nv);   deltaVel.resize(m->nv);
     dKCon.resize(cp.nPair,cp.N);
     // read task parameters
-    YAML::Node paramTask = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/task.yaml");
-    std::vector<double> desiredPosInput = { paramTask["desiredFinalPos"].as<std::vector<double>>() };
-    std::vector<double> desiredVelInput = { paramTask["desiredFinalVel"].as<std::vector<double>>() };
+    YAML::Node params = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/params.yaml");
+    std::vector<double> desiredPosInput = { params["desiredFinalPos"].as<std::vector<double>>() };
+    std::vector<double> desiredVelInput = { params["desiredFinalVel"].as<std::vector<double>>() };
     desiredPos = Eigen::Map<Eigen::VectorXd>(desiredPosInput.data(), desiredPosInput.size());
     desiredVel = Eigen::Map<Eigen::VectorXd>(desiredVelInput.data(), desiredVelInput.size());
-    controlJointDOF0 = paramTask["controlJointDOF0"].as<int>();
+    controlJointDOF0 = params["controlJointDOF0"].as<int>();
     // read contact model parameters
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
     kCon0 = vscm["kCon0"].as<double>();         // upper bound for the virtual stiffness
@@ -55,10 +55,10 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
     // set the weights
     lenru = 4;      // number of weights
     ru = new double[lenru];
-    ru[0] = paramTask["w1"].as<double>();
-    ru[1] = paramTask["w2"].as<double>();
-    ru[2] = paramTask["w3"].as<double>();
-    ru[3] = paramTask["w4"].as<double>();
+    ru[0] = params["w1"].as<double>();
+    ru[1] = params["w2"].as<double>();
+    ru[2] = params["w3"].as<double>();
+    ru[3] = params["w4"].as<double>();
     cvxProb.setUserR(ru, lenru);
     // set parameters that are dependent on simulation and model
     leniu = 3;      // number of parameters

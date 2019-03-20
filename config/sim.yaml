@@ -1,3 +1,0 @@
-# Simulation parameters
-tf: 1.00	# [s] final time
-tc: 5e-2	# [s] control sampling period

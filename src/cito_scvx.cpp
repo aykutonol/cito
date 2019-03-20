@@ -12,12 +12,12 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(mo
     desiredVel.resize(m->nv);   finalVel.resize(m->nv);
     KCon.resize(cp.nPair,cp.N);
     // read task parameters
-    YAML::Node paramTask = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/task.yaml");
-    std::vector<double> desiredPosInput = { paramTask["desiredFinalPos"].as<std::vector<double>>() };
-    std::vector<double> desiredVelInput = { paramTask["desiredFinalVel"].as<std::vector<double>>() };
+    YAML::Node params = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/params.yaml");
+    std::vector<double> desiredPosInput = { params["desiredFinalPos"].as<std::vector<double>>() };
+    std::vector<double> desiredVelInput = { params["desiredFinalVel"].as<std::vector<double>>() };
     desiredPos = Eigen::Map<Eigen::VectorXd>(desiredPosInput.data(), desiredPosInput.size());
     desiredVel = Eigen::Map<Eigen::VectorXd>(desiredVelInput.data(), desiredVelInput.size());
-    controlJointDOF0 = paramTask["controlJointDOF0"].as<int>();
+    controlJointDOF0 = params["controlJointDOF0"].as<int>();
     // read SCvx parameters
     YAML::Node paramSCvx = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/scvx.yaml");
     // create new arrays for the max. number of iterations
@@ -46,10 +46,10 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(mo
     USucc.resize(cp.m,cp.N);    UTemp.resize(cp.m,cp.N);    dU.resize(cp.m,cp.N);
     Fx.resize(cp.n*cp.n,cp.N);  Fu.resize(cp.n*cp.m,cp.N);
     // read cost function weights
-    weight[0] = paramTask["w1"].as<double>();
-    weight[1] = paramTask["w2"].as<double>();
-    weight[2] = paramTask["w3"].as<double>();
-    weight[3] = paramTask["w4"].as<double>();
+    weight[0] = params["w1"].as<double>();
+    weight[1] = params["w2"].as<double>();
+    weight[2] = params["w3"].as<double>();
+    weight[3] = params["w4"].as<double>();
 }
 
 // ***** FUNCTIONS *************************************************************

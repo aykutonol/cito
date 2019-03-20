@@ -8,11 +8,10 @@
 CitoParams::CitoParams(const mjModel* model) : model(model)
 {
     // read config files
-    YAML::Node sim = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/sim.yaml");
-    YAML::Node mod = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/model.yaml");
+    YAML::Node params = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/params.yaml");
     // simulation parameters
-    tf = sim["tf"].as<double>();
-    tc = sim["tc"].as<double>();
+    tf = params["tf"].as<double>();
+    tc = params["tc"].as<double>();
     dt = model->opt.timestep;
     N    = (int) floor(tf/tc);
     ndpc = (int) floor(tc/dt);
@@ -59,13 +58,13 @@ CitoParams::CitoParams(const mjModel* model) : model(model)
         dAct[i] = model->jnt_dofadr[model->actuator_trnid[i*2]];
     }
     // contact model parameters
-    nPair  = mod["npair"].as<int>();       // number of contact pairs
+    nPair  = params["npair"].as<int>();     // number of contact pairs
     sPair1.resize(nPair);                   // indices of sites on the robot
     sPair2.resize(nPair);                   // incides of corresponding sites in the environment
     nCS.resize(3,nPair);                    // contact surface normals
-    std::vector<int> stdVecInt = { mod["spair1"].as<std::vector<int>>() };
+    std::vector<int> stdVecInt = { params["spair1"].as<std::vector<int>>() };
     sPair1 = Eigen::Map<Eigen::VectorXi>(stdVecInt.data(), stdVecInt.size());
-    stdVecInt = { mod["spair2"].as<std::vector<int>>() };
+    stdVecInt = { params["spair2"].as<std::vector<int>>() };
     sPair2 = Eigen::Map<Eigen::VectorXi>(stdVecInt.data(), stdVecInt.size());
     mjtNum normal[3] = {1, 0, 0};
     mjtNum mjQuat[4];

@@ -8,6 +8,7 @@
 /// global variables
 std::string modelName;
 const char *modelPath, *logPath;
+YAML::Node params;
 
 const int maxgeom= 5000;
 
@@ -191,8 +192,7 @@ void initMuJoCo(const char* modelFilePath, const char* logFilePath)
     // read the desired final pose and put the ghost there, if there is a ghost in the model
     if( mj_name2id(m, mjOBJ_BODY, "ghost") != -1 )
     {
-        YAML::Node paramTask = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/task.yaml");
-        std::vector<double> desiredPos = { paramTask["desiredFinalPos"].as<std::vector<double>>() };
+        std::vector<double> desiredPos = { params["desiredFinalPos"].as<std::vector<double>>() };
         for( int i=0; i<3; i++ )
         {
             m->body_pos[mj_name2id(m, mjOBJ_BODY, "ghost")*3+i] = desiredPos[i];
@@ -899,8 +899,8 @@ int main(int argc, const char** argv)
             fontscale = 1.5;
     }
     /// parse file names
-    YAML::Node mod = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/model.yaml");
-    std::string modelFile = mod["model"].as<std::string>();
+    params = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/params.yaml");
+    std::string modelFile = params["model"].as<std::string>();
     modelName = modelFile;
     modelName.erase(modelName.end()-4, modelName.end());
     std::string modelPathStr = paths::workspaceDir + "/src/cito/model/"  + modelFile;

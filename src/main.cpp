@@ -16,8 +16,8 @@ int main(int argc, char const *argv[]) {
     const char* mjKeyPath = std::getenv("MJ_KEY");
     mj_activate(mjKeyPath);
     // Model file
-    YAML::Node mod = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/model.yaml");
-    std::string modelPathStr = paths::workspaceDir + "/src/cito/model/" + mod["model"].as<std::string>();
+    YAML::Node params = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/params.yaml");
+    std::string modelPathStr = paths::workspaceDir + "/src/cito/model/" + params["model"].as<std::string>();
     const char *modelPath = modelPathStr.c_str();
     std::cout << "\n\nModel path: " << modelPath << "\n\n\n";
     // Load the model
