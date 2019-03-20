@@ -900,9 +900,10 @@ int main(int argc, const char** argv)
     }
     /// parse file names
     YAML::Node mod = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/model.yaml");
-    modelName = mod["model"].as<std::string>();
+    std::string modelFile = mod["model"].as<std::string>();
+    modelName = modelFile;
     modelName.erase(modelName.end()-4, modelName.end());
-    std::string modelPathStr = paths::workspaceDir + "/src/cito/model/"  + modelName;
+    std::string modelPathStr = paths::workspaceDir + "/src/cito/model/"  + modelFile;
     std::string logPathStr   = paths::workspaceDir + "/logs/mjLog_" + modelName + ".log";
     modelPath = modelPathStr.c_str();
     logPath   = logPathStr.c_str();
