@@ -19,7 +19,7 @@ int main(int argc, char const *argv[]) {
     const char* mjKeyPath = std::getenv("MJ_KEY");
     mj_activate(mjKeyPath);
     // Model file
-    std::string modelPathStr = paths::workspaceDir + "/src/cito/model/"  + paths::modelFile;
+    std::string modelPathStr = paths::workspaceDir + "/src/cito/model/" + paths::modelFile;
     const char *modelPath = modelPathStr.c_str();
     std::cout << "\n\nModel path: " << modelPath << "\n\n\n";
     // Load the model
@@ -31,7 +31,7 @@ int main(int argc, char const *argv[]) {
     CitoParams cp(m);
     CitoSCvx scvx(m);
     // ***** Trajectories ********************************************************/
-    eigDbl U0, U; U0.resize(cp.m,cp.N); U.resize(cp.m,cp.N);
+    eigMd U0, U; U0.resize(cp.m,cp.N); U.resize(cp.m,cp.N);
     trajectory traj;
     // ***** Initial control trajectory ******************************************/
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
@@ -52,15 +52,15 @@ int main(int argc, char const *argv[]) {
     std::cout << "\n\nOptimal trajectory:\n";
     for( int i=0; i<cp.N; i++ )
     {
-        std::cout << "time step " << i << ":\n\t\tpos = " << traj.X.col(i).block<NV,1>(0,0).transpose() << "\n";
-        std::cout << "\t\t vel = " << traj.X.col(i).block<NV, 1>(m->nv,0).transpose() << "\n";
+        std::cout << "time step " << i << ":\n\t\tpos = " << traj.X.col(i).head(m->nv).transpose() << "\n";
+        std::cout << "\t\t vel = " << traj.X.col(i).tail(m->nv).transpose() << "\n";
         std::cout << "\t\t tau = ";
-        std::cout << traj.U.col(i).block<NU,1>(0,0).transpose() << "\n";
+        std::cout << traj.U.col(i).head(m->nu).transpose() << "\n";
         std::cout <<"\t\t KCon = ";
-        std::cout << traj.U.col(i).block<NPAIR,1>(m->nu,0).transpose() << "\n\n";
+        std::cout << traj.U.col(i).tail(cp.nPair).transpose() << "\n\n";
     }
-    std::cout << "time step " << cp.N << ":\n\t\tpos = " << traj.X.col(cp.N).block<NV,1>(0,0).transpose() << "\n";
-    std::cout << "\t\t vel = " << traj.X.col(cp.N).block<NV, 1>(m->nv, 0).transpose() << "\n";
+    std::cout << "time step " << cp.N << ":\n\t\tpos = " << traj.X.col(cp.N).head(m->nv).transpose() << "\n";
+    std::cout << "\t\t vel = " << traj.X.col(cp.N).tail(m->nv).transpose() << "\n";
     // ***** Evaluate the optimal const ******************************************/
     double J = scvx.getCost(traj.X.col(cp.N), traj.U);
     std::cout << "J = " << J << "\n\nINFO: Planning completed.\n\n";

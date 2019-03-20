@@ -31,7 +31,7 @@ CitoControl::~CitoControl()
 
 // ***** FUNCTIONS *************************************************************
 // takeStep: takes a full control step given a control input
-void CitoControl::takeStep(mjData*d, const eigDbl u, bool save)
+void CitoControl::takeStep(mjData*d, const eigMd u, bool save)
 {
     if( save ) { sl.writeData(d); }
     for( int i=0; i<cp.ndpc; i++ )
@@ -44,7 +44,7 @@ void CitoControl::takeStep(mjData*d, const eigDbl u, bool save)
 }
 
 // setControl: sets generalized forces on joints and free bodies
-void CitoControl::setControl(mjData* d, const eigDbl u)
+void CitoControl::setControl(mjData* d, const eigMd u)
 {
     // set control given the control input
     for( int i=0; i<m->nu; i++ )
@@ -65,7 +65,7 @@ void CitoControl::setControl(mjData* d, const eigDbl u)
 }
 
 // contactModel: returns contact wrench given current state and control input
-eigDbl CitoControl::contactModel(const mjData* d, const eigDbl u)
+eigMd CitoControl::contactModel(const mjData* d, const eigMd u)
 {
     h.setZero();
     // loop for each contact pair
@@ -110,7 +110,7 @@ eigDbl CitoControl::contactModel(const mjData* d, const eigDbl u)
 
 // getState: converts free joints' quaternions to Euler angles so that
 // the dimensionality of the state vector is 2*nv instead of nq+nv
-eigMjc CitoControl::getState(const mjData* d)
+eigMm CitoControl::getState(const mjData* d)
 {
     x.setZero();
     int freeNo = 0;

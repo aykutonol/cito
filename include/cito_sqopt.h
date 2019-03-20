@@ -22,7 +22,7 @@ public:
     /// Destructor
     ~CitoSQOPT() {}
     /// This function solves the convex subproblem
-    void solveCvx(double *xTraj, double r, const eigMjc X, const eigDbl U,
+    void solveCvx(double *xTraj, double r, const eigMm X, const eigMd U,
                   const derTraj Fx, const derTraj Fu, int *isJFree, int *isAFree,
                   double *qposLB, double *qposUB, double *tauLB, double *tauUB);
 private:
@@ -31,10 +31,10 @@ private:
                      char cu[], int *lencu, int iu[], int *leniu,
                      double ru[], int *lenru);
     /// This function sets linear and constant cost terms of the cost
-    void setCObj(const eigMjc X, const eigDbl U,
+    void setCObj(const eigMm X, const eigMd U,
                  double *ru, double *cObj, double &ObjAdd);
     /// This function sets bounds of dX, dU, and constraints (dynamics, trust region, etc.)
-    void setBounds(double r, const eigMjc X, const eigDbl U,
+    void setBounds(double r, const eigMm X, const eigMd U,
                    double *bl, double *bu, int *isJFree, int *isAFree,
                    double *qposLB, double *qposUB, double *tauLB, double *tauUB);
     /* This function creates the sparse A matrix for linearized dynamics, auxiliary
@@ -60,7 +60,8 @@ private:
     int Cold = 0, Basis = 1, Warm = 2;
     /// Cost parameters
     int controlJointDOF0;
-    eigDbl desiredPos, desiredVel, deltaPos, deltaVel, dKCon;
+    eigVd desiredPos, desiredVel, deltaPos, deltaVel;
+    eigMd dKCon;
     /// Sort parameters
     int *indMove;
     double *xTemp;

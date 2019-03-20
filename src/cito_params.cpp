@@ -1,8 +1,8 @@
 #include "cito_params.h"
 
 // ***** DESCRIPTION ***********************************************************
-// CitoParams class defines global variables that are specific to simulation,
-// robot, and environment as well as general types and structures.
+// CitoParams class parses the model and config files and defines parameters
+// as well as types and structs that are used across classes.
 
 // ***** CONSTRUCTOR & DESTRUCTOR **********************************************
 CitoParams::CitoParams(const mjModel* model) : model(model)

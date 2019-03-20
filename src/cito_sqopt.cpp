@@ -8,8 +8,8 @@
 CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
 {
     // initialize Eigen variables
-    desiredPos.resize(6,1);     desiredVel.resize(m->nv,1);
-    deltaPos.resize(6,1);       deltaVel.resize(m->nv,1);
+    desiredPos.resize(6);       deltaPos.resize(6);
+    desiredVel.resize(m->nv);   deltaVel.resize(m->nv);
     dKCon.resize(cp.nPair,cp.N);
     // read task parameters
     YAML::Node paramTask = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/task.yaml");
@@ -102,7 +102,7 @@ void CitoSQOPT::qpHx(int *nnH, double x[], double Hx[], int *nState,
 }
 
 // setCObj: sets linear and constant cost terms of the cost
-void CitoSQOPT::setCObj(const eigMjc X, const eigDbl U,
+void CitoSQOPT::setCObj(const eigMm X, const eigMd U,
                         double *ru, double *cObj, double &ObjAdd)
 {
     // desired change in the final pose and velocity
@@ -144,14 +144,14 @@ void CitoSQOPT::setCObj(const eigMjc X, const eigDbl U,
         dKConSN += dKCon.col(i).squaredNorm();
     }
     // constant objective term
-    ObjAdd = 0.5*(ru[0]*deltaPos.block<2,1>(0,0).squaredNorm() +
-                  ru[1]*deltaPos.block<4,1>(2,0).squaredNorm() +
+    ObjAdd = 0.5*(ru[0]*deltaPos.head(2).squaredNorm() +
+                  ru[1]*deltaPos.tail(4).squaredNorm() +
                   ru[2]*deltaVel.squaredNorm() +
                   ru[3]*dKConSN);
 }
 
 // solveCvx: solves the convex subproblem
-void CitoSQOPT::solveCvx(double *xTraj, double r, const eigMjc X, const eigDbl U,
+void CitoSQOPT::solveCvx(double *xTraj, double r, const eigMm X, const eigMd U,
                          const derTraj Fx, const derTraj Fu, int *isJFree, int *isAFree,
                          double *qposLB, double *qposUB, double *tauLB, double *tauUB)
 {
@@ -199,7 +199,7 @@ void CitoSQOPT::solveCvx(double *xTraj, double r, const eigMjc X, const eigDbl U
 }
 
 // setBounds: sets bounds of dX, dU, and constraints (dynamics, trust region, etc.)
-void CitoSQOPT::setBounds(double r, const eigMjc X, const eigDbl U,
+void CitoSQOPT::setBounds(double r, const eigMm X, const eigMd U,
                           double *bl, double *bu, int *isJFree, int *isAFree,
                           double *qposLB, double *qposUB, double *tauLB, double *tauUB)
 {

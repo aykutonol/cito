@@ -1,9 +1,9 @@
 /*! Parameters */
 /**
- *  \brief CitoParams contains user-specific and general definitions
+ *  \brief CitoParams contains parameter definitions
  *
- *  This class defines global variables that are specific to simulation,
- *  robot, and environment as well as general types and structures.
+ *  This class parses the model and config files and defines parameters
+ *  as well as types and structs that are used across classes.
  *
  *  \author Aykut Onol
  */
@@ -20,9 +20,22 @@
 #ifndef CITO_PARAMS_H
 #define CITO_PARAMS_H
 
-typedef Eigen::MatrixXd eigDbl;
-typedef Eigen::Matrix<mjtNum, Eigen::Dynamic, Eigen::Dynamic> eigMjc;
+/// Types
+typedef Eigen::VectorXd eigVd;
+typedef Eigen::MatrixXd eigMd;
+typedef Eigen::Matrix<mjtNum, Eigen::Dynamic, Eigen::Dynamic> eigMm;
+typedef Eigen::Matrix<mjtNum, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> derTraj;
 
+/// Structs
+struct trajectory
+{
+    eigMm X;
+    eigMd  U;
+    derTraj Fx;
+    derTraj Fu;
+};
+
+/// CitoParams class
 class CitoParams{
 public:
     /// Constructor
@@ -36,7 +49,7 @@ public:
         nFree, *pFree, *bFree, *dAct,
         *quatAdr, *dofAdr;
     Eigen::VectorXi sPair1, sPair2;
-    eigMjc nCS;
+    eigMm nCS;
 };
 
 /// User-specific paths
@@ -59,17 +72,5 @@ namespace params {
 const int NU    = params::nact;         // number of actuated joints
 const int NPAIR = params::npair;        // number of contact pairs
 const int NV    = NU + 6*params::nfree; // degrees of freedom
-const int N     = 2*NV;                 // dimensionality of states
-const int M     = NU + NPAIR;           // dimensionality of controls
-/// Types
-typedef Eigen::Matrix<mjtNum, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> derTraj;
-/// Structs
-struct trajectory
-{
-    eigMjc X;
-    eigDbl  U;
-    derTraj Fx;
-    derTraj Fu;
-};
 
 #endif //CITO_PARAMS_H

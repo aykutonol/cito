@@ -54,7 +54,7 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(mo
 
 // ***** FUNCTIONS *************************************************************
 // getCost: returns the nonlinear cost given control trajectory and final state
-double CitoSCvx::getCost(const eigMjc XFinal, const eigDbl U)
+double CitoSCvx::getCost(const eigMm XFinal, const eigMd U)
 {
     // terminal cost
     for( int i=0; i<6; i++ )
@@ -86,7 +86,7 @@ double CitoSCvx::getCost(const eigMjc XFinal, const eigDbl U)
 }
 
 // runSimulation: rolls-out and linearizes the dynamics given control trajectory
-trajectory CitoSCvx::runSimulation(const eigDbl U, bool linearize, bool save)
+trajectory CitoSCvx::runSimulation(const eigMd U, bool linearize, bool save)
 {
     // make mjData
     mjData* d = NULL;
@@ -124,7 +124,7 @@ trajectory CitoSCvx::runSimulation(const eigDbl U, bool linearize, bool save)
 }
 
 // solveSCvx: executes the successive convexification algorithm
-eigDbl CitoSCvx::solveSCvx(const eigDbl U0)
+eigMd CitoSCvx::solveSCvx(const eigMd U0)
 {
     // initialize USucc for the first succession
     for( int i=0; i<cp.N; i++ ) { USucc.col(i) = U0.col(i); }
