@@ -20,7 +20,7 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
     controlJointDOF0 = paramTask["controlJointDOF0"].as<int>();
     // read contact model parameters
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
-    kCon0 = vscm["kCon0"].as<double>();
+    kCon0 = vscm["kCon0"].as<double>();         // upper bound for the virtual stiffness
     // SQOPT parameters
     nnH     = 6 + m->nv + cp.N*cp.nPair;        // number of non-zero elements of the Hessian
     lencObj = nnH;                              // number of non-zero elements of the linear term

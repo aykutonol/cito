@@ -7,7 +7,8 @@
 MjSaveLog::MjSaveLog(const mjModel* model) : m(model), cp(model)
 {
     // open the log file
-    std::string modelName = paths::modelFile;
+    YAML::Node mod = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/model.yaml");
+    std::string modelName = mod["model"].as<std::string>();
     modelName.erase(modelName.end()-4, modelName.end());
     std::string logPathStr = paths::workspaceDir + "/logs/mjLog_" + modelName + ".log";
     const char *logPath = logPathStr.c_str();

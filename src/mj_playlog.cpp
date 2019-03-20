@@ -899,9 +899,10 @@ int main(int argc, const char** argv)
             fontscale = 1.5;
     }
     /// parse file names
-    modelName = paths::modelFile;
+    YAML::Node mod = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/model.yaml");
+    modelName = mod["model"].as<std::string>();
     modelName.erase(modelName.end()-4, modelName.end());
-    std::string modelPathStr = paths::workspaceDir + "/src/cito/model/"  + paths::modelFile;
+    std::string modelPathStr = paths::workspaceDir + "/src/cito/model/"  + modelName;
     std::string logPathStr   = paths::workspaceDir + "/logs/mjLog_" + modelName + ".log";
     modelPath = modelPathStr.c_str();
     logPath   = logPathStr.c_str();

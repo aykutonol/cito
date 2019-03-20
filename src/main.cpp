@@ -10,19 +10,18 @@
 
 #include "cito_scvx.h"
 
-// MuJoCo model
-mjModel *m = NULL;
-
 int main(int argc, char const *argv[]) {
     // ***** MuJoCo initialization ***********************************************/
     // Activate MuJoCo
     const char* mjKeyPath = std::getenv("MJ_KEY");
     mj_activate(mjKeyPath);
     // Model file
-    std::string modelPathStr = paths::workspaceDir + "/src/cito/model/" + paths::modelFile;
+    YAML::Node mod = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/model.yaml");
+    std::string modelPathStr = paths::workspaceDir + "/src/cito/model/" + mod["model"].as<std::string>();
     const char *modelPath = modelPathStr.c_str();
     std::cout << "\n\nModel path: " << modelPath << "\n\n\n";
     // Load the model
+    mjModel *m = NULL;
     if( strlen(modelPath)>4 && !strcmp(modelPath+strlen(modelPath)-4, ".mjb") )
     {       m = mj_loadModel(modelPath, NULL); }
     else {  m = mj_loadXML(modelPath, NULL, NULL, 0); }

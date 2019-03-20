@@ -51,7 +51,8 @@ private:
     /// Cost function variables
     double weight[4];
     int controlJointDOF0;
-    eigMd desiredPos, desiredVel, finalPos, finalVel, KCon;
+    eigVd desiredPos, desiredVel, finalPos, finalVel;
+    eigMd KCon;
     double KConSN;          // total squared norm of virtual stiffness variables
     double Jf, Ji, Jt;      // final, integrated, and total cost values
     /// Objects

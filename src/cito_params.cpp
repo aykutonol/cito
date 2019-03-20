@@ -2,14 +2,14 @@
 
 // ***** DESCRIPTION ***********************************************************
 // CitoParams class parses the model and config files and defines parameters
-// as well as types and structs that are used across classes.
+// that are used across classes.
 
 // ***** CONSTRUCTOR & DESTRUCTOR **********************************************
 CitoParams::CitoParams(const mjModel* model) : model(model)
 {
     // read config files
-    YAML::Node sim  = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/sim.yaml");
-    YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
+    YAML::Node sim = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/sim.yaml");
+    YAML::Node mod = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/model.yaml");
     // simulation parameters
     tf = sim["tf"].as<double>();
     tc = sim["tc"].as<double>();
@@ -59,13 +59,13 @@ CitoParams::CitoParams(const mjModel* model) : model(model)
         dAct[i] = model->jnt_dofadr[model->actuator_trnid[i*2]];
     }
     // contact model parameters
-    nPair  = vscm["npair"].as<int>();       // number of contact pairs
+    nPair  = mod["npair"].as<int>();       // number of contact pairs
     sPair1.resize(nPair);                   // indices of sites on the robot
     sPair2.resize(nPair);                   // incides of corresponding sites in the environment
     nCS.resize(3,nPair);                    // contact surface normals
-    std::vector<int> stdVecInt = { vscm["spair1"].as<std::vector<int>>() };
+    std::vector<int> stdVecInt = { mod["spair1"].as<std::vector<int>>() };
     sPair1 = Eigen::Map<Eigen::VectorXi>(stdVecInt.data(), stdVecInt.size());
-    stdVecInt = { vscm["spair2"].as<std::vector<int>>() };
+    stdVecInt = { mod["spair2"].as<std::vector<int>>() };
     sPair2 = Eigen::Map<Eigen::VectorXi>(stdVecInt.data(), stdVecInt.size());
     mjtNum normal[3] = {1, 0, 0};
     mjtNum mjQuat[4];

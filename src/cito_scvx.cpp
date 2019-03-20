@@ -8,8 +8,8 @@
 CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(model), sq(model)
 {
     // initialize Eigen variables
-    desiredPos.resize(6,1);     desiredVel.resize(m->nv,1);
-    finalPos.resize(6,1);       finalVel.resize(m->nv,1);
+    desiredPos.resize(6);       finalPos.resize(6);
+    desiredVel.resize(m->nv);   finalVel.resize(m->nv);
     KCon.resize(cp.nPair,cp.N);
     // read task parameters
     YAML::Node paramTask = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/task.yaml");
@@ -65,15 +65,15 @@ double CitoSCvx::getCost(const eigMm XFinal, const eigMd U)
     {
         finalVel(i) = XFinal(controlJointDOF0 + m->nv + i);
     }
-    Jf = 0.5*(weight[0]*(desiredPos.block<2,1>(0,0)-finalPos.block<2,1>(0,0)).squaredNorm()+
-              weight[1]*(desiredPos.block<4,1>(2,0)-finalPos.block<4,1>(2,0)).squaredNorm()+
+    Jf = 0.5*(weight[0]*(desiredPos.head(2)-finalPos.head(2)).squaredNorm()+
+              weight[1]*(desiredPos.tail(4)-finalPos.tail(4)).squaredNorm()+
               weight[2]*(desiredVel - finalVel).squaredNorm());
     // integrated cost
     KConSN = 0;
     for( int i=0; i<cp.N; i++ )
     {
         KCon.col(i).setZero();
-        for( int j=0; j<NPAIR; j++ )
+        for( int j=0; j<cp.nPair; j++ )
         {
             KCon.col(i)(j) = U.col(i)[m->nu+j];
         }
@@ -227,10 +227,10 @@ eigMd CitoSCvx::solveSCvx(const eigMd U0)
             std::cout << "\n\n\tINFO: |dL| = |" << dL[iter] << "| < dLTol = " << dLTol << "\n\n";
         }
         // screen output for the iteration =====================================
-        std::cout << "Actual:\nFinal pos: " << trajTemp.X.col(cp.N).block<NV,1>(0,0).transpose() << "\n";
-        std::cout << "Final vel: " << trajTemp.X.col(cp.N).block<NV,1>(NV,0).transpose() << "\n";
-        std::cout << "Predicted:\nFinal pos: " << XTilde.col(cp.N).block<NV,1>(0,0).transpose() << "\n";
-        std::cout << "Final vel: " << XTilde.col(cp.N).block<NV,1>(NV,0).transpose() << "\n";
+        std::cout << "Actual:\nFinal pos: " << trajTemp.X.col(cp.N).head(m->nv).transpose() << "\n";
+        std::cout << "Final vel: " << trajTemp.X.col(cp.N).tail(m->nv).transpose() << "\n";
+        std::cout << "Predicted:\nFinal pos: " << XTilde.col(cp.N).head(m->nv).transpose() << "\n";
+        std::cout << "Final vel: " << XTilde.col(cp.N).tail(m->nv).transpose() << "\n";
         std::cout << "J = " << JTemp[iter] << ", JTilde = " << JTilde[iter] << "\n\n\n";
         // next iteration ======================================================
         iter++;

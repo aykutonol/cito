@@ -1,9 +1,10 @@
 /*! Parameters */
 /**
- *  \brief CitoParams contains parameter definitions
+ *  \brief CitoParams contains definitions that are used across classes.
  *
- *  This class parses the model and config files and defines parameters
- *  as well as types and structs that are used across classes.
+ *  This header contains global types, structs, and paths as well as the
+ *  CitoParams class that parses the model and config files and defines
+ *  parameters that are used across classes.
  *
  *  \author Aykut Onol
  */
@@ -35,6 +36,12 @@ struct trajectory
     derTraj Fu;
 };
 
+/// Paths
+namespace paths
+{
+    const std::string workspaceDir = std::getenv("CITO_WS");
+}
+
 /// CitoParams class
 class CitoParams{
 public:
@@ -51,26 +58,5 @@ public:
     Eigen::VectorXi sPair1, sPair2;
     eigMm nCS;
 };
-
-/// User-specific paths
-namespace paths {
-    const std::string workspaceDir = std::getenv("CITO_WS");
-    const std::string modelFile    = "sawyer_push.xml";
-}
-
-/// Specify the parameters related to simulation, model, and contact candidates
-/// Parameters
-namespace params {
-    /// Model
-    const int nact  = 7;                    // number of actuated joints
-    const int nfree = 1;                    // number of free joints
-    /// Contact
-    const int npair = 1;                // number of contact pairs
-}
-// The following constants and types are not changed */
-/// Constants
-const int NU    = params::nact;         // number of actuated joints
-const int NPAIR = params::npair;        // number of contact pairs
-const int NV    = NU + 6*params::nfree; // degrees of freedom
 
 #endif //CITO_PARAMS_H
