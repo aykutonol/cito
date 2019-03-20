@@ -7,12 +7,11 @@ Please see [1] for a detailed description of the algorithm.
 
 In this framework, MuJoCo is used to evaluate the nonlinear dynamics. The partial derivatives
 of the dynamics about the previous trajectory are obtained by numerical differentiation.
-The resulting convex subproblems are solved by SQOPT since the dynamic constraints and
-the cost are sparse.
+The resulting convex subproblems are solved by SQOPT to exploit the sparsity.
 
-The libraries are implemented in C++ and catkin is used to compile them.
+The libraries implemented in C++. The package is built in a catkin workspace.
 
-**Please note that both the method and the code are currently under development.**
+_Please note that both the method and the code are currently under development._
 
 ## Dependencies
 - [ROS (catkin)](http://wiki.ros.org/catkin)
@@ -43,24 +42,23 @@ The libraries are implemented in C++ and catkin is used to compile them.
     ```
 
 ## Usage
-The model file and the application-specific parameters related to the model (i.e., joint types,
-contact pairs, etc.) and simulation (i.e., time horizon length and dynamic and control time step
-sizes) are  defined in include/cito_params.h.
+The parameters related to the model (i.e., model file and contact pairs), the task (i.e., desired final
+pose and velocity), and the simulation (i.e., time horizon length and control sampling period) are defined 
+in config/params.yaml.
+
+The contact pairs are defined in terms of sites that are defined in the model file. A site can be defined
+in the model file such that it is positioned at the center of the contact surface and its +x axis is aligned 
+with the direction of the virtual force that will be generated on the control joint (e.g., an object or the 
+torso of an under-actuated robot). 
 
 A motion can be planned by running the main:  
 `rosrun cito main`  
-which will record the optimal trajectory into cito_ws/logs/mjLog_model_name, a binary file.
+which will record the optimal trajectory into cito_ws/logs/mjLog_model_name (a binary file) for rendering
+as well as the joint position, velocity, acceleration, and force trajectories into logs/traj_model_name 
+(a readable file) so that they can be sent to the robot. 
 
 The planned motion can be played back by:  
 `rosrun cito playlog`
-
-While rendering, the trajectories (i.e., time, joint positions, velocities, accelerations, and 
-actuation forces) are recorded into logs/traj_model_name (i.e., a readable file) so that they can 
-be sent to the robot.
-
-In order to change the model, include/cito_params.h and config/task.yaml need to be modified.
-
-The task can be modified through config/task.yaml.
 
 The successive convexification parameters and the variable smooth contact model parameters can be 
 changed through config/scvx.yaml and config/vscm.yaml.
@@ -68,34 +66,36 @@ changed through config/scvx.yaml and config/vscm.yaml.
 
 ## Examples
 **Sawyer tabletop pushing**  
-In this application, the task is to push a box on a table with a 7 DOF robot arm, Sawyer.
-The model for this example is model/sawyer_push.xml. To see an example motion, you need to:
-- copy include/cito_params_sawyer.h and paste into include/cito_params,
-- copy config/task_sawyer.yaml and paste into config/task.yaml.
+In this application, the task is to push a box on a table with a 7 DOF robot arm, Sawyer. The model file 
+is model/sawyer_push.xml. For this example, config/params_sawyer.yaml needs to be copied and pasted into 
+config/params.yaml.
 
 **Simple humanoid locomotion at zero gravity (_Flymanoid_)**  
-The goal of this application is to plan a locomotion behavior for a planar human-like robot.
-The model for this example is model/flymanoid.xml. To see an example motion, you need to:  
-- copy include/cito_params_flymanoid.h and paste into include/cito_params,
-- copy config/task_flymanoid.yaml and paste into config/task.yaml.
+The goal in this application is to plan a locomotion behavior for a planar human-like robot in zero-
+gravity. The model file is model/flymanoid.xml. This example can be used by replacing config/params.yaml
+by config/params_flymanoid.yaml.
 
 
 ## Citing
 If you use this package, please cite the following paper:
 
-[1] [\"{O}nol, A. \"{O}., Long, P., & Padir, T. (2019). Contact-Implicit TrajectoryOptimization
+[1] [Onol, A. O., Long, P., & Padir, T. (2019). Contact-Implicit TrajectoryOptimization
 Based on a Variable Smooth Contact Model and Successive Convexification.
 In _2019 IEEE International Conference on Robotics and Automation (ICRA)_. IEEE.](https://arxiv.org/abs/1810.10462
 ) [Accepted]
 ```
 @inproceedings{onol2019contact,
   title={Contact-Implicit Trajectory Optimization Based on a Variable Smooth Contact Model and Successive Convexification},
-  author={Onol, Aykut Ozgun and Long, Philip and Padir, Taskin},
+  author={{\"{O}}nol, Aykut {\"{O}}zg{\"{u}}n and Long, Philip and Pad{\i}r, Ta{\c{s}}k{\i}n},
   booktitle={2019 IEEE International Conference on Robotics and Automation (ICRA)},
-  year={2019}
+  year={2019},
+  organization={IEEE}
 }
 ```
 
 ## TODOS
-- Integrate FCL for distance calculation
-- Analytic derivatives
+1. Integrate FCL for distance calculation
+2. Analytic derivatives
+3. Add alternative solver
+4. Virtual controls for successive convexification
+5. Interface for adding custom cost and constraint terms 
