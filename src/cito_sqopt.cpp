@@ -152,7 +152,7 @@ void CitoSQOPT::setCObj(const eigMjc X, const eigDbl U,
 
 // solveCvx: solves the convex subproblem
 void CitoSQOPT::solveCvx(double *xTraj, double r, const eigMjc X, const eigDbl U,
-                         const stateDerTraj Fx, const derTraj Fu, int *isJFree, int *isAFree,
+                         const derTraj Fx, const derTraj Fu, int *isJFree, int *isAFree,
                          double *qposLB, double *qposUB, double *tauLB, double *tauUB)
 {
     // fresh start
@@ -262,8 +262,7 @@ void CitoSQOPT::setBounds(double r, const eigMjc X, const eigDbl U,
 
 // setA: creates the sparse A matrix for linearized dynamics, auxiliary
 // variables, and trust region constraints
-void CitoSQOPT::setA(double *valA, int *indA, int *locA,
-                     const stateDerTraj Fx, const derTraj Fu)
+void CitoSQOPT::setA(double *valA, int *indA, int *locA, const derTraj Fx, const derTraj Fu)
 {
     int colNo = 0, indNo = 0, indTS = 0;
 
@@ -279,7 +278,7 @@ void CitoSQOPT::setA(double *valA, int *indA, int *locA,
         for( int j=0; j<cp.n; j++ )
         {
             indA[indNo] = (indTS+1)*cp.n+j;
-            valA[indNo] = Fx[indTS](j,i%cp.n);
+            valA[indNo] = Fx.col(indTS)[(j+i*cp.n)%(cp.n*cp.n)];
             indNo++;
         }
         // for auxiliary variables
@@ -289,7 +288,7 @@ void CitoSQOPT::setA(double *valA, int *indA, int *locA,
         indA[indNo] = (cp.N+1)*cp.n + (cp.N+1)*cp.n + cp.N*cp.m + colNo;
         valA[indNo] = -1.0;
         indNo++; //auxNo2++;
-
+        // column complete
         colNo++;
         locA[colNo] = indNo;
     }
@@ -299,7 +298,6 @@ void CitoSQOPT::setA(double *valA, int *indA, int *locA,
         indA[indNo] = cp.N*cp.n+i;
         valA[indNo] = -1;
         indNo++;
-
         // for auxiliary variables
         indA[indNo] = (cp.N+1)*cp.n + colNo;
         valA[indNo] = +1.0;
@@ -307,7 +305,7 @@ void CitoSQOPT::setA(double *valA, int *indA, int *locA,
         indA[indNo] = (cp.N+1)*cp.n + (cp.N+1)*cp.n + cp.N*cp.m + colNo;
         valA[indNo] = -1.0;
         indNo++; //auxNo2++;
-
+        // column complete
         colNo++;
         locA[colNo] = indNo;
     }
@@ -329,7 +327,7 @@ void CitoSQOPT::setA(double *valA, int *indA, int *locA,
         indA[indNo] = (cp.N+1)*cp.n + (cp.N+1)*cp.n + cp.N*cp.m + colNo;
         valA[indNo] = -1.0;
         indNo++; //auxNo2++;
-
+        // column complete
         colNo++;
         locA[colNo] = indNo;
     }
@@ -347,7 +345,7 @@ void CitoSQOPT::setA(double *valA, int *indA, int *locA,
         indA[indNo] = (cp.N+1)*cp.n + 2*((cp.N+1)*cp.n + cp.N*cp.m);
         valA[indNo] = +1.0;
         indNo++;
-
+        // column complete
         colNo++;
         locA[colNo] = indNo;
     }

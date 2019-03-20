@@ -46,9 +46,7 @@ private:
     /// Trajectories
     eigMjc XSucc, dX, XTilde;
     eigDbl USucc, dU, UTemp;
-    stateDerTraj Fx;
-//    ctrlDerTraj Fu;
-    derTraj Fu;
+    derTraj Fx, Fu;
     trajectory traj, trajS, trajTemp;
     /// Cost function variables
     double weight[4];
