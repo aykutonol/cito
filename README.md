@@ -75,6 +75,8 @@ The goal in this application is to plan a locomotion behavior for a planar human
 gravity. The model file is model/flymanoid.xml. This example can be used by replacing config/params.yaml
 by config/params_flymanoid.yaml.
 
+![](extra/flymanoid_result.gif)
+
 
 ## Citing
 If you use this package, please cite the following paper:
