@@ -63,20 +63,16 @@ const int N     = 2*NV;                 // dimensionality of states
 const int M     = NU + NPAIR;           // dimensionality of controls
 /// Types
 // eigen+mujoco types for a time instant
-typedef Eigen::Matrix<mjtNum, N, 1>                  stateVec;
 typedef Eigen::Matrix<mjtNum, N, N, Eigen::ColMajor> stateDer;
-typedef Eigen::Matrix<mjtNum, M, 1>                  ctrlVec;
 typedef Eigen::Matrix<mjtNum, N, M, Eigen::ColMajor> ctrlDer;
 // threaded types for trajectories
-typedef std::vector<stateVec, Eigen::aligned_allocator<stateVec>> stateTraj;
 typedef std::vector<stateDer, Eigen::aligned_allocator<stateDer>> stateDerTraj;
-typedef std::vector<ctrlVec,  Eigen::aligned_allocator<ctrlVec>>  ctrlTraj;
 typedef std::vector<ctrlDer,  Eigen::aligned_allocator<ctrlDer>>  ctrlDerTraj;
 /// Structs
 struct trajectory
 {
     eigMjc X;
-    ctrlTraj  U;
+    eigDbl  U;
     stateDerTraj Fx;
     ctrlDerTraj  Fu;
 };

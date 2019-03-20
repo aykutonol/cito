@@ -42,10 +42,8 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(mo
     // set bounds
     cc.getBounds();
     // resize trajectories
-//    XSucc.resize(cp.N+1);    dX.resize(cp.N+1);   XTilde.resize(cp.N+1);
-    XSucc.resize(cp.n,cp.N+1);  dX.resize(cp.n,cp.N+1); XTilde.resize(cp.n,cp.N+1);
-
-    USucc.resize(cp.N);      UTemp.resize(cp.N);  dU.resize(cp.N);
+    XSucc.resize(cp.n,cp.N+1);  dX.resize(cp.n,cp.N+1);     XTilde.resize(cp.n,cp.N+1);
+    USucc.resize(cp.m,cp.N);    UTemp.resize(cp.m,cp.N);    dU.resize(cp.m,cp.N);
     Fx.resize(cp.N);         Fu.resize(cp.N);
     // read cost function weights
     weight[0] = paramTask["w1"].as<double>();
@@ -56,7 +54,7 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(mo
 
 // ***** FUNCTIONS *************************************************************
 // getCost: returns the nonlinear cost given control trajectory and final state
-double CitoSCvx::getCost(const eigMjc XFinal, const ctrlTraj U)
+double CitoSCvx::getCost(const eigMjc XFinal, const eigDbl U)
 {
     // terminal cost
     for( int i=0; i<6; i++ )
@@ -77,7 +75,7 @@ double CitoSCvx::getCost(const eigMjc XFinal, const ctrlTraj U)
         KCon.col(i).setZero();
         for( int j=0; j<NPAIR; j++ )
         {
-            KCon.col(i)(j) = U[i][m->nu+j];
+            KCon.col(i)(j) = U.col(i)[m->nu+j];
         }
         KConSN += KCon.col(i).squaredNorm();
     }
@@ -88,7 +86,7 @@ double CitoSCvx::getCost(const eigMjc XFinal, const ctrlTraj U)
 }
 
 // runSimulation: rolls-out and linearizes the dynamics given control trajectory
-trajectory CitoSCvx::runSimulation(const ctrlTraj U, bool linearize, bool save)
+trajectory CitoSCvx::runSimulation(const eigDbl U, bool linearize, bool save)
 {
     // make mjData
     mjData* d = NULL;
@@ -96,7 +94,7 @@ trajectory CitoSCvx::runSimulation(const ctrlTraj U, bool linearize, bool save)
     // initialize d
     mju_copy(d->qpos, m->key_qpos, m->nq);
     mj_forward(m, d);
-    cc.setControl(d, U[0]);
+    cc.setControl(d, U.col(0));
     // rollout (and linearize) the dynamics
     for( int i=0; i<cp.N; i++ )
     {
@@ -107,10 +105,10 @@ trajectory CitoSCvx::runSimulation(const ctrlTraj U, bool linearize, bool save)
         if( linearize )
         {
             Fx[i].setZero(); Fu[i].setZero();
-            nd.linDyn(d, U[i], Fx[i].data(), Fu[i].data());
+            nd.linDyn(d, U.col(i), Fx[i].data(), Fu[i].data());
         }
         // take tc/dt steps
-        cc.takeStep(d, U[i], save);
+        cc.takeStep(d, U.col(i), save);
     }
     XSucc.col(cp.N).setZero();
     XSucc.col(cp.N) = cc.getState(d);
@@ -126,10 +124,10 @@ trajectory CitoSCvx::runSimulation(const ctrlTraj U, bool linearize, bool save)
 }
 
 // solveSCvx: executes the successive convexification algorithm
-ctrlTraj CitoSCvx::solveSCvx(const ctrlTraj U0)
+eigDbl CitoSCvx::solveSCvx(const eigDbl U0)
 {
     // initialize USucc for the first succession
-    for( int i=0; i<cp.N; i++ ) { USucc[i] = U0[i]; }
+    for( int i=0; i<cp.N; i++ ) { USucc.col(i) = U0.col(i); }
     // start the SCvx algorithm
     int iter = 0;
     while( !stop )
@@ -168,12 +166,12 @@ ctrlTraj CitoSCvx::solveSCvx(const ctrlTraj U0)
             // controls
             if( i < cp.N )
             {
-                dU[i].setZero(); UTemp[i].setZero();
+                dU.col(i).setZero(); UTemp.col(i).setZero();
                 for( int j=0; j<cp.m; j++ )
                 {
-                    dU[i][j] = dTraj[(cp.N+1)*cp.n+i*cp.m+j];
+                    dU.col(i)[j] = dTraj[(cp.N+1)*cp.n+i*cp.m+j];
                 }
-                UTemp[i] = USucc[i] + dU[i];
+                UTemp.col(i) = USucc.col(i) + dU.col(i);
             }
         }
         // evaluate the dynamics for the change and get the cost values ========
@@ -205,7 +203,7 @@ ctrlTraj CitoSCvx::solveSCvx(const ctrlTraj U0)
             J[iter+1] = JTemp[iter];
             for( int i=0; i<cp.N; i++ )
             {
-                USucc[i] = UTemp[i];
+                USucc.col(i) = UTemp.col(i);
             }
             if( rho[iter] < rho1 )
             { r[iter+1] = r[iter]/beta_shrink;  }
@@ -221,12 +219,12 @@ ctrlTraj CitoSCvx::solveSCvx(const ctrlTraj U0)
         if( iter+1 == maxIter )
         {
             stop = true;
-            std::cout << "\n\n\tINFO: Maximum number of iterations reached\n\n";
+            std::cout << "\n\n\tINFO: Maximum number of iterations reached.\n\n";
         }
         if( dLTolMet )
         {
             stop = true;
-            std::cout << "\n\n\tINFO: dL = " << fabs(dL[iter]) << " < dLTol = " << dLTol << "\n\n";
+            std::cout << "\n\n\tINFO: |dL| = |" << dL[iter] << "| < dLTol = " << dLTol << "\n\n";
         }
         // screen output for the iteration =====================================
         std::cout << "Actual:\nFinal pos: " << trajTemp.X.col(cp.N).block<NV,1>(0,0).transpose() << "\n";

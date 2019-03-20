@@ -102,7 +102,7 @@ void CitoSQOPT::qpHx(int *nnH, double x[], double Hx[], int *nState,
 }
 
 // setCObj: sets linear and constant cost terms of the cost
-void CitoSQOPT::setCObj(const eigMjc X, const ctrlTraj U,
+void CitoSQOPT::setCObj(const eigMjc X, const eigDbl U,
                         double *ru, double *cObj, double &ObjAdd)
 {
     // desired change in the final pose and velocity
@@ -138,7 +138,7 @@ void CitoSQOPT::setCObj(const eigMjc X, const ctrlTraj U,
         dKCon.col(i).setZero();
         for( int j=0; j<cp.nPair; j++ )
         {
-            dKCon.col(i)[j] = 0-U[i][m->nu+j];
+            dKCon.col(i)[j] = 0-U.col(i)[m->nu+j];
             cObj[6+m->nv+i*cp.nPair+j] = -ru[3]*dKCon.col(i)[j];
         }
         dKConSN += dKCon.col(i).squaredNorm();
@@ -151,7 +151,7 @@ void CitoSQOPT::setCObj(const eigMjc X, const ctrlTraj U,
 }
 
 // solveCvx: solves the convex subproblem
-void CitoSQOPT::solveCvx(double *xTraj, double r, const eigMjc X, const ctrlTraj U,
+void CitoSQOPT::solveCvx(double *xTraj, double r, const eigMjc X, const eigDbl U,
                          const stateDerTraj Fx, const ctrlDerTraj Fu, int *isJFree, int *isAFree,
                          double *qposLB, double *qposUB, double *tauLB, double *tauUB)
 {
@@ -199,7 +199,7 @@ void CitoSQOPT::solveCvx(double *xTraj, double r, const eigMjc X, const ctrlTraj
 }
 
 // setBounds: sets bounds of dX, dU, and constraints (dynamics, trust region, etc.)
-void CitoSQOPT::setBounds(double r, const eigMjc X, const ctrlTraj U,
+void CitoSQOPT::setBounds(double r, const eigMjc X, const eigDbl U,
                           double *bl, double *bu, int *isJFree, int *isAFree,
                           double *qposLB, double *qposUB, double *tauLB, double *tauUB)
 {
@@ -226,15 +226,15 @@ void CitoSQOPT::setBounds(double r, const eigMjc X, const ctrlTraj U,
             {
                 if( isAFree == 0 )
                 {
-                    bl[dUOffset+i*cp.m+j] = tauLB[j] - U[i][j];
-                    bu[dUOffset+i*cp.m+j] = tauUB[j] - U[i][j];
+                    bl[dUOffset+i*cp.m+j] = tauLB[j] - U.col(i)[j];
+                    bu[dUOffset+i*cp.m+j] = tauUB[j] - U.col(i)[j];
                 }
             }
             // ** change in virtual stiffness
             for( int j=0; j< cp.nPair; j++ )
             {
-                bl[dUOffset+i*cp.m+m->nu+j] = 0 - U[i][m->nu+j];
-                bu[dUOffset+i*cp.m+m->nu+j] = kCon0 - U[i][m->nu+j];
+                bl[dUOffset+i*cp.m+m->nu+j] = 0 - U.col(i)[m->nu+j];
+                bu[dUOffset+i*cp.m+m->nu+j] = kCon0 - U.col(i)[m->nu+j];
             }
         }
     }

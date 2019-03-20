@@ -31,17 +31,17 @@ int main(int argc, char const *argv[]) {
     CitoParams cp(m);
     CitoSCvx scvx(m);
     // ***** Trajectories ********************************************************/
-    ctrlTraj U0, U; U0.resize(cp.N); U.resize(cp.N);
+    eigDbl U0, U; U0.resize(cp.m,cp.N); U.resize(cp.m,cp.N);
     trajectory traj;
     // ***** Initial control trajectory ******************************************/
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
     double kCon0 = vscm["kCon0"].as<double>();
     for (int i=0; i<cp.N; i++)
     {
-        U0[i].setZero();
+        U0.col(i).setZero();
         for (int j=0; j<cp.nPair; j++)
         {
-            U0[i][m->nu + j] = kCon0;
+            U0.col(i)[m->nu + j] = kCon0;
         }
     }
     // ***** Run successive convexification **************************************/
@@ -55,9 +55,9 @@ int main(int argc, char const *argv[]) {
         std::cout << "time step " << i << ":\n\t\tpos = " << traj.X.col(i).block<NV,1>(0,0).transpose() << "\n";
         std::cout << "\t\t vel = " << traj.X.col(i).block<NV, 1>(m->nv,0).transpose() << "\n";
         std::cout << "\t\t tau = ";
-        std::cout << traj.U[i].block<NU,1>(0,0).transpose() << "\n";
+        std::cout << traj.U.col(i).block<NU,1>(0,0).transpose() << "\n";
         std::cout <<"\t\t KCon = ";
-        std::cout << traj.U[i].block<NPAIR,1>(m->nu,0).transpose() << "\n\n";
+        std::cout << traj.U.col(i).block<NPAIR,1>(m->nu,0).transpose() << "\n\n";
     }
     std::cout << "time step " << cp.N << ":\n\t\tpos = " << traj.X.col(cp.N).block<NV,1>(0,0).transpose() << "\n";
     std::cout << "\t\t vel = " << traj.X.col(cp.N).block<NV, 1>(m->nv, 0).transpose() << "\n";

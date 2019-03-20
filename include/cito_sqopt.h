@@ -22,7 +22,7 @@ public:
     /// Destructor
     ~CitoSQOPT() {}
     /// This function solves the convex subproblem
-    void solveCvx(double *xTraj, double r, const eigMjc X, const ctrlTraj U,
+    void solveCvx(double *xTraj, double r, const eigMjc X, const eigDbl U,
                   const stateDerTraj Fx, const ctrlDerTraj Fu, int *isJFree, int *isAFree,
                   double *qposLB, double *qposUB, double *tauLB, double *tauUB);
 private:
@@ -31,10 +31,10 @@ private:
                      char cu[], int *lencu, int iu[], int *leniu,
                      double ru[], int *lenru);
     /// This function sets linear and constant cost terms of the cost
-    void setCObj(const eigMjc X, const ctrlTraj U,
+    void setCObj(const eigMjc X, const eigDbl U,
                  double *ru, double *cObj, double &ObjAdd);
     /// This function sets bounds of dX, dU, and constraints (dynamics, trust region, etc.)
-    void setBounds(double r, const eigMjc X, const ctrlTraj U,
+    void setBounds(double r, const eigMjc X, const eigDbl U,
                    double *bl, double *bu, int *isJFree, int *isAFree,
                    double *qposLB, double *qposUB, double *tauLB, double *tauUB);
     /* This function creates the sparse A matrix for linearized dynamics, auxiliary

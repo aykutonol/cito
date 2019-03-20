@@ -25,11 +25,11 @@ public:
     /// Destructor
     ~CitoSCvx() {}
     /// This function returns the nonlinear cost given control trajectory and final state
-    double getCost(const eigMjc XFinal, const ctrlTraj U);
+    double getCost(const eigMjc XFinal, const eigDbl U);
     /// This function rolls-out and linearizes the dynamics given control trajectory
-    trajectory runSimulation(const ctrlTraj U0, bool linearize, bool save);
+    trajectory runSimulation(const eigDbl U0, bool linearize, bool save);
     /// This function executes the successive convexification algorithm
-    ctrlTraj solveSCvx(const ctrlTraj U);
+    eigDbl solveSCvx(const eigDbl U);
 
 private:
     /// MuJoCo model
@@ -44,11 +44,10 @@ private:
            rMin, rMax;                  // trust-region radius limits
     bool *accept, dLTolMet = false, stop = false;
     /// Trajectories
-//    stateTraj XSucc, dX, XTilde;
-    ctrlTraj USucc, dU, UTemp;
+    eigMjc XSucc, dX, XTilde;
+    eigDbl USucc, dU, UTemp;
     stateDerTraj Fx;                ctrlDerTraj Fu;
     trajectory traj, trajS, trajTemp;
-    eigMjc XSucc, dX, XTilde;
     /// Cost function variables
     double weight[4];
     int controlJointDOF0;
