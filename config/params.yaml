@@ -11,7 +11,7 @@ spair2: [2, 3, 6, 7, 0, 1, 4, 5, 2, 3, 6, 7, 0, 1, 4, 5]
 
 # Task
 ## desired final pose of the control joint
-desiredFinalPos: [0.0, 1.25, 0.0, 0.0, 0.0, 0.0]
+desiredFinalPos: [0.0, 1.2, 0.0, 0.0, 0.0, 0.0]
 ## desired final velocity of the control and robot joints
 desiredFinalVel: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 ## initial index of the DOF associated with the control joint
@@ -19,9 +19,9 @@ controlJointDOF0: 0
 
 # Weights
 w1: 1e3		# weight on deviations in x and y directions
-w2: 1e0		# weight on deviations in z and orientation
-w3: 1e2		# weight on final velocities
-w4: 1e-1	# weight on virtual stiffness
+w2: 1e3		# weight on deviations in z and orientation
+w3: 1e0		# weight on final velocities
+w4: 5e-2	# weight on virtual stiffness
 
 # Simulation
 tf: 2.00	# [s] final time
