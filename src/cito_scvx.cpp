@@ -44,7 +44,9 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(mo
     // resize trajectories
     XSucc.resize(cp.n,cp.N+1);  dX.resize(cp.n,cp.N+1);     XTilde.resize(cp.n,cp.N+1);
     USucc.resize(cp.m,cp.N);    UTemp.resize(cp.m,cp.N);    dU.resize(cp.m,cp.N);
-    Fx.resize(cp.N);         Fu.resize(cp.N);
+    Fx.resize(cp.N);
+//    Fu.resize(cp.N);
+    Fu.resize(cp.n*cp.m, cp.N);
     // read cost function weights
     weight[0] = paramTask["w1"].as<double>();
     weight[1] = paramTask["w2"].as<double>();
@@ -104,8 +106,9 @@ trajectory CitoSCvx::runSimulation(const eigDbl U, bool linearize, bool save)
         // linearization
         if( linearize )
         {
-            Fx[i].setZero(); Fu[i].setZero();
-            nd.linDyn(d, U.col(i), Fx[i].data(), Fu[i].data());
+            Fx[i].setZero();
+            Fu.col(i).setZero();
+            nd.linDyn(d, U.col(i), Fx[i].data(), Fu.col(i).data());
         }
         // take tc/dt steps
         cc.takeStep(d, U.col(i), save);

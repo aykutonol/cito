@@ -23,7 +23,7 @@ public:
     ~CitoSQOPT() {}
     /// This function solves the convex subproblem
     void solveCvx(double *xTraj, double r, const eigMjc X, const eigDbl U,
-                  const stateDerTraj Fx, const ctrlDerTraj Fu, int *isJFree, int *isAFree,
+                  const stateDerTraj Fx, const derTraj Fu, int *isJFree, int *isAFree,
                   double *qposLB, double *qposUB, double *tauLB, double *tauUB);
 private:
     /// This callback function sets Hx to the H*x part of the quadratic cost to be multiplied by x'
@@ -40,7 +40,7 @@ private:
     /* This function creates the sparse A matrix for linearized dynamics, auxiliary
      *  variables, and trust region constraints */
     void setA(double *valA, int *indA, int *locA,
-              const stateDerTraj Fx, const ctrlDerTraj Fu);
+              const stateDerTraj Fx, const derTraj Fu);
     /// This function modifies A and the bounds such that non-zero elements in H come first
     void sortToMatch(double *valA, int *indA, int *locA, int *indMove, double *bl, double *bu);
     /// This function moves column iMove in A to left

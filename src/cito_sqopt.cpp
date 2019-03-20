@@ -152,7 +152,7 @@ void CitoSQOPT::setCObj(const eigMjc X, const eigDbl U,
 
 // solveCvx: solves the convex subproblem
 void CitoSQOPT::solveCvx(double *xTraj, double r, const eigMjc X, const eigDbl U,
-                         const stateDerTraj Fx, const ctrlDerTraj Fu, int *isJFree, int *isAFree,
+                         const stateDerTraj Fx, const derTraj Fu, int *isJFree, int *isAFree,
                          double *qposLB, double *qposUB, double *tauLB, double *tauUB)
 {
     // fresh start
@@ -263,7 +263,7 @@ void CitoSQOPT::setBounds(double r, const eigMjc X, const eigDbl U,
 // setA: creates the sparse A matrix for linearized dynamics, auxiliary
 // variables, and trust region constraints
 void CitoSQOPT::setA(double *valA, int *indA, int *locA,
-                     const stateDerTraj Fx, const ctrlDerTraj Fu)
+                     const stateDerTraj Fx, const derTraj Fu)
 {
     int colNo = 0, indNo = 0, indTS = 0;
 
@@ -319,10 +319,9 @@ void CitoSQOPT::setA(double *valA, int *indA, int *locA,
         for( int j=0; j<cp.n; j++ )
         {
             indA[indNo] = (indTS+1)*cp.n+j;
-            valA[indNo] = Fu[indTS](j,i%cp.m);
+            valA[indNo] = Fu.col(indTS)[(j+i*cp.n)%(cp.n*cp.m)];
             indNo++;
         }
-
         // for auxiliary variables
         indA[indNo] = (cp.N+1)*cp.n + colNo;
         valA[indNo] = +1.0;
