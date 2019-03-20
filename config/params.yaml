@@ -15,10 +15,10 @@ desiredFinalVel: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.
 controlJointDOF0: 0
 
 # Weights
-w1: 2e3		# weight on deviations in x and y directions
+w1: 1e3		# weight on deviations in x and y directions
 w2: 0e0		# weight on deviations in z and orientation
 w3: 1e0		# weight on final velocities
-w4: 5e-1	# weight on virtual stiffness
+w4: 8e-2	# weight on virtual stiffness
 
 # Simulation
 tf: 1.00	# [s] final time
