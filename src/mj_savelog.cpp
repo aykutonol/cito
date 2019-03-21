@@ -27,7 +27,6 @@ MjSaveLog::MjSaveLog(const mjModel* model) : m(model), cp(model)
     std::string trajPathStr  = paths::workspaceDir + "/logs/traj_"  + modelName + ".txt";
     const char *trajPath  = trajPathStr.c_str();
     trajFile.open(trajPath);
-    std::cout << "\nINFO: Trajectory will be saved to " << trajPath << "\n";
     /// write header to outFile
     if( trajFile.is_open() )
     {
