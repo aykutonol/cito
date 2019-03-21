@@ -68,14 +68,16 @@ changed through config/scvx.yaml and config/vscm.yaml.
 **Sawyer tabletop pushing**  
 In this application, the task is to push a box on a table with a 7 DOF robot arm, Sawyer. The model file 
 is model/sawyer_push.xml. For this example, config/params_sawyer.yaml needs to be copied and pasted into 
-config/params.yaml.
+config/params.yaml. An example motion for pushing the box 20 cm forward is shown below.
 
-**Simple humanoid locomotion at zero gravity (_Flymanoid_)**  
-The goal in this application is to plan a locomotion behavior for a planar human-like robot in zero-
-gravity. The model file is model/flymanoid.xml. This example can be used by replacing config/params.yaml
-by config/params_flymanoid.yaml.
+![](extra/example_sawyer_push.gif)
 
-![](extra/flymanoid_result.gif)
+**Simple humanoid locomotion in zero gravity (_Flymanoid_)**  
+The goal in this application is to plan a locomotion behavior for a planar human-like robot in zero gravity. 
+The model file is model/flymanoid.xml. This example can be used by replacing config/params.yaml by 
+config/params_flymanoid.yaml. An example motion for moving the torso 1.2 m forward is shown below.
+
+![](extra/example_flymanoid.gif)
 
 
 ## Citing
