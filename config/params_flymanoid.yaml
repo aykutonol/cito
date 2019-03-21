@@ -1,6 +1,10 @@
 # Model
 model: "flymanoid.xml"
 
+# Simulation
+tf: 2.00	# [s] final time
+tc: 1e-1	# [s] control sampling period
+
 # Contact pairs
 ## number of contact pairs
 npair: 16 		
@@ -22,7 +26,3 @@ w1: 1e3		# weight on deviations in x and y directions
 w2: 1e3		# weight on deviations in z and orientation
 w3: 1e0		# weight on final velocities
 w4: 5e-2	# weight on virtual stiffness
-
-# Simulation
-tf: 2.00	# [s] final time
-tc: 1e-1	# [s] control sampling period
