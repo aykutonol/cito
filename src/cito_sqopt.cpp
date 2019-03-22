@@ -21,8 +21,8 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
     // read contact model parameters
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
     kCon0 = vscm["kCon0"].as<double>();         // upper bound for the virtual stiffness
-    // SQOPT parameters
-    nnH     = 6 + m->nv + cp.N*cp.nPair;        // number of non-zero elements of the Hessian
+    // set SQOPT parameters
+    nnH     = 6 + m->nv + cp.N*cp.nPair + 6;    // number of non-zero elements of the Hessian
     lencObj = nnH;                              // number of non-zero elements of the linear term
     neA     = cp.N*cp.n*cp.n + (cp.N+1)*cp.n + cp.N*cp.n*cp.m + ((cp.N+1)*cp.n+cp.N*cp.m)*5;
     n       = ((cp.N+1)*cp.n + cp.N*cp.m)*2;    // *2 is for auxiliary variables for l1-norm (trust region)
@@ -30,7 +30,7 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
     cObj    = new double[lencObj];
     // indices to move
     indMove = new int[nnH];
-    // *** virtual stiffness variables
+    // * virtual stiffness variables
     for( int i=0; i<cp.N; i ++ )
     {
         for( int j=0; j<cp.nPair; j++ )
@@ -38,15 +38,20 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
             indMove[i*cp.nPair+j] = (cp.N+1)*cp.n + cp.N*cp.m - 1 - (i*cp.m + j);
         }
     }
-    // *** final velocity variables for the control joint
+    // * final velocity variables for the control joint
     for( int i=0; i<m->nv; i++ )
     {
-        indMove[nnH-1-6-i] = cp.N*cp.n + m->nv + i;
+        indMove[nnH-1-6-6-i] = cp.N*cp.n + m->nv + i;
     }
-    // *** final pose variables for the control joint
+    // * final pose variables for the control joint
     for( int i=0; i<6; i++ )
     {
-        indMove[nnH-1-i] = cp.N*cp.n + controlJointDOF0 + i;
+        indMove[nnH-1-6-i] = cp.N*cp.n + controlJointDOF0 + i;
+    }
+    // * waypoint pose variables for the control joint
+    for( int i=0; i<6; i++ )
+    {
+        indMove[nnH-1-i] = (int) (floor(cp.N/2)*cp.n + controlJointDOF0 + i);
     }
     // initialize & set options for SQOPT
     cvxProb.initialize("", 1);
@@ -79,15 +84,25 @@ void CitoSQOPT::qpHx(int *nnH, double x[], double Hx[], int *nState,
 {
     // get the parameters
     int nv = iu[0], N = iu[1], nPair = iu[2];
+
+    // waypoint pose variables
+
+
     // final x-y position of the control body
     for( int i=0; i<2; i++ )
     {
         Hx[i] = ru[0]*x[i];
+
+        // add x-y position here
+        
     }
     // final z position and orientation of the control body
     for( int i=2; i<6; i++ )
     {
         Hx[i] = ru[1]*x[i];
+
+        // add z and orientation here
+
     }
     // final velocity terms
     for( int i=6; i<6+nv; i++ )

@@ -2,7 +2,7 @@
 model: "sawyer_push.xml"
 
 # Simulation
-tf: 1.00	# [s] final time
+tf: 0.10	# [s] final time
 tc: 5e-2 	# [s] control sampling period
 
 # Contact pairs
