@@ -1,7 +1,7 @@
 # Contact-Implicit Trajectory Optimization (CITO)
 
 This package is developed for planning non-prehensile manipulation and locomotion
-motions without a predefined contact schedule. The optimization-based planning algorithm 
+motions without a predefined contact schedule. The planning algorithm 
 is based on a variable smooth contact model and successive convexification. 
 Please see [1] for a detailed description of the algorithm.
 
@@ -54,7 +54,7 @@ torso of an under-actuated robot).
 A motion can be planned by running the main:  
 `rosrun cito main`  
 which will record the optimal trajectory into cito_ws/logs/mjLog_model_name (a binary file) for rendering
-as well as the joint position, velocity, acceleration, and force trajectories into logs/traj_model_name 
+as well as the joint position, velocity, acceleration, and force trajectories into cito_ws/logs/traj_model_name 
 (a readable file) so that they can be sent to the robot. 
 
 The planned motion can be played back by:  
@@ -83,7 +83,7 @@ config/params_flymanoid.yaml. An example motion for moving the torso 1.2 m forwa
 ## Citing
 If you use this package, please cite the following paper:
 
-[1] [Onol, A. O., Long, P., & Padir, T. (2019). Contact-Implicit TrajectoryOptimization
+[1] [Onol, A. O., Long, P., & Padir, T. (2019). Contact-Implicit Trajectory Optimization
 Based on a Variable Smooth Contact Model and Successive Convexification.
 In _2019 IEEE International Conference on Robotics and Automation (ICRA)_. IEEE.](https://arxiv.org/abs/1810.10462
 ) [Accepted]
