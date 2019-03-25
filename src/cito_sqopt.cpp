@@ -98,14 +98,8 @@ void CitoSQOPT::setCObj(const eigMm X, const eigMd U,
 {
     // desired change in the final pose and velocity
     deltaPos.setZero(); deltaVel.setZero();
-    for( int i=0; i<6; i++ )
-    {
-        deltaPos(i) = cp.desiredPos(i) - X.col(cp.N)[cp.controlJointDOF0+i];
-    }
-    for( int i=0; i<m->nv; i++ )
-    {
-        deltaVel(i) = cp.desiredVel(i) - X.col(cp.N)[cp.controlJointDOF0+m->nv+i];
-    }
+    deltaPos = cp.desiredPos - X.col(cp.N).segment(cp.controlJointDOF0, 6);
+    deltaVel = cp.desiredVel - X.col(cp.N).tail(m->nv);
     // set linear objective terms
     // * final position
     for( int i=0; i<2; i++ )

@@ -39,17 +39,11 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(mo
 
 // ***** FUNCTIONS *************************************************************
 // getCost: returns the nonlinear cost given control trajectory and final state
-double CitoSCvx::getCost(const eigMm XFinal, const eigMd U)
+double CitoSCvx::getCost(const eigVm XFinal, const eigMd U)
 {
-    // terminal cost
-    for( int i=0; i<6; i++ )
-    {
-        finalPos(i) = XFinal(cp.controlJointDOF0 + i);
-    }
-    for( int i=0; i<m->nv; i++ )
-    {
-        finalVel(i) = XFinal(cp.controlJointDOF0 + m->nv + i);
-    }
+    // final cost
+    finalPos = XFinal.segment(cp.controlJointDOF0, 6);
+    finalVel = XFinal.tail(m->nv);
     Jf = 0.5*(cp.weight[0]*(cp.desiredPos.head(2)-finalPos.head(2)).squaredNorm()+
               cp.weight[1]*(cp.desiredPos.tail(4)-finalPos.tail(4)).squaredNorm()+
               cp.weight[2]*(cp.desiredVel - finalVel).squaredNorm());
@@ -58,10 +52,7 @@ double CitoSCvx::getCost(const eigMm XFinal, const eigMd U)
     for( int i=0; i<cp.N; i++ )
     {
         KCon.col(i).setZero();
-        for( int j=0; j<cp.nPair; j++ )
-        {
-            KCon.col(i)(j) = U.col(i)[m->nu+j];
-        }
+        KCon.col(i) = U.col(i).segment(m->nu, cp.nPair);
         KConSN += KCon.col(i).squaredNorm();
     }
     Ji = 0.5*cp.weight[3]*KConSN;
@@ -112,7 +103,7 @@ trajectory CitoSCvx::runSimulation(const eigMd U, bool linearize, bool save)
 eigMd CitoSCvx::solveSCvx(const eigMd U0)
 {
     // initialize USucc for the first succession
-    for( int i=0; i<cp.N; i++ ) { USucc.col(i) = U0.col(i); }
+    USucc = U0;
     // start the SCvx algorithm
     int iter = 0;
     while( !stop )
@@ -186,10 +177,7 @@ eigMd CitoSCvx::solveSCvx(const eigMd U0)
         if( accept[iter] )
         {
             J[iter+1] = JTemp[iter];
-            for( int i=0; i<cp.N; i++ )
-            {
-                USucc.col(i) = UTemp.col(i);
-            }
+            USucc = UTemp;
             if( rho[iter] < rho1 )
             { r[iter+1] = r[iter]/beta_shrink;  }
             else if( rho[iter]>=rho1 && rho[iter]<rho2 )
