@@ -11,12 +11,17 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
     desiredPos.resize(6);       deltaPos.resize(6);
     desiredVel.resize(m->nv);   deltaVel.resize(m->nv);
     dKCon.resize(cp.nPair,cp.N);
+    // waypoint parameters
+    desiredPosWP.resize(6);     deltaPosWP.resize(6);
+    tWP = (int) floor(cp.N/2);
     // read task parameters
     YAML::Node params = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/params.yaml");
     std::vector<double> desiredPosInput = { params["desiredFinalPos"].as<std::vector<double>>() };
     std::vector<double> desiredVelInput = { params["desiredFinalVel"].as<std::vector<double>>() };
+    std::vector<double> desiredPosWPInput = { params["desiredWayPtPos"].as<std::vector<double>>() };
     desiredPos = Eigen::Map<Eigen::VectorXd>(desiredPosInput.data(), desiredPosInput.size());
     desiredVel = Eigen::Map<Eigen::VectorXd>(desiredVelInput.data(), desiredVelInput.size());
+    desiredPosWP = Eigen::Map<Eigen::VectorXd>(desiredPosWPInput.data(), desiredPosWPInput.size());
     controlJointDOF0 = params["controlJointDOF0"].as<int>();
     // read contact model parameters
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
@@ -51,7 +56,7 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
     // * waypoint pose variables for the control joint
     for( int i=0; i<6; i++ )
     {
-        indMove[nnH-1-i] = (int) (floor(cp.N/2)*cp.n + controlJointDOF0 + i);
+        indMove[nnH-1-i] = tWP*cp.n + controlJointDOF0 + i;
     }
     // initialize & set options for SQOPT
     cvxProb.initialize("", 1);
@@ -84,33 +89,29 @@ void CitoSQOPT::qpHx(int *nnH, double x[], double Hx[], int *nState,
 {
     // get the parameters
     int nv = iu[0], N = iu[1], nPair = iu[2];
-
-    // waypoint pose variables
-
-
     // final x-y position of the control body
     for( int i=0; i<2; i++ )
     {
+        // waypoint
         Hx[i] = ru[0]*x[i];
-
-        // add x-y position here
-        
+        // final
+        Hx[i+6] = ru[0]*x[i+6];
     }
     // final z position and orientation of the control body
     for( int i=2; i<6; i++ )
     {
+        // waypoint
         Hx[i] = ru[1]*x[i];
-
-        // add z and orientation here
-
+        // final
+        Hx[i+6] = ru[1]*x[i+6];
     }
     // final velocity terms
-    for( int i=6; i<6+nv; i++ )
+    for( int i=12; i<12+nv; i++ )
     {
         Hx[i] = ru[2]*x[i];
     }
     // stiffness terms
-    for( int i=6+nv; i<6+nv+N*nPair; i++ )
+    for( int i=12+nv; i<12+nv+N*nPair; i++ )
     {
         Hx[i] = ru[3]*x[i];
     }
@@ -122,29 +123,31 @@ void CitoSQOPT::setCObj(const eigMm X, const eigMd U,
 {
     // desired change in the final pose and velocity
     deltaPos.setZero(); deltaVel.setZero();
-    for( int i=0; i<6; i++ )
-    {
-        deltaPos(i) = desiredPos(i) - X.col(cp.N)[controlJointDOF0+i];
-    }
-    for( int i=0; i<m->nv; i++ )
-    {
-        deltaVel(i) = desiredVel(i) - X.col(cp.N)[controlJointDOF0+m->nv+i];
-    }
+    deltaPos = desiredPos - X.col(cp.N).segment(controlJointDOF0, 6);
+    deltaVel = desiredVel - X.col(cp.N).tail(m->nv);
+    deltaPosWP.setZero();
+    deltaPosWP = desiredPosWP - X.col(tWP).segment(controlJointDOF0, 6);
     // set linear objective terms
-    // 1) final position
+    // * x and y position
     for( int i=0; i<2; i++ )
     {
-        cObj[i] = -ru[0]*deltaPos(i);
+        // waypoint
+        cObj[i] = -ru[0]*deltaPosWP(i);
+        // final
+        cObj[6+i] = -ru[0]*deltaPos(i);
     }
-    // 2) final orientation
+    // * z position and orientation
     for( int i=2; i<6; i++ )
     {
-        cObj[i] = -ru[1]*deltaPos(i);
+        // waypoint
+        cObj[i] = -ru[1]*deltaPosWP(i);
+        // final
+        cObj[6+i] = -ru[1]*deltaPos(i);
     }
-    // 3) final velocity
+    // * final velocity
     for( int i=0; i<m->nv; i++ )
     {
-        cObj[6+i] = -ru[2]*deltaVel(i);
+        cObj[12+i] = -ru[2]*deltaVel(i);
     }
     // 4) virtual stiffness
     double dKConSN = 0;
@@ -154,7 +157,7 @@ void CitoSQOPT::setCObj(const eigMm X, const eigMd U,
         for( int j=0; j<cp.nPair; j++ )
         {
             dKCon.col(i)[j] = 0-U.col(i)[m->nu+j];
-            cObj[6+m->nv+i*cp.nPair+j] = -ru[3]*dKCon.col(i)[j];
+            cObj[12+m->nv+i*cp.nPair+j] = -ru[3]*dKCon.col(i)[j];
         }
         dKConSN += dKCon.col(i).squaredNorm();
     }

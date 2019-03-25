@@ -11,12 +11,17 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(mo
     desiredPos.resize(6);       finalPos.resize(6);
     desiredVel.resize(m->nv);   finalVel.resize(m->nv);
     KCon.resize(cp.nPair,cp.N);
+    // waypoint parameters
+    desiredPosWP.resize(6);     wayPtPos.resize(6);
+    tWP = (int) floor(cp.N/2);
     // read task parameters
     YAML::Node params = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/params.yaml");
     std::vector<double> desiredPosInput = { params["desiredFinalPos"].as<std::vector<double>>() };
     std::vector<double> desiredVelInput = { params["desiredFinalVel"].as<std::vector<double>>() };
+    std::vector<double> desiredPosWPInput = { params["desiredWayPtPos"].as<std::vector<double>>() };
     desiredPos = Eigen::Map<Eigen::VectorXd>(desiredPosInput.data(), desiredPosInput.size());
     desiredVel = Eigen::Map<Eigen::VectorXd>(desiredVelInput.data(), desiredVelInput.size());
+    desiredPosWP = Eigen::Map<Eigen::VectorXd>(desiredPosWPInput.data(), desiredPosWPInput.size());
     controlJointDOF0 = params["controlJointDOF0"].as<int>();
     // read SCvx parameters
     YAML::Node paramSCvx = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/scvx.yaml");
@@ -53,20 +58,17 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(mo
 }
 
 // ***** FUNCTIONS *************************************************************
-// getCost: returns the nonlinear cost given control trajectory and final state
-double CitoSCvx::getCost(const eigMm XFinal, const eigMd U)
+// getCost: returns the nonlinear cost given state and control trajectories
+double CitoSCvx::getCost(const eigMm X, const eigMd U)
 {
-    // terminal cost
-    for( int i=0; i<6; i++ )
-    {
-        finalPos(i) = XFinal(controlJointDOF0 + i);
-    }
-    for( int i=0; i<m->nv; i++ )
-    {
-        finalVel(i) = XFinal(controlJointDOF0 + m->nv + i);
-    }
+    // final cost
+    finalPos = X.col(cp.N).segment(controlJointDOF0,6);
+    wayPtPos = X.col(tWP).segment(controlJointDOF0,6);
+    finalVel = X.col(cp.N).tail(m->nv);
     Jf = 0.5*(weight[0]*(desiredPos.head(2)-finalPos.head(2)).squaredNorm()+
               weight[1]*(desiredPos.tail(4)-finalPos.tail(4)).squaredNorm()+
+              weight[0]*(desiredPosWP.head(2)-wayPtPos.head(2)).squaredNorm()+
+              weight[1]*(desiredPosWP.tail(4)-wayPtPos.tail(4)).squaredNorm()+
               weight[2]*(desiredVel - finalVel).squaredNorm());
     // integrated cost
     KConSN = 0;
@@ -144,7 +146,7 @@ eigMd CitoSCvx::solveSCvx(const eigMd U0)
             std::cout << "INFO: convexification took " << std::chrono::duration<double>(tDiffEnd-tDiffStart).count() << " s \n";
         }
         // get the nonlinear cost if the first iteration
-        if( iter == 0 ) { J[iter] = this->getCost(trajS.X.col(cp.N), USucc); }
+        if( iter == 0 ) { J[iter] = this->getCost(trajS.X, USucc); }
         // convex optimization =================================================
         double *dTraj = new double[cp.nTraj];
         std::cout << "INFO: QP solver in progress\n\n";
@@ -178,8 +180,8 @@ eigMd CitoSCvx::solveSCvx(const eigMd U0)
         trajTemp = {};
         trajTemp = this->runSimulation(UTemp, false, false);
         // get the linear and nonlinear costs
-        JTilde[iter] = this->getCost(XTilde.col(cp.N), UTemp);
-        JTemp[iter]  = this->getCost(trajTemp.X.col(cp.N), UTemp);
+        JTilde[iter] = this->getCost(XTilde, UTemp);
+        JTemp[iter]  = this->getCost(trajTemp.X, UTemp);
         // similarity measure ==================================================
         dJ[iter] = J[iter] - JTemp[iter];
         dL[iter] = J[iter] - JTilde[iter];

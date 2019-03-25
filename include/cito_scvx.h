@@ -25,7 +25,7 @@ public:
     /// Destructor
     ~CitoSCvx() {}
     /// This function returns the nonlinear cost given control trajectory and final state
-    double getCost(const eigMm XFinal, const eigMd U);
+    double getCost(const eigMm X, const eigMd U);
     /// This function rolls-out and linearizes the dynamics given control trajectory
     trajectory runSimulation(const eigMd U0, bool linearize, bool save);
     /// This function executes the successive convexification algorithm
@@ -51,7 +51,9 @@ private:
     /// Cost function variables
     double weight[4];
     int controlJointDOF0;
-    eigVd desiredPos, desiredVel, finalPos, finalVel;
+    eigVd desiredPos, desiredVel, finalPos, finalVel,
+          desiredPosWP, wayPtPos;
+    int tWP;
     eigMd KCon;
     double KConSN;          // total squared norm of virtual stiffness variables
     double Jf, Ji, Jt;      // final, integrated, and total cost values

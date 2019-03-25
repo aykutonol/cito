@@ -60,8 +60,10 @@ private:
     int Cold = 0, Basis = 1, Warm = 2;
     /// Cost parameters
     int controlJointDOF0;
-    eigVd desiredPos, desiredVel, deltaPos, deltaVel;
+    eigVd desiredPos, desiredVel, deltaPos, deltaVel,
+          desiredPosWP, deltaPosWP;
     eigMd dKCon;
+    int tWP;
     /// Sort parameters
     int *indMove;
     double *xTemp;
