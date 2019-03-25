@@ -59,8 +59,7 @@ private:
     double infBnd = 1.0e20;
     int Cold = 0, Basis = 1, Warm = 2;
     /// Cost parameters
-    int controlJointDOF0;
-    eigVd desiredPos, desiredVel, deltaPos, deltaVel;
+    eigVd deltaPos, deltaVel;
     eigMd dKCon;
     /// Sort parameters
     int *indMove;

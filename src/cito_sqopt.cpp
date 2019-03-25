@@ -8,19 +8,10 @@
 CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
 {
     // initialize Eigen variables
-    desiredPos.resize(6);       deltaPos.resize(6);
-    desiredVel.resize(m->nv);   deltaVel.resize(m->nv);
-    dKCon.resize(cp.nPair,cp.N);
-    // read task parameters
-    YAML::Node params = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/params.yaml");
-    std::vector<double> desiredPosInput = { params["desiredFinalPos"].as<std::vector<double>>() };
-    std::vector<double> desiredVelInput = { params["desiredFinalVel"].as<std::vector<double>>() };
-    desiredPos = Eigen::Map<Eigen::VectorXd>(desiredPosInput.data(), desiredPosInput.size());
-    desiredVel = Eigen::Map<Eigen::VectorXd>(desiredVelInput.data(), desiredVelInput.size());
-    controlJointDOF0 = params["controlJointDOF0"].as<int>();
-    // read contact model parameters
+    deltaPos.resize(6);     deltaVel.resize(m->nv);     dKCon.resize(cp.nPair,cp.N);
+    // get the upper bound (initial value) for the virtual stiffness
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
-    kCon0 = vscm["kCon0"].as<double>();         // upper bound for the virtual stiffness
+    kCon0 = vscm["kCon0"].as<double>();
     // SQOPT parameters
     nnH     = 6 + m->nv + cp.N*cp.nPair;        // number of non-zero elements of the Hessian
     lencObj = nnH;                              // number of non-zero elements of the linear term
@@ -30,7 +21,7 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
     cObj    = new double[lencObj];
     // indices to move
     indMove = new int[nnH];
-    // *** virtual stiffness variables
+    // * virtual stiffness variables
     for( int i=0; i<cp.N; i ++ )
     {
         for( int j=0; j<cp.nPair; j++ )
@@ -38,21 +29,22 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
             indMove[i*cp.nPair+j] = (cp.N+1)*cp.n + cp.N*cp.m - 1 - (i*cp.m + j);
         }
     }
-    // *** final velocity variables for the control joint
+    // * final velocity variables for the control joint
     for( int i=0; i<m->nv; i++ )
     {
         indMove[nnH-1-6-i] = cp.N*cp.n + m->nv + i;
     }
-    // *** final pose variables for the control joint
+    // * final pose variables for the control joint
     for( int i=0; i<6; i++ )
     {
-        indMove[nnH-1-i] = cp.N*cp.n + controlJointDOF0 + i;
+        indMove[nnH-1-i] = cp.N*cp.n + cp.controlJointDOF0 + i;
     }
     // initialize & set options for SQOPT
     cvxProb.initialize("", 1);
     cvxProb.setProbName("SubQP");
     cvxProb.setIntParameter("Print level", 0);
     // set the weights
+    YAML::Node params = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/params.yaml");
     lenru = 4;      // number of weights
     ru = new double[lenru];
     ru[0] = params["w1"].as<double>();
@@ -109,29 +101,29 @@ void CitoSQOPT::setCObj(const eigMm X, const eigMd U,
     deltaPos.setZero(); deltaVel.setZero();
     for( int i=0; i<6; i++ )
     {
-        deltaPos(i) = desiredPos(i) - X.col(cp.N)[controlJointDOF0+i];
+        deltaPos(i) = cp.desiredPos(i) - X.col(cp.N)[cp.controlJointDOF0+i];
     }
     for( int i=0; i<m->nv; i++ )
     {
-        deltaVel(i) = desiredVel(i) - X.col(cp.N)[controlJointDOF0+m->nv+i];
+        deltaVel(i) = cp.desiredVel(i) - X.col(cp.N)[cp.controlJointDOF0+m->nv+i];
     }
     // set linear objective terms
-    // 1) final position
+    // * final position
     for( int i=0; i<2; i++ )
     {
         cObj[i] = -ru[0]*deltaPos(i);
     }
-    // 2) final orientation
+    // * final orientation
     for( int i=2; i<6; i++ )
     {
         cObj[i] = -ru[1]*deltaPos(i);
     }
-    // 3) final velocity
+    // * final velocity
     for( int i=0; i<m->nv; i++ )
     {
         cObj[6+i] = -ru[2]*deltaVel(i);
     }
-    // 4) virtual stiffness
+    // * virtual stiffness
     double dKConSN = 0;
     for( int i=0; i<cp.N; i++ )
     {

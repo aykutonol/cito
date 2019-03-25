@@ -49,7 +49,7 @@ public:
     CitoParams(const mjModel *model);
     /// Destructor
     ~CitoParams() {}
-    /// Parameters
+    /// Simulation and model parameters
     const mjModel *model;
     double tf, tc, dt;
     int N, ndpc, nu, nv, n, m, nTraj, nPair,
@@ -57,6 +57,9 @@ public:
         *quatAdr, *dofAdr;
     Eigen::VectorXi sPair1, sPair2;
     eigMm nCS;
+    /// Task parameters
+    eigVd desiredPos, desiredVel;
+    int controlJointDOF0;
 };
 
 #endif //CITO_PARAMS_H

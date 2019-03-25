@@ -8,19 +8,9 @@
 CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(model), sq(model)
 {
     // initialize Eigen variables
-    desiredPos.resize(6);       finalPos.resize(6);
-    desiredVel.resize(m->nv);   finalVel.resize(m->nv);
-    KCon.resize(cp.nPair,cp.N);
-    // read task parameters
-    YAML::Node params = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/params.yaml");
-    std::vector<double> desiredPosInput = { params["desiredFinalPos"].as<std::vector<double>>() };
-    std::vector<double> desiredVelInput = { params["desiredFinalVel"].as<std::vector<double>>() };
-    desiredPos = Eigen::Map<Eigen::VectorXd>(desiredPosInput.data(), desiredPosInput.size());
-    desiredVel = Eigen::Map<Eigen::VectorXd>(desiredVelInput.data(), desiredVelInput.size());
-    controlJointDOF0 = params["controlJointDOF0"].as<int>();
-    // read SCvx parameters
+    finalPos.resize(6);     finalVel.resize(m->nv);     KCon.resize(cp.nPair,cp.N);
+    // get SCvx parameters
     YAML::Node paramSCvx = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/scvx.yaml");
-    // create new arrays for the max. number of iterations
     beta_expand = paramSCvx["beta_expand"].as<double>();
     beta_shrink = paramSCvx["beta_shrink"].as<double>();
     maxIter = paramSCvx["maxIter"].as<int>();
@@ -45,7 +35,8 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(mo
     XSucc.resize(cp.n,cp.N+1);  dX.resize(cp.n,cp.N+1);     XTilde.resize(cp.n,cp.N+1);
     USucc.resize(cp.m,cp.N);    UTemp.resize(cp.m,cp.N);    dU.resize(cp.m,cp.N);
     Fx.resize(cp.n*cp.n,cp.N);  Fu.resize(cp.n*cp.m,cp.N);
-    // read cost function weights
+    // get cost function weights
+    YAML::Node params = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/params.yaml");
     weight[0] = params["w1"].as<double>();
     weight[1] = params["w2"].as<double>();
     weight[2] = params["w3"].as<double>();
@@ -59,15 +50,15 @@ double CitoSCvx::getCost(const eigMm XFinal, const eigMd U)
     // terminal cost
     for( int i=0; i<6; i++ )
     {
-        finalPos(i) = XFinal(controlJointDOF0 + i);
+        finalPos(i) = XFinal(cp.controlJointDOF0 + i);
     }
     for( int i=0; i<m->nv; i++ )
     {
-        finalVel(i) = XFinal(controlJointDOF0 + m->nv + i);
+        finalVel(i) = XFinal(cp.controlJointDOF0 + m->nv + i);
     }
-    Jf = 0.5*(weight[0]*(desiredPos.head(2)-finalPos.head(2)).squaredNorm()+
-              weight[1]*(desiredPos.tail(4)-finalPos.tail(4)).squaredNorm()+
-              weight[2]*(desiredVel - finalVel).squaredNorm());
+    Jf = 0.5*(weight[0]*(cp.desiredPos.head(2)-finalPos.head(2)).squaredNorm()+
+              weight[1]*(cp.desiredPos.tail(4)-finalPos.tail(4)).squaredNorm()+
+              weight[2]*(cp.desiredVel - finalVel).squaredNorm());
     // integrated cost
     KConSN = 0;
     for( int i=0; i<cp.N; i++ )
