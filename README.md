@@ -83,7 +83,7 @@ config/params_flymanoid.yaml. An example motion for moving the torso 1.2 m forwa
 ## Citing
 If you use this package, please cite the following paper:
 
-[1] [Onol, A. O., Long, P., & Padir, T. (2019). Contact-Implicit Trajectory Optimization
+[1] [Önol, A. Ö., Long, P., & Padır, T. (2019). Contact-Implicit Trajectory Optimization
 Based on a Variable Smooth Contact Model and Successive Convexification.
 In _2019 IEEE International Conference on Robotics and Automation (ICRA)_. IEEE.](https://arxiv.org/abs/1810.10462
 ) [Accepted]
