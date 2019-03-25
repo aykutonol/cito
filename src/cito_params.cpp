@@ -16,6 +16,10 @@ CitoParams::CitoParams(const mjModel* model) : model(model)
     desiredPos = Eigen::Map<Eigen::VectorXd>(desiredPosInput.data(), desiredPosInput.size());
     desiredVel = Eigen::Map<Eigen::VectorXd>(desiredVelInput.data(), desiredVelInput.size());
     controlJointDOF0 = params["controlJointDOF0"].as<int>();
+    weight[0] = params["w1"].as<double>();
+    weight[1] = params["w2"].as<double>();
+    weight[2] = params["w3"].as<double>();
+    weight[3] = params["w4"].as<double>();
     // simulation parameters
     tf = params["tf"].as<double>();
     tc = params["tc"].as<double>();

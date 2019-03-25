@@ -59,7 +59,8 @@ public:
     eigMm nCS;
     /// Task parameters
     eigVd desiredPos, desiredVel;
-    int controlJointDOF0;
+    int controlJointDOF0;\
+    double weight[4];
 };
 
 #endif //CITO_PARAMS_H

@@ -44,13 +44,12 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
     cvxProb.setProbName("SubQP");
     cvxProb.setIntParameter("Print level", 0);
     // set the weights
-    YAML::Node params = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/params.yaml");
     lenru = 4;      // number of weights
     ru = new double[lenru];
-    ru[0] = params["w1"].as<double>();
-    ru[1] = params["w2"].as<double>();
-    ru[2] = params["w3"].as<double>();
-    ru[3] = params["w4"].as<double>();
+    ru[0] = cp.weight[0];
+    ru[1] = cp.weight[1];
+    ru[2] = cp.weight[2];
+    ru[3] = cp.weight[3];
     cvxProb.setUserR(ru, lenru);
     // set parameters that are dependent on simulation and model
     leniu = 3;      // number of parameters

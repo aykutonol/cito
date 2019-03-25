@@ -35,12 +35,6 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(mo
     XSucc.resize(cp.n,cp.N+1);  dX.resize(cp.n,cp.N+1);     XTilde.resize(cp.n,cp.N+1);
     USucc.resize(cp.m,cp.N);    UTemp.resize(cp.m,cp.N);    dU.resize(cp.m,cp.N);
     Fx.resize(cp.n*cp.n,cp.N);  Fu.resize(cp.n*cp.m,cp.N);
-    // get cost function weights
-    YAML::Node params = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/params.yaml");
-    weight[0] = params["w1"].as<double>();
-    weight[1] = params["w2"].as<double>();
-    weight[2] = params["w3"].as<double>();
-    weight[3] = params["w4"].as<double>();
 }
 
 // ***** FUNCTIONS *************************************************************
@@ -56,9 +50,9 @@ double CitoSCvx::getCost(const eigMm XFinal, const eigMd U)
     {
         finalVel(i) = XFinal(cp.controlJointDOF0 + m->nv + i);
     }
-    Jf = 0.5*(weight[0]*(cp.desiredPos.head(2)-finalPos.head(2)).squaredNorm()+
-              weight[1]*(cp.desiredPos.tail(4)-finalPos.tail(4)).squaredNorm()+
-              weight[2]*(cp.desiredVel - finalVel).squaredNorm());
+    Jf = 0.5*(cp.weight[0]*(cp.desiredPos.head(2)-finalPos.head(2)).squaredNorm()+
+              cp.weight[1]*(cp.desiredPos.tail(4)-finalPos.tail(4)).squaredNorm()+
+              cp.weight[2]*(cp.desiredVel - finalVel).squaredNorm());
     // integrated cost
     KConSN = 0;
     for( int i=0; i<cp.N; i++ )
@@ -70,7 +64,7 @@ double CitoSCvx::getCost(const eigMm XFinal, const eigMd U)
         }
         KConSN += KCon.col(i).squaredNorm();
     }
-    Ji = 0.5*weight[3]*KConSN;
+    Ji = 0.5*cp.weight[3]*KConSN;
     // total cost
     Jt = Jf + Ji;
     return Jt;
