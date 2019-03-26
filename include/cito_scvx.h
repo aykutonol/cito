@@ -50,9 +50,7 @@ private:
     trajectory traj, trajS, trajTemp;
     /// Cost function variables
     eigVd finalPos, finalVel;
-    eigMd KCon;
-    double KConSN,          // total squared norm of virtual stiffness variables
-           Jf, Ji, Jt;      // final, integrated, and total cost values
+    double Jf, Ji, Jt;      // final, integrated, and total cost values
     /// Objects
     CitoParams  cp;
     CitoControl cc;

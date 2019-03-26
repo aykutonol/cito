@@ -22,7 +22,7 @@ desiredFinalVel: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.
 controlJointDOF0: 0
 
 # Weights
-w1: 1e4 	# weight on deviations in x and y directions
-w2: 1e2  	# weight on deviations in z and orientation
-w3: 2e0  	# weight on final velocities
-w4: 2e0  	# weight on virtual stiffness
+w1: 0e4 	# weight on deviations in x and y directions
+w2: 0e2  	# weight on deviations in z and orientation
+w3: 0e0  	# weight on final velocities
+w4: 1e0  	# weight on virtual stiffness

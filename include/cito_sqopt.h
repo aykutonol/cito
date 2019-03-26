@@ -60,9 +60,8 @@ private:
     int Cold = 0, Basis = 1, Warm = 2;
     /// Cost parameters
     eigVd deltaPos, deltaVel;
-    eigMd dKCon;
     /// Sort parameters
-    int *indMove;
+    int nMove, *indMove;
     double *xTemp;
     /// setBounds parameters
     int dUOffset, auxOffset;

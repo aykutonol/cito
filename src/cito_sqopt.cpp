@@ -8,19 +8,23 @@
 CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
 {
     // initialize Eigen variables
-    deltaPos.resize(6);     deltaVel.resize(m->nv);     dKCon.resize(cp.nPair,cp.N);
+    deltaPos.resize(6);     deltaVel.resize(m->nv);
     // get the upper bound (initial value) for the virtual stiffness
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
     kCon0 = vscm["kCon0"].as<double>();
     // SQOPT parameters
-    nnH     = 6 + m->nv + cp.N*cp.nPair;        // number of non-zero elements of the Hessian
-    lencObj = nnH;                              // number of non-zero elements of the linear term
+    nnH     = 6 + m->nv;
+    lencObj = 6 + m->nv + cp.N*cp.nPair;
     neA     = cp.N*cp.n*cp.n + (cp.N+1)*cp.n + cp.N*cp.n*cp.m + ((cp.N+1)*cp.n+cp.N*cp.m)*5;
     n       = ((cp.N+1)*cp.n + cp.N*cp.m)*2;    // *2 is for auxiliary variables for l1-norm (trust region)
-    nc      = (cp.N+1)*cp.n + ((cp.N+1)*cp.n+cp.N*cp.m)*2 + 1;
+    nc      = n + (cp.N+1)*cp.n + 1;
     cObj    = new double[lencObj];
+    // setBound parameters
+    dUOffset  = (cp.N+1)*cp.n;
+    auxOffset = (cp.N+1)*cp.n+cp.N*cp.m;
     // indices to move
-    indMove = new int[nnH];
+    nMove = lencObj;
+    indMove = new int[nMove];
     // * virtual stiffness variables
     for( int i=0; i<cp.N; i ++ )
     {
@@ -32,12 +36,12 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
     // * final velocity variables for the control joint
     for( int i=0; i<m->nv; i++ )
     {
-        indMove[nnH-1-6-i] = cp.N*cp.n + m->nv + i;
+        indMove[lencObj-1-6-i] = cp.N*cp.n + m->nv + i;
     }
     // * final pose variables for the control joint
     for( int i=0; i<6; i++ )
     {
-        indMove[nnH-1-i] = cp.N*cp.n + cp.controlJointDOF0 + i;
+        indMove[lencObj-1-i] = cp.N*cp.n + cp.controlJointDOF0 + i;
     }
     // initialize & set options for SQOPT
     cvxProb.initialize("", 1);
@@ -46,10 +50,10 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
     // set the weights
     lenru = 4;      // number of weights
     ru = new double[lenru];
-    ru[0] = cp.weight[0];
-    ru[1] = cp.weight[1];
-    ru[2] = cp.weight[2];
-    ru[3] = cp.weight[3];
+    for( int i=0; i<lenru; i++ )
+    {
+        ru[i] = cp.weight[i];
+    }
     cvxProb.setUserR(ru, lenru);
     // set parameters that are dependent on simulation and model
     leniu = 3;      // number of parameters
@@ -58,9 +62,6 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
     iu[1] = cp.N;
     iu[2] = cp.nPair;
     cvxProb.setUserI(iu, leniu);
-    // setBound parameters
-    dUOffset  = (cp.N+1)*cp.n;
-    auxOffset = (cp.N+1)*cp.n+cp.N*cp.m;
 }
 // ***** FUNCTIONS *************************************************************
 // qpHx: sets Hx to the H*x part of the quadratic cost to be multiplied by x'
@@ -84,11 +85,6 @@ void CitoSQOPT::qpHx(int *nnH, double x[], double Hx[], int *nState,
     for( int i=6; i<6+nv; i++ )
     {
         Hx[i] = ru[2]*x[i];
-    }
-    // stiffness terms
-    for( int i=6+nv; i<6+nv+N*nPair; i++ )
-    {
-        Hx[i] = ru[3]*x[i];
     }
 }
 
@@ -117,22 +113,17 @@ void CitoSQOPT::setCObj(const eigMm X, const eigMd U,
         cObj[6+i] = -ru[2]*deltaVel(i);
     }
     // * virtual stiffness
-    double dKConSN = 0;
     for( int i=0; i<cp.N; i++ )
     {
-        dKCon.col(i).setZero();
         for( int j=0; j<cp.nPair; j++ )
         {
-            dKCon.col(i)[j] = 0-U.col(i)[m->nu+j];
-            cObj[6+m->nv+i*cp.nPair+j] = -ru[3]*dKCon.col(i)[j];
+            cObj[6+m->nv+i*cp.nPair+j] = ru[3];
         }
-        dKConSN += dKCon.col(i).squaredNorm();
     }
     // constant objective term
     ObjAdd = 0.5*(ru[0]*deltaPos.head(2).squaredNorm() +
                   ru[1]*deltaPos.tail(4).squaredNorm() +
-                  ru[2]*deltaVel.squaredNorm() +
-                  ru[3]*dKConSN);
+                  ru[2]*deltaVel.squaredNorm()) + ru[3]*U.bottomRows(cp.nPair).sum();
 }
 
 // solveCvx: solves the convex subproblem
@@ -189,24 +180,24 @@ void CitoSQOPT::setBounds(double r, const eigMm X, const eigMd U,
                           double *qposLB, double *qposUB, double *tauLB, double *tauUB)
 {
     // decision variables
-    // * states
     for( int i=0; i<cp.N+1; i++ )
     {
+        // states
         for( int j=0; j<m->nv; j++ )
         {
-            // ** change in free joint positions: unbounded
-            // ** change in joint positions
+            // change in free joint positions: unbounded
+            // change in joint positions
             if( isJFree[j] == 0 )
             {
                 bl[i*cp.n+j] = qposLB[j] - X.col(i)[j];
                 bu[i*cp.n+j] = qposUB[j] - X.col(i)[j];
             }
-            // ** change in joint velocities: unbounded (already set)
+            // change in joint velocities: unbounded (already set)
         }
-        // * controls
+        // controls
         if( i < cp.N )
         {
-            // ** change in joint torques
+            // change in joint torques
             for( int j=0; j<m->nu; j++ )
             {
                 if( isAFree == 0 )
@@ -215,7 +206,7 @@ void CitoSQOPT::setBounds(double r, const eigMm X, const eigMd U,
                     bu[dUOffset+i*cp.m+j] = tauUB[j] - U.col(i)[j];
                 }
             }
-            // ** change in virtual stiffness
+            // change in virtual stiffness
             for( int j=0; j< cp.nPair; j++ )
             {
                 bl[dUOffset+i*cp.m+m->nu+j] = 0 - U.col(i)[m->nu+j];
@@ -340,7 +331,7 @@ void CitoSQOPT::setA(double *valA, int *indA, int *locA, const derTraj Fx, const
 void CitoSQOPT::sortToMatch(double *valA, int *indA, int *locA, int *moveIndices, double *bl, double *bu)
 {
     int less_counter = 0, iMove = 0;
-    for( int i=0; i<nnH; i++ )
+    for( int i=0; i<nMove; i++ )
     {
         if( i>0 && moveIndices[i]<moveIndices[i-1] ) { less_counter++; }
         iMove = moveIndices[i]+less_counter;
@@ -405,12 +396,12 @@ void CitoSQOPT::sortX(double *x, int *moveIndices)
     xTemp = new double[n];
     for( int i=0; i<n; i++ )
     {
-        xTemp[i] = x[nnH+k];
-        for( int j=0; j<nnH; j++ )
+        xTemp[i] = x[nMove+k];
+        for( int j=0; j<nMove; j++ )
         {
             if( i == moveIndices[j] )
             {
-                xTemp[moveIndices[j]] = x[nnH-j-1];
+                xTemp[moveIndices[j]] = x[nMove-j-1];
                 k = k - 1;
             }
         }

@@ -8,7 +8,7 @@
 CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(model), sq(model)
 {
     // initialize Eigen variables
-    finalPos.resize(6);     finalVel.resize(m->nv);     KCon.resize(cp.nPair,cp.N);
+    finalPos.resize(6);     finalVel.resize(m->nv);
     // get SCvx parameters
     YAML::Node paramSCvx = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/scvx.yaml");
     beta_expand = paramSCvx["beta_expand"].as<double>();
@@ -48,14 +48,7 @@ double CitoSCvx::getCost(const eigVm XFinal, const eigMd U)
               cp.weight[1]*(cp.desiredPos.tail(4)-finalPos.tail(4)).squaredNorm()+
               cp.weight[2]*(cp.desiredVel - finalVel).squaredNorm());
     // integrated cost
-    KConSN = 0;
-    for( int i=0; i<cp.N; i++ )
-    {
-        KCon.col(i).setZero();
-        KCon.col(i) = U.col(i).segment(m->nu, cp.nPair);
-        KConSN += KCon.col(i).squaredNorm();
-    }
-    Ji = 0.5*cp.weight[3]*KConSN;
+    Ji = cp.weight[3]*U.bottomRows(cp.nPair).sum();
     // total cost
     Jt = Jf + Ji;
     return Jt;
