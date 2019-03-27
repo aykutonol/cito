@@ -62,7 +62,8 @@ int main(int argc, char const *argv[]) {
     std::cout << "\t\t vel = " << traj.X.col(cp.N).tail(m->nv).transpose() << "\n";
     // ***** Evaluate the optimal const ******************************************/
     double J = scvx.getCost(traj.X.col(cp.N), traj.U);
-    std::cout << "J = " << J << "\n\nINFO: Planning completed.\n\n";
+    std::cout << "J = " << J << ", kmax = " << U.bottomRows(cp.nPair).maxCoeff() <<
+                 "\n\nINFO: Planning completed.\n\n";
     // ***** MuJoCo shut down ****************************************************/
     mj_deleteModel(m);
     mj_deactivate();
