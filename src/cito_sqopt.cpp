@@ -13,8 +13,8 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
     kCon0 = vscm["kCon0"].as<double>();
     // SQOPT parameters
-    nnH     = 6 + m->nv;
-    lencObj = 6 + m->nv + cp.N*cp.nPair;
+    nnH     = 6 + (cp.N+1)*m->nv;
+    lencObj = 6 + (cp.N+1)*m->nv + cp.N*cp.nPair;
     neA     = cp.N*cp.n*cp.n + (cp.N+1)*cp.n + cp.N*cp.n*cp.m + ((cp.N+1)*cp.n+cp.N*cp.m)*5;
     n       = ((cp.N+1)*cp.n + cp.N*cp.m)*2;    // *2 is for auxiliary variables for l1-norm (trust region)
     nc      = n + (cp.N+1)*cp.n + 1;
@@ -33,15 +33,18 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
             indMove[i*cp.nPair+j] = (cp.N+1)*cp.n + cp.N*cp.m - 1 - (i*cp.m + j);
         }
     }
-    // * final velocity variables for the control joint
-    for( int i=0; i<m->nv; i++ )
+    // * velocity variables
+    for( int i=0; i<cp.N+1; i++ )
     {
-        indMove[lencObj-1-6-i] = cp.N*cp.n + m->nv + i;
+        for( int j=0; j<m->nv; j++ )
+        {
+            indMove[cp.N*cp.nPair+i*m->nv+j] = (cp.N+1)*cp.n - 1 - i*cp.n - j;
+        }
     }
     // * final pose variables for the control joint
     for( int i=0; i<6; i++ )
     {
-        indMove[lencObj-1-i] = cp.N*cp.n + cp.controlJointDOF0 + i;
+        indMove[nMove-1-i] = cp.N*cp.n + cp.controlJointDOF0 + i;
     }
     // initialize & set options for SQOPT
     cvxProb.initialize("", 1);
@@ -81,10 +84,10 @@ void CitoSQOPT::qpHx(int *nnH, double x[], double Hx[], int *nState,
     {
         Hx[i] = ru[1]*x[i];
     }
-    // final velocity terms
-    for( int i=6; i<6+nv; i++ )
+    // velocity terms
+    for( int i=0; i<(N+1)*nv; i++ )
     {
-        Hx[i] = ru[2]*x[i];
+        Hx[6+i] = ru[2]*x[i];
     }
 }
 
@@ -107,7 +110,10 @@ void CitoSQOPT::setCObj(const eigMm X, const eigMd U,
     {
         cObj[i] = -ru[1]*deltaPos(i);
     }
-    // * final velocity
+    // * velocity
+
+    /// you were here!
+
     for( int i=0; i<m->nv; i++ )
     {
         cObj[6+i] = -ru[2]*deltaVel(i);
