@@ -1,6 +1,6 @@
 <mujoco model='sawyer_fish'>
   <compiler meshdir="./mesh/sawyer/" angle='radian'/>
-  <option collision='predefined'/>
+  <option timestep="0.005" collision='predefined'/>
 
   <asset>
       <mesh name="pedestal"   file="pedestal.stl" />
@@ -168,13 +168,13 @@
 
   <!-- Contacts -->
   <contact>
-    <pair geom1='right_l6' geom2='object' />
-    <pair geom1='right_l5' geom2='object' />
-    <pair geom1='right_l4' geom2='object' />
-    <pair geom1='right_l6' geom2='table'  />
-    <pair geom1='right_l5' geom2='table'  />
-    <pair geom1='right_l4' geom2='table'  />
-    <pair geom1='table'    geom2='object' />
+    <pair geom1="right_l6" geom2="object" />
+    <pair geom1="right_l5" geom2="object" />
+    <pair geom1="right_l4" geom2="object" />
+    <pair geom1="right_l6" geom2="table"  />
+    <pair geom1="right_l5" geom2="table" margin="1" gap="1" />
+    <pair geom1="right_l4" geom2="table"  />
+    <pair geom1="table"    geom2="object" />
   </contact>
 
   <!-- Key frames -->

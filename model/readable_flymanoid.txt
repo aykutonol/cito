@@ -60,7 +60,7 @@ nmocap         0
 nsensordata    0
 nbuffer        5524347
 
-timestep       0.002   
+timestep       0.005   
 apirate        1e+02   
 impratio       1       
 tolerance      1e-08   

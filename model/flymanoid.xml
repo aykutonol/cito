@@ -1,7 +1,7 @@
 <mujoco model="simple flying humanoid robot">
     <compiler angle="radian" />
 
-    <option collision="predefined" gravity="0 0 0"/>
+    <option timestep="0.005" collision="predefined" gravity="0 0 0"/>
 
     <asset>
         <texture type="skybox" builtin="gradient" rgb1="0.6 0.6 0.6" rgb2="0 0 0" width="512" height="512"/>

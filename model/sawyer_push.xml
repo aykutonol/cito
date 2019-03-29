@@ -1,6 +1,6 @@
 <mujoco model='sawyer_push'>
   <compiler meshdir="./mesh/sawyer/" angle='radian'/>
-  <option collision='predefined'/>
+  <option timestep="0.005" collision='predefined'/>
 
   <asset>
       <mesh name="pedestal"   file="pedestal.stl" />
