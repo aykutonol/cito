@@ -25,7 +25,7 @@ public:
     /// Destructor
     ~CitoSCvx() {}
     /// This function returns the nonlinear cost given control trajectory and final state
-    double getCost(const eigVm XFinal, const eigMd U);
+    double getCost(const eigMm X, const eigMd U);
     /// This function rolls-out and linearizes the dynamics given control trajectory
     trajectory runSimulation(const eigMd U0, bool linearize, bool save);
     /// This function executes the successive convexification algorithm
@@ -49,7 +49,7 @@ private:
     derTraj Fx, Fu;
     trajectory traj, trajS, trajTemp;
     /// Cost function variables
-    eigVd finalPos, finalVel;
+    eigVd finalPos;
     double Jf, Ji, Jt;      // final, integrated, and total cost values
     /// Objects
     CitoParams  cp;

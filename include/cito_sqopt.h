@@ -59,7 +59,7 @@ private:
     double infBnd = 1.0e20;
     int Cold = 0, Basis = 1, Warm = 2;
     /// Cost parameters
-    eigVd deltaPos, deltaVel;
+    eigVd deltaPos;
     /// Sort parameters
     int nMove, *indMove;
     double *xTemp;

@@ -8,13 +8,13 @@
 CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
 {
     // initialize Eigen variables
-    deltaPos.resize(6);     deltaVel.resize(m->nv);
+    deltaPos.resize(6);
     // get the upper bound (initial value) for the virtual stiffness
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
     kCon0 = vscm["kCon0"].as<double>();
     // SQOPT parameters
-    nnH     = 6 + (cp.N+1)*m->nv;
-    lencObj = 6 + (cp.N+1)*m->nv + cp.N*cp.nPair;
+    nnH     = 6 + cp.N*m->nv;
+    lencObj = 6 + cp.N*m->nv + cp.N*cp.nPair;
     neA     = cp.N*cp.n*cp.n + (cp.N+1)*cp.n + cp.N*cp.n*cp.m + ((cp.N+1)*cp.n+cp.N*cp.m)*5;
     n       = ((cp.N+1)*cp.n + cp.N*cp.m)*2;    // *2 is for auxiliary variables for l1-norm (trust region)
     nc      = n + (cp.N+1)*cp.n + 1;
@@ -23,7 +23,7 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
     dUOffset  = (cp.N+1)*cp.n;
     auxOffset = (cp.N+1)*cp.n+cp.N*cp.m;
     // indices to move
-    nMove = lencObj;
+    nMove = 6 + cp.N*m->nv + cp.N*cp.nPair;
     indMove = new int[nMove];
     // * virtual stiffness variables
     for( int i=0; i<cp.N; i ++ )
@@ -33,18 +33,18 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
             indMove[i*cp.nPair+j] = (cp.N+1)*cp.n + cp.N*cp.m - 1 - (i*cp.m + j);
         }
     }
-    // * velocity variables
-    for( int i=0; i<cp.N+1; i++ )
-    {
-        for( int j=0; j<m->nv; j++ )
-        {
-            indMove[cp.N*cp.nPair+i*m->nv+j] = (cp.N+1)*cp.n - 1 - i*cp.n - j;
-        }
-    }
     // * final pose variables for the control joint
     for( int i=0; i<6; i++ )
     {
-        indMove[nMove-1-i] = cp.N*cp.n + cp.controlJointDOF0 + i;
+        indMove[nMove-1-cp.N*m->nv-i] = cp.N*cp.n + cp.controlJointDOF0 + i;
+    }
+    // * velocity variables
+    for( int i=0; i<cp.N; i++ )
+    {
+        for( int j=0; j<m->nv; j++ )
+        {
+            indMove[cp.N*cp.nPair+6+i*m->nv+j] = cp.N*cp.n - 1 - i*cp.n - j;
+        }
     }
     // initialize & set options for SQOPT
     cvxProb.initialize("", 1);
@@ -61,7 +61,7 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
     // set parameters that are dependent on simulation and model
     leniu = 3;      // number of parameters
     iu = new int[leniu];
-    iu[0] = cp.nv;
+    iu[0] = m->nv;
     iu[1] = cp.N;
     iu[2] = cp.nPair;
     cvxProb.setUserI(iu, leniu);
@@ -74,20 +74,20 @@ void CitoSQOPT::qpHx(int *nnH, double x[], double Hx[], int *nState,
 {
     // get the parameters
     int nv = iu[0], N = iu[1], nPair = iu[2];
+    // velocity terms
+    for( int i=0; i<N*nv; i++ )
+    {
+        Hx[i] = ru[2]*x[i];
+    }
     // final x-y position of the control body
-    for( int i=0; i<2; i++ )
+    for( int i=N*nv; i<N*nv+2; i++ )
     {
         Hx[i] = ru[0]*x[i];
     }
     // final z position and orientation of the control body
-    for( int i=2; i<6; i++ )
+    for( int i=N*nv+2; i<N*nv+6; i++ )
     {
         Hx[i] = ru[1]*x[i];
-    }
-    // velocity terms
-    for( int i=0; i<(N+1)*nv; i++ )
-    {
-        Hx[6+i] = ru[2]*x[i];
     }
 }
 
@@ -95,41 +95,37 @@ void CitoSQOPT::qpHx(int *nnH, double x[], double Hx[], int *nState,
 void CitoSQOPT::setCObj(const eigMm X, const eigMd U,
                         double *ru, double *cObj, double &ObjAdd)
 {
-    // desired change in the final pose and velocity
-    deltaPos.setZero(); deltaVel.setZero();
+    // desired change in the final pose
+    deltaPos.setZero();
     deltaPos = cp.desiredPos - X.col(cp.N).segment(cp.controlJointDOF0, 6);
-    deltaVel = cp.desiredVel - X.col(cp.N).tail(m->nv);
     // set linear objective terms
+    // * velocities
+    for( int i=0; i<cp.N*m->nv; i++ )
+    {
+        cObj[i] = 0;
+    }
     // * final position
     for( int i=0; i<2; i++ )
     {
-        cObj[i] = -ru[0]*deltaPos(i);
+        cObj[cp.N*m->nv+i] = -ru[0]*deltaPos(i);
     }
     // * final orientation
     for( int i=2; i<6; i++ )
     {
-        cObj[i] = -ru[1]*deltaPos(i);
-    }
-    // * velocity
-
-    /// you were here!
-
-    for( int i=0; i<m->nv; i++ )
-    {
-        cObj[6+i] = -ru[2]*deltaVel(i);
+        cObj[cp.N*m->nv+i] = -ru[1]*deltaPos(i);
     }
     // * virtual stiffness
     for( int i=0; i<cp.N; i++ )
     {
         for( int j=0; j<cp.nPair; j++ )
         {
-            cObj[6+m->nv+i*cp.nPair+j] = ru[3];
+            cObj[cp.N*m->nv+6+i*cp.nPair+j] = ru[3];
         }
     }
     // constant objective term
     ObjAdd = 0.5*(ru[0]*deltaPos.head(2).squaredNorm() +
-                  ru[1]*deltaPos.tail(4).squaredNorm() +
-                  ru[2]*deltaVel.squaredNorm()) + ru[3]*U.bottomRows(cp.nPair).sum();
+                  ru[1]*deltaPos.tail(4).squaredNorm());// +
+                  ru[3]*U.bottomRows(cp.nPair).sum();
 }
 
 // solveCvx: solves the convex subproblem

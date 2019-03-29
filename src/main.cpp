@@ -61,7 +61,7 @@ int main(int argc, char const *argv[]) {
     std::cout << "time step " << cp.N << ":\n\t\tpos = " << traj.X.col(cp.N).head(m->nv).transpose() << "\n";
     std::cout << "\t\t vel = " << traj.X.col(cp.N).tail(m->nv).transpose() << "\n";
     // ***** Evaluate the optimal const ******************************************/
-    double J = scvx.getCost(traj.X.col(cp.N), traj.U);
+    double J = scvx.getCost(traj.X, traj.U);
     std::cout << "J = " << J << ", kmax = " << U.bottomRows(cp.nPair).maxCoeff() <<
                  "\n\nINFO: Planning completed.\n\n";
     // ***** MuJoCo shut down ****************************************************/

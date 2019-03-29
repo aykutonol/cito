@@ -8,7 +8,7 @@
 CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(model), sq(model)
 {
     // initialize Eigen variables
-    finalPos.resize(6);     finalVel.resize(m->nv);
+    finalPos.resize(6);
     // get SCvx parameters
     YAML::Node paramSCvx = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/scvx.yaml");
     beta_expand = paramSCvx["beta_expand"].as<double>();
@@ -39,16 +39,15 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(mo
 
 // ***** FUNCTIONS *************************************************************
 // getCost: returns the nonlinear cost given control trajectory and final state
-double CitoSCvx::getCost(const eigVm XFinal, const eigMd U)
+double CitoSCvx::getCost(const eigMm X, const eigMd U)
 {
     // final cost
-    finalPos = XFinal.segment(cp.controlJointDOF0, 6);
-    finalVel = XFinal.tail(m->nv);
+    finalPos = X.col(cp.N).segment(cp.controlJointDOF0, 6);
     Jf = 0.5*(cp.weight[0]*(cp.desiredPos.head(2)-finalPos.head(2)).squaredNorm()+
-              cp.weight[1]*(cp.desiredPos.tail(4)-finalPos.tail(4)).squaredNorm()+
-              cp.weight[2]*(cp.desiredVel - finalVel).squaredNorm());
+              cp.weight[1]*(cp.desiredPos.tail(4)-finalPos.tail(4)).squaredNorm());
     // integrated cost
-    Ji = cp.weight[3]*U.bottomRows(cp.nPair).sum();
+    Ji = cp.weight[2]*X.leftCols(cp.N).bottomRows(m->nv).squaredNorm()+
+         cp.weight[3]*U.bottomRows(cp.nPair).sum();
     // total cost
     Jt = Jf + Ji;
     return Jt;
@@ -113,7 +112,7 @@ eigMd CitoSCvx::solveSCvx(const eigMd U0)
             std::cout << "INFO: convexification took " << std::chrono::duration<double>(tDiffEnd-tDiffStart).count() << " s \n";
         }
         // get the nonlinear cost if the first iteration
-        if( iter == 0 ) { J[iter] = this->getCost(trajS.X.col(cp.N), USucc); }
+        if( iter == 0 ) { J[iter] = this->getCost(trajS.X, USucc); }
         // convex optimization =================================================
         double *dTraj = new double[cp.nTraj];
         std::cout << "INFO: QP solver in progress\n\n";
@@ -147,8 +146,8 @@ eigMd CitoSCvx::solveSCvx(const eigMd U0)
         trajTemp = {};
         trajTemp = this->runSimulation(UTemp, false, false);
         // get the linear and nonlinear costs
-        JTilde[iter] = this->getCost(XTilde.col(cp.N), UTemp);
-        JTemp[iter]  = this->getCost(trajTemp.X.col(cp.N), UTemp);
+        JTilde[iter] = this->getCost(XTilde, UTemp);
+        JTemp[iter]  = this->getCost(trajTemp.X, UTemp);
         // similarity measure ==================================================
         dJ[iter] = J[iter] - JTemp[iter];
         dL[iter] = J[iter] - JTilde[iter];
