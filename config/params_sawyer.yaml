@@ -16,8 +16,6 @@ spair2: [0]
 # Task
 ## desired final pose of the control joint
 desiredFinalPos: [1.3, 0, 0.0647, 0.0, 0.0, 0.0]
-## desired final velocity of the control and robot joints
-desiredFinalVel: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
 ## initial index of the DOF associated with the control joint
 controlJointDOF0: 0
 
