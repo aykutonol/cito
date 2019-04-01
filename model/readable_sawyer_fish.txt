@@ -8,14 +8,14 @@ na             0
 nbody          27
 njnt           8
 ngeom          32
-nsite          6
+nsite          3
 ncam           0
 nlight         3
-nmesh          10
-nmeshvert      57715
-nmeshface      66915
+nmesh          11
+nmeshvert      83441
+nmeshface      84830
 nmeshtexvert   0
-nmeshgraph     0
+nmeshgraph     1778
 nskin          0
 nskinvert      0
 nskintexvert   0
@@ -48,17 +48,17 @@ nuser_cam      0
 nuser_tendon   0
 nuser_actuator 0
 nuser_sensor   0
-nnames         930
+nnames         902
 
 nM             49
 nemax          0
 njmax          500
 nconmax        100
-nstack         1317985
+nstack         1317925
 nuserdata      0
 nmocap         0
 nsensordata    0
-nbuffer        2997838
+nbuffer        3837002
 
 timestep       0.005   
 apirate        1e+02   
@@ -88,15 +88,15 @@ enableflags    0
 
 totalmass      3e+02   
 
-meaninertia    0.54    
+meaninertia    0.65    
 meanmass       11      
 meansize       0.2     
 extent         2.1     
-center         0.37      0.0016   -0.37    
+center         0.38      0.0016   -0.37    
 
-qpos0          1.2       0         0.066     1         0         0         0         0         0         0         0         0         0         0        
+qpos0          1.1       0         0.055     1         0         0         0         0         0         0         0         0         0         0        
 
-qpos_spring    1.2       0         0.066     1         0         0         0         0         0         0         0         0         0         0        
+qpos_spring    1.1       0         0.055     1         0         0         0         0         0         0         0         0         0         0        
 
 
 BODY 0:
@@ -123,7 +123,7 @@ BODY 0:
   invweight0   0         0       
 
 BODY 1:
-  name         object
+  name         fish
   parentid     0
   rootid       1
   weldid       1
@@ -134,16 +134,16 @@ BODY 1:
   dofadr       0
   geomnum      1
   geomadr      2
-  simple       1
-  sameframe    1
-  pos          1.2       0         0.066   
+  simple       0
+  sameframe    0
+  pos          1.1       0         0.055   
   quat         1         0         0         0       
-  ipos         0         0         0       
-  iquat        1         0         0         0       
-  mass         0.15    
-  subtreemass  0.15    
-  inertia      0.00037   0.0013    0.0015  
-  invweight0   6.5       1.4e+03 
+  ipos        -0.0041    0.016    -0.00048 
+  iquat        0.48      0.54     -0.48      0.5     
+  mass         0.66    
+  subtreemass  0.66    
+  inertia      0.0029    0.0027    0.00043 
+  invweight0   1.5       1e+03   
 
 BODY 2:
   name         base
@@ -709,20 +709,20 @@ BODY 26:
   dofadr       -1
   geomnum      1
   geomadr      31
-  simple       1
-  sameframe    1
-  pos          0         0         0       
+  simple       0
+  sameframe    0
+  pos          1.2       0         0.035   
   quat         1         0         0         0       
-  ipos         0         0         0       
-  iquat        1         0         0         0       
-  mass         3.4     
-  subtreemass  3.4     
-  inertia      0.008     0.028     0.032   
+  ipos        -0.0041    0.016    -0.00048 
+  iquat        0.48      0.54     -0.48      0.5     
+  mass         0.66    
+  subtreemass  0.66    
+  inertia      0.0029    0.0027    0.00043 
   invweight0   0         0       
 
 
 JOINT 0:
-  name         object
+  name         fish
   type         0
   qposadr      0
   dofadr       0
@@ -855,84 +855,84 @@ DOF 0:
   jntid        0
   parentid     -1
   Madr         0
-  simplenum    6
+  simplenum    0
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
   frictionloss 0       
   armature     0       
   damping      0       
-  invweight0   6.5     
-  M0           0.15    
+  invweight0   1.6     
+  M0           0.66    
 
 DOF 1:
   bodyid       1
   jntid        0
   parentid     0
   Madr         1
-  simplenum    5
+  simplenum    0
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
   frictionloss 0       
   armature     0       
   damping      0       
-  invweight0   6.5     
-  M0           0.15    
+  invweight0   1.6     
+  M0           0.66    
 
 DOF 2:
   bodyid       1
   jntid        0
   parentid     1
   Madr         3
-  simplenum    4
+  simplenum    0
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
   frictionloss 0       
   armature     0       
   damping      0       
-  invweight0   6.5     
-  M0           0.15    
+  invweight0   1.6     
+  M0           0.66    
 
 DOF 3:
   bodyid       1
   jntid        0
   parentid     2
   Madr         6
-  simplenum    3
+  simplenum    0
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
   frictionloss 0       
   armature     0       
   damping      0       
-  invweight0   1.4e+03 
-  M0           0.00037 
+  invweight0   1e+03   
+  M0           0.0028  
 
 DOF 4:
   bodyid       1
   jntid        0
   parentid     3
   Madr         10
-  simplenum    2
+  simplenum    0
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
   frictionloss 0       
   armature     0       
   damping      0       
-  invweight0   1.4e+03 
-  M0           0.0013  
+  invweight0   1e+03   
+  M0           0.00047 
 
 DOF 5:
   bodyid       1
   jntid        0
   parentid     4
   Madr         15
-  simplenum    1
+  simplenum    0
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
   frictionloss 0       
   armature     0       
   damping      0       
-  invweight0   1.4e+03 
-  M0           0.0015  
+  invweight0   1e+03   
+  M0           0.0031  
 
 DOF 6:
   bodyid       8
@@ -1073,39 +1073,39 @@ GEOM 1:
   solmix       1       
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
-  size         0.6       0.38      0.1     
+  size         0.4       0.6       0.1     
   rbound       0       
   pos          1.1       0         0.025   
   quat         1         0         0         0       
   friction     1         0.005     0.0001  
   margin       0       
   gap          0       
-  rgba         0.5       0.5       0.5       0.5     
+  rgba         0.1       0.1       0.1       1       
 
 
 GEOM 2:
-  name         object
-  type         6
+  name         fish
+  type         7
   contype      1
   conaffinity  1
   condim       3
   bodyid       1
-  dataid       -1
+  dataid       10
   matid        -1
   group        1
   priority     0
-  sameframe    1
+  sameframe    2
   solmix       1       
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
-  size         0.15      0.074     0.04    
-  rbound       0.17    
-  pos          0         0         0       
-  quat         1         0         0         0       
+  size         0.029     0.076     0.17    
+  rbound       0.19    
+  pos         -0.0041    0.016    -0.00048 
+  quat         0.48      0.54     -0.48      0.5     
   friction     1         0.005     0.0001  
   margin       0       
   gap          0       
-  rgba         0.9       0         0         1       
+  rgba         0.5       0.5       0.5       1       
 
 
 GEOM 3:
@@ -1810,83 +1810,44 @@ GEOM 30:
 
 GEOM 31:
   name         ghost
-  type         6
-  contype      1
-  conaffinity  1
+  type         7
+  contype      0
+  conaffinity  0
   condim       3
   bodyid       26
-  dataid       -1
+  dataid       10
   matid        -1
   group        1
   priority     0
-  sameframe    1
+  sameframe    2
   solmix       1       
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
-  size         0.15      0.074     0.038   
-  rbound       0.17    
-  pos          0         0         0       
-  quat         1         0         0         0       
+  size         0.029     0.076     0.17    
+  rbound       0.19    
+  pos         -0.0041    0.016    -0.00048 
+  quat         0.48      0.54     -0.48      0.5     
   friction     1         0.005     0.0001  
   margin       0       
   gap          0       
-  rgba         0         0.9       0         0.3     
+  rgba         0.1       0.8       0.1       1       
 
 
 
 SITE 0:
-  name         obj_front
+  name         fish_front
   type         2
   bodyid       1
   matid        -1
   group        2
   sameframe    0
   size         0.001     0.005     0.005   
-  pos         -0.15      0         0       
+  pos         -0.038     0         0.01    
   quat         1         0         0         0       
   rgba         1         1         0         1       
 
 
 SITE 1:
-  name         obj_right
-  type         2
-  bodyid       1
-  matid        -1
-  group        2
-  sameframe    0
-  size         0.001     0.005     0.005   
-  pos          0        -0.074     0       
-  quat         0.71      0         0         0.71    
-  rgba         1         1         0         1       
-
-
-SITE 2:
-  name         obj_left
-  type         2
-  bodyid       1
-  matid        -1
-  group        2
-  sameframe    0
-  size         0.001     0.005     0.005   
-  pos          0         0.074     0       
-  quat         0.71      0         0        -0.71    
-  rgba         1         1         0         1       
-
-
-SITE 3:
-  name         obj_rear
-  type         2
-  bodyid       1
-  matid        -1
-  group        2
-  sameframe    0
-  size         0.001     0.005     0.005   
-  pos          0.15      0         0       
-  quat         0         0         0         1       
-  rgba         1         1         0         1       
-
-
-SITE 4:
   name         link5
   type         2
   bodyid       18
@@ -1899,7 +1860,7 @@ SITE 4:
   rgba         0         1         0         1       
 
 
-SITE 5:
+SITE 2:
   name         end_effector
   type         2
   bodyid       22
@@ -1923,7 +1884,7 @@ LIGHT 0:
   active       1
   pos          0         0         3       
   dir          0         0        -1       
-  poscom0     -0.15     -0.0049    3.5     
+  poscom0     -0.15     -0.005     3.5     
   pos0         0         0         3       
   dir0         0         0        -1       
   attenuation  1         0         0       
@@ -1943,7 +1904,7 @@ LIGHT 1:
   active       1
   pos          1        -1        -0.1     
   dir         -0.58      0.58      0.58    
-  poscom0      0.85     -1         0.36    
+  poscom0      0.85     -1         0.37    
   pos0         1        -1        -0.1     
   dir0        -0.58      0.58      0.58    
   attenuation  1         0         0       
@@ -1963,7 +1924,7 @@ LIGHT 2:
   active       1
   pos          1.5       0         3       
   dir          0         0        -1       
-  poscom0      1.4      -0.0049    3.5     
+  poscom0      1.3      -0.005     3.5     
   pos0         1.5       0         3       
   dir0         0         0        -1       
   attenuation  1         0         0       
@@ -2064,6 +2025,17 @@ MESH 9:
   texcoordadr  -1
   graphadr     -1
 
+MESH 10:
+  name         fish
+  faceadr      66915
+  facenum      17915
+  vertadr      57715
+  vertnum      25726
+  texcoordadr  -1
+  graphadr     0
+  qhull face   236
+  qhull vert   120
+
 
 TEXTURE 0:
   name         texplane
@@ -2118,7 +2090,7 @@ PAIR 2:
   signature    65555
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
-  margin       1       
+  margin       0       
   gap          0       
   friction     1         1         0.005     0.0001    0.0001  
 
@@ -2319,5 +2291,5 @@ ACTUATOR 6:
   lengthrange  0         0       
 
 key_name0    init_pose
-key_qpos0    1.1       0         0.066     1         0         0         0        -0.26     -0.63      0         2         1        -2         0        
+key_qpos0    1.1       0         0.045     1         0         0         0        -0.12     -0.43      0         1.6      -0.15     -0.92      0        
 
