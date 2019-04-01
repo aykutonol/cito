@@ -10,11 +10,9 @@ CitoParams::CitoParams(const mjModel* model) : model(model)
     // read config files
     YAML::Node params = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/params.yaml");
     // task parameters
-    desiredPos.resize(6);   desiredVel.resize(model->nv);
+    desiredPos.resize(6);
     std::vector<double> desiredPosInput = { params["desiredFinalPos"].as<std::vector<double>>() };
-    std::vector<double> desiredVelInput = { params["desiredFinalVel"].as<std::vector<double>>() };
     desiredPos = Eigen::Map<Eigen::VectorXd>(desiredPosInput.data(), desiredPosInput.size());
-    desiredVel = Eigen::Map<Eigen::VectorXd>(desiredVelInput.data(), desiredVelInput.size());
     controlJointDOF0 = params["controlJointDOF0"].as<int>();
     weight[0] = params["w1"].as<double>();
     weight[1] = params["w2"].as<double>();

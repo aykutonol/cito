@@ -59,8 +59,8 @@ public:
     Eigen::VectorXi sPair1, sPair2;
     eigMm nCS;
     /// Task parameters
-    eigVd desiredPos, desiredVel;
-    int controlJointDOF0;\
+    eigVd desiredPos;
+    int controlJointDOF0;
     double weight[4];
 };
 
