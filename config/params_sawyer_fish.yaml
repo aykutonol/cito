@@ -1,0 +1,28 @@
+# Model
+model: "sawyer_fish.xml"
+
+# Simulation
+tf: 0.75 	# [s] final time
+tc: 5e-2 	# [s] control sampling period
+
+# Contact pairs
+## number of contact pairs
+npair: 1
+## indices of the sites on the robot
+spair1: [2]
+## indices of the corresponding sites in the environment	
+spair2: [0]
+
+# Task
+## desired final pose of the control joint
+desiredFinalPos: [1.25, 0, 0.0408, 0.0, 0.0, 0.0]
+## desired final velocity of the control and robot joints
+desiredFinalVel: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+## initial index of the DOF associated with the control joint
+controlJointDOF0: 0
+
+# Weights
+w1: 1e4  	# weight on deviations in x and y directions
+w2: 1e-2  	# weight on deviations in z and orientation
+w3: 1e-2  	# weight on velocities
+w4: 4e-1  	# weight on virtual stiffness
