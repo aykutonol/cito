@@ -1,0 +1,1526 @@
+MuJoCo version 2.00
+model name     ur3e_fish
+
+nq             13
+nv             12
+nu             6
+na             0
+nbody          10
+njnt           7
+ngeom          19
+nsite          2
+ncam           0
+nlight         3
+nmesh          8
+nmeshvert      29842
+nmeshface      26091
+nmeshtexvert   0
+nmeshgraph     63154
+nskin          0
+nskinvert      0
+nskintexvert   0
+nskinface      0
+nskinbone      0
+nskinbonevert  0
+nhfield        0
+nhfielddata    0
+ntex           1
+ntexdata       786432
+nmat           1
+npair          9
+nexclude       0
+neq            0
+ntendon        0
+nwrap          0
+nsensor        0
+nnumeric       0
+nnumericdata   0
+ntext          0
+ntextdata      0
+ntuple         0
+ntupledata     0
+nkey           1
+nuser_body     0
+nuser_jnt      0
+nuser_geom     0
+nuser_site     0
+nuser_cam      0
+nuser_tendon   0
+nuser_actuator 0
+nuser_sensor   0
+nnames         486
+
+nM             42
+nemax          0
+njmax          500
+nconmax        100
+nstack         1312100
+nuserdata      0
+nmocap         0
+nsensordata    0
+nbuffer        2083338
+
+timestep       0.005   
+apirate        1e+02   
+impratio       1       
+tolerance      1e-08   
+noslip_tolerance  1e-06   
+mpr_tolerance     1e-06
+gravity        0         0        -9.8     
+wind           0         0         0       
+magnetic       0        -0.5       0       
+density        0       
+viscosity      0       
+o_margin       0       
+o_solref       0.02      1       
+o_solimp       0.9       0.95      0.001     0.5       2       
+integrator     0
+collision      1
+collision      1
+cone           0
+jacobian       2
+solver         2
+iterations     100
+noslip_iterations 0
+mpr_iterations 50
+disableflags   0
+enableflags    0
+
+totalmass      12      
+
+meaninertia    0.29    
+meanmass       1.3     
+meansize       0.16    
+extent         1.8     
+center         0.19      0        -0.54    
+
+qpos0          0.4       0.1       0.055     1         0         0         0         0         0         0         0         0         0        
+
+qpos_spring    0.4       0.1       0.055     1         0         0         0         0         0         0         0         0         0        
+
+
+BODY 0:
+  name         world
+  parentid     0
+  rootid       0
+  weldid       0
+  mocapid      -1
+  jntnum       0
+  jntadr       -1
+  dofnum       0
+  dofadr       -1
+  geomnum      2
+  geomadr      0
+  simple       1
+  sameframe    1
+  pos          0         0         0       
+  quat         1         0         0         0       
+  ipos         0         0         0       
+  iquat        1         0         0         0       
+  mass         0       
+  subtreemass  12      
+  inertia      0         0         0       
+  invweight0   0         0       
+
+BODY 1:
+  name         fish
+  parentid     0
+  rootid       1
+  weldid       1
+  mocapid      -1
+  jntnum       1
+  jntadr       0
+  dofnum       6
+  dofadr       0
+  geomnum      1
+  geomadr      2
+  simple       0
+  sameframe    0
+  pos          0.4       0.1       0.055   
+  quat         1         0         0         0       
+  ipos        -0.0041    0.016    -0.00048 
+  iquat        0.48      0.54     -0.48      0.5     
+  mass         0.66    
+  subtreemass  0.66    
+  inertia      0.0029    0.0027    0.00043 
+  invweight0   1.5       1e+03   
+
+BODY 2:
+  name         base
+  parentid     0
+  rootid       2
+  weldid       0
+  mocapid      -1
+  jntnum       0
+  jntadr       -1
+  dofnum       0
+  dofadr       -1
+  geomnum      2
+  geomadr      3
+  simple       0
+  sameframe    0
+  pos          0         0         0       
+  quat         1         0         0         0       
+  ipos        -2e-06     1.9e-06   0.042   
+  iquat        0.18      0.68     -0.18      0.68    
+  mass         1.9     
+  subtreemass  10      
+  inertia      0.0031    0.0029    0.0029  
+  invweight0   0         0       
+
+BODY 3:
+  name         shoulder_link
+  parentid     2
+  rootid       2
+  weldid       3
+  mocapid      -1
+  jntnum       1
+  jntadr       1
+  dofnum       1
+  dofadr       6
+  geomnum      2
+  geomadr      5
+  simple       0
+  sameframe    1
+  pos          0         0         0.15    
+  quat         1         0         0         0       
+  ipos         0         0         0       
+  iquat        1         0         0         0       
+  mass         2       
+  subtreemass  8.6     
+  inertia      0.0081    0.0081    0.0056  
+  invweight0   0         0.46    
+
+BODY 4:
+  name         upper_arm_link
+  parentid     3
+  rootid       2
+  weldid       4
+  mocapid      -1
+  jntnum       1
+  jntadr       2
+  dofnum       1
+  dofadr       7
+  geomnum      2
+  geomadr      7
+  simple       0
+  sameframe    0
+  pos          0         0.12      0       
+  quat         0.71      0         0.71      0       
+  ipos         0         0         0.12    
+  iquat        1         0         0         0       
+  mass         3.4     
+  subtreemass  6.6     
+  inertia      0.022     0.022     0.0096  
+  invweight0   0.064     3.8     
+
+BODY 5:
+  name         forearm_link
+  parentid     4
+  rootid       2
+  weldid       5
+  mocapid      -1
+  jntnum       1
+  jntadr       3
+  dofnum       1
+  dofadr       8
+  geomnum      2
+  geomadr      9
+  simple       0
+  sameframe    0
+  pos          0        -0.093     0.24    
+  quat         1         0         0         0       
+  ipos         0         0         0.11    
+  iquat        1         0         0         0       
+  mass         1.3     
+  subtreemass  3.2     
+  inertia      0.0065    0.0065    0.0035  
+  invweight0   0.14      8.6     
+
+BODY 6:
+  name         wrist_1_link
+  parentid     5
+  rootid       2
+  weldid       6
+  mocapid      -1
+  jntnum       1
+  jntadr       4
+  dofnum       1
+  dofadr       9
+  geomnum      2
+  geomadr      11
+  simple       0
+  sameframe    0
+  pos          0         0         0.21    
+  quat         0.71      0         0.71      0       
+  ipos         0         0         0       
+  iquat        0.5       0.5      -0.5       0.5     
+  mass         0.8     
+  subtreemass  2       
+  inertia      0.0022    0.0021    0.0021  
+  invweight0   0.24      50      
+
+BODY 7:
+  name         wrist_2_link
+  parentid     6
+  rootid       2
+  weldid       7
+  mocapid      -1
+  jntnum       1
+  jntadr       5
+  dofnum       1
+  dofadr       10
+  geomnum      2
+  geomadr      13
+  simple       0
+  sameframe    0
+  pos          0         0.1       0       
+  quat         1         0         0         0       
+  ipos         0         0         0       
+  iquat        0.5       0.5      -0.5       0.5     
+  mass         0.8     
+  subtreemass  1.2     
+  inertia      0.0022    0.0021    0.0021  
+  invweight0   0.24      1.5e+02 
+
+BODY 8:
+  name         wrist_3_link
+  parentid     7
+  rootid       2
+  weldid       8
+  mocapid      -1
+  jntnum       1
+  jntadr       6
+  dofnum       1
+  dofadr       11
+  geomnum      3
+  geomadr      15
+  simple       0
+  sameframe    0
+  pos          0         0         0.085   
+  quat         1         0         0         0       
+  ipos         0         0.00023   0       
+  iquat        0.5       0.5      -0.5       0.5     
+  mass         0.35    
+  subtreemass  0.35    
+  inertia      0.00099   0.00092   0.00091 
+  invweight0   0.6       4.7e+02 
+
+BODY 9:
+  name         ghost
+  parentid     0
+  rootid       9
+  weldid       0
+  mocapid      -1
+  jntnum       0
+  jntadr       -1
+  dofnum       0
+  dofadr       -1
+  geomnum      1
+  geomadr      18
+  simple       0
+  sameframe    0
+  pos          0.7       0.15      0.015   
+  quat         1         0         0         0       
+  ipos        -0.0041    0.016    -0.00048 
+  iquat        0.48      0.54     -0.48      0.5     
+  mass         0.66    
+  subtreemass  0.66    
+  inertia      0.0029    0.0027    0.00043 
+  invweight0   0         0       
+
+
+JOINT 0:
+  name         fish
+  type         0
+  qposadr      0
+  dofadr       0
+  bodyid       1
+  group        0
+  limited      0
+  pos          0         0         0       
+  axis         0         0         1       
+  stiffness    0       
+  range        0         0       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+
+JOINT 1:
+  name         shoulder_pan_joint
+  type         3
+  qposadr      7
+  dofadr       6
+  bodyid       3
+  group        0
+  limited      1
+  pos          0         0         0       
+  axis         0         0         1       
+  stiffness    0       
+  range       -3.1       3.1     
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+
+JOINT 2:
+  name         shoulder_lift_joint
+  type         3
+  qposadr      8
+  dofadr       7
+  bodyid       4
+  group        0
+  limited      1
+  pos          0         0         0       
+  axis         0         1         0       
+  stiffness    0       
+  range       -3.1       3.1     
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+
+JOINT 3:
+  name         elbow_joint
+  type         3
+  qposadr      9
+  dofadr       8
+  bodyid       5
+  group        0
+  limited      1
+  pos          0         0         0       
+  axis         0         1         0       
+  stiffness    0       
+  range       -3.1       3.1     
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+
+JOINT 4:
+  name         wrist_1_joint
+  type         3
+  qposadr      10
+  dofadr       9
+  bodyid       6
+  group        0
+  limited      1
+  pos          0         0         0       
+  axis         0         1         0       
+  stiffness    0       
+  range       -3.1       3.1     
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+
+JOINT 5:
+  name         wrist_2_joint
+  type         3
+  qposadr      11
+  dofadr       10
+  bodyid       7
+  group        0
+  limited      1
+  pos          0         0         0       
+  axis         0         0         1       
+  stiffness    0       
+  range       -3.1       3.1     
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+
+JOINT 6:
+  name         wrist_3_joint
+  type         3
+  qposadr      12
+  dofadr       11
+  bodyid       8
+  group        0
+  limited      1
+  pos          0         0         0       
+  axis         0         1         0       
+  stiffness    0       
+  range       -3.1       3.1     
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+
+
+DOF 0:
+  bodyid       1
+  jntid        0
+  parentid     -1
+  Madr         0
+  simplenum    0
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  frictionloss 0       
+  armature     0       
+  damping      0       
+  invweight0   1.6     
+  M0           0.66    
+
+DOF 1:
+  bodyid       1
+  jntid        0
+  parentid     0
+  Madr         1
+  simplenum    0
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  frictionloss 0       
+  armature     0       
+  damping      0       
+  invweight0   1.6     
+  M0           0.66    
+
+DOF 2:
+  bodyid       1
+  jntid        0
+  parentid     1
+  Madr         3
+  simplenum    0
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  frictionloss 0       
+  armature     0       
+  damping      0       
+  invweight0   1.6     
+  M0           0.66    
+
+DOF 3:
+  bodyid       1
+  jntid        0
+  parentid     2
+  Madr         6
+  simplenum    0
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  frictionloss 0       
+  armature     0       
+  damping      0       
+  invweight0   1e+03   
+  M0           0.0028  
+
+DOF 4:
+  bodyid       1
+  jntid        0
+  parentid     3
+  Madr         10
+  simplenum    0
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  frictionloss 0       
+  armature     0       
+  damping      0       
+  invweight0   1e+03   
+  M0           0.00047 
+
+DOF 5:
+  bodyid       1
+  jntid        0
+  parentid     4
+  Madr         15
+  simplenum    0
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  frictionloss 0       
+  armature     0       
+  damping      0       
+  invweight0   1e+03   
+  M0           0.0031  
+
+DOF 6:
+  bodyid       3
+  jntid        1
+  parentid     -1
+  Madr         21
+  simplenum    0
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  frictionloss 0       
+  armature     0       
+  damping      0       
+  invweight0   1.4     
+  M0           0.72    
+
+DOF 7:
+  bodyid       4
+  jntid        2
+  parentid     6
+  Madr         22
+  simplenum    0
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  frictionloss 0       
+  armature     0       
+  damping      0       
+  invweight0   10      
+  M0           0.65    
+
+DOF 8:
+  bodyid       5
+  jntid        3
+  parentid     7
+  Madr         24
+  simplenum    0
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  frictionloss 0       
+  armature     0       
+  damping      0       
+  invweight0   59      
+  M0           0.12    
+
+DOF 9:
+  bodyid       6
+  jntid        4
+  parentid     8
+  Madr         27
+  simplenum    0
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  frictionloss 0       
+  armature     0       
+  damping      0       
+  invweight0   1.7e+02 
+  M0           0.0076  
+
+DOF 10:
+  bodyid       7
+  jntid        5
+  parentid     9
+  Madr         31
+  simplenum    0
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  frictionloss 0       
+  armature     0       
+  damping      0       
+  invweight0   3.1e+02 
+  M0           0.0032  
+
+DOF 11:
+  bodyid       8
+  jntid        6
+  parentid     10
+  Madr         36
+  simplenum    0
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  frictionloss 0       
+  armature     0       
+  damping      0       
+  invweight0   1.2e+03 
+  M0           0.00091 
+
+
+GEOM 0:
+  name         floor
+  type         0
+  contype      1
+  conaffinity  1
+  condim       3
+  bodyid       0
+  dataid       -1
+  matid        0
+  group        0
+  priority     0
+  sameframe    0
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         5         5         0.12    
+  rbound       0       
+  pos          0         0        -0.91    
+  quat         1         0         0         0       
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.5       0.5       0.5       1       
+
+
+GEOM 1:
+  name         table
+  type         0
+  contype      1
+  conaffinity  1
+  condim       3
+  bodyid       0
+  dataid       -1
+  matid        -1
+  group        1
+  priority     0
+  sameframe    0
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.5       0.6       0.1     
+  rbound       0       
+  pos          0.4       0         0       
+  quat         1         0         0         0       
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.1       0.1       0.1       1       
+
+
+GEOM 2:
+  name         fish
+  type         7
+  contype      1
+  conaffinity  1
+  condim       3
+  bodyid       1
+  dataid       7
+  matid        -1
+  group        1
+  priority     0
+  sameframe    2
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.029     0.076     0.17    
+  rbound       0.19    
+  pos         -0.0041    0.016    -0.00048 
+  quat         0.48      0.54     -0.48      0.5     
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.5       0.5       0.5       1       
+
+
+GEOM 3:
+  name         
+  type         7
+  contype      0
+  conaffinity  0
+  condim       3
+  bodyid       2
+  dataid       0
+  matid        -1
+  group        1
+  priority     0
+  sameframe    0
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.053     0.064     0.064   
+  rbound       0.11    
+  pos         -2e-06     1.9e-06   0.042   
+  quat         0.18      0.68     -0.18      0.68    
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.7       0.7       0.7       1       
+
+
+GEOM 4:
+  name         
+  type         7
+  contype      1
+  conaffinity  1
+  condim       3
+  bodyid       2
+  dataid       0
+  matid        -1
+  group        0
+  priority     0
+  sameframe    0
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.053     0.064     0.064   
+  rbound       0.11    
+  pos         -2e-06     1.9e-06   0.042   
+  quat         0.18      0.68     -0.18      0.68    
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.7       0.7       0.7       1       
+
+
+GEOM 5:
+  name         
+  type         7
+  contype      0
+  conaffinity  0
+  condim       3
+  bodyid       3
+  dataid       1
+  matid        -1
+  group        1
+  priority     0
+  sameframe    0
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.047     0.062     0.066   
+  rbound       0.1     
+  pos          1.4e-06   0.011    -0.0015  
+  quat         0.99     -0.11     -2.4e-05  -0.00013 
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.7       0.7       0.7       1       
+
+
+GEOM 6:
+  name         shoulder
+  type         7
+  contype      1
+  conaffinity  1
+  condim       3
+  bodyid       3
+  dataid       1
+  matid        -1
+  group        0
+  priority     0
+  sameframe    0
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.047     0.062     0.066   
+  rbound       0.1     
+  pos          1.4e-06   0.011    -0.0015  
+  quat         0.99     -0.11     -2.4e-05  -0.00013 
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.7       0.7       0.7       1       
+
+
+GEOM 7:
+  name         
+  type         7
+  contype      0
+  conaffinity  0
+  condim       3
+  bodyid       4
+  dataid       2
+  matid        -1
+  group        1
+  priority     0
+  sameframe    0
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.047     0.059     0.17    
+  rbound       0.19    
+  pos          5.2e-06  -0.00032   0.11    
+  quat         1        -0.0048    1.4e-05   0.00019 
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.7       0.7       0.7       1       
+
+
+GEOM 8:
+  name         upperarm
+  type         7
+  contype      1
+  conaffinity  1
+  condim       3
+  bodyid       4
+  dataid       2
+  matid        -1
+  group        0
+  priority     0
+  sameframe    0
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.047     0.059     0.17    
+  rbound       0.19    
+  pos          5.2e-06  -0.00032   0.11    
+  quat         1        -0.0048    1.4e-05   0.00019 
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.7       0.7       0.7       1       
+
+
+GEOM 9:
+  name         
+  type         7
+  contype      0
+  conaffinity  0
+  condim       3
+  bodyid       5
+  dataid       3
+  matid        -1
+  group        1
+  priority     0
+  sameframe    0
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.038     0.05      0.16    
+  rbound       0.17    
+  pos         -1.1e-05   0.0071    0.12    
+  quat         1         0.029     1.8e-06   0.00045 
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.7       0.7       0.7       1       
+
+
+GEOM 10:
+  name         forearm
+  type         7
+  contype      1
+  conaffinity  1
+  condim       3
+  bodyid       5
+  dataid       3
+  matid        -1
+  group        0
+  priority     0
+  sameframe    0
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.038     0.05      0.16    
+  rbound       0.17    
+  pos         -1.1e-05   0.0071    0.12    
+  quat         1         0.029     1.8e-06   0.00045 
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.7       0.7       0.7       1       
+
+
+GEOM 11:
+  name         
+  type         7
+  contype      0
+  conaffinity  0
+  condim       3
+  bodyid       6
+  dataid       4
+  matid        -1
+  group        1
+  priority     0
+  sameframe    0
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.032     0.045     0.051   
+  rbound       0.076   
+  pos          3.1e-06   0.093     0.0027  
+  quat         1        -0.049     7.3e-06   8.2e-05 
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.7       0.7       0.7       1       
+
+
+GEOM 12:
+  name         wrist1
+  type         7
+  contype      1
+  conaffinity  1
+  condim       3
+  bodyid       6
+  dataid       4
+  matid        -1
+  group        0
+  priority     0
+  sameframe    0
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.032     0.045     0.051   
+  rbound       0.076   
+  pos          3.1e-06   0.093     0.0027  
+  quat         1        -0.049     7.3e-06   8.2e-05 
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.7       0.7       0.7       1       
+
+
+GEOM 13:
+  name         
+  type         7
+  contype      0
+  conaffinity  0
+  condim       3
+  bodyid       7
+  dataid       5
+  matid        -1
+  group        1
+  priority     0
+  sameframe    0
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.032     0.036     0.05    
+  rbound       0.07    
+  pos          6e-07     0.0035    0.082   
+  quat         0.7       0.71      0.00018  -0.00018 
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.7       0.7       0.7       1       
+
+
+GEOM 14:
+  name         wrist2
+  type         7
+  contype      1
+  conaffinity  1
+  condim       3
+  bodyid       7
+  dataid       5
+  matid        -1
+  group        0
+  priority     0
+  sameframe    0
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.032     0.036     0.05    
+  rbound       0.07    
+  pos          6e-07     0.0035    0.082   
+  quat         0.7       0.71      0.00018  -0.00018 
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.7       0.7       0.7       1       
+
+
+GEOM 15:
+  name         
+  type         7
+  contype      0
+  conaffinity  0
+  condim       3
+  bodyid       8
+  dataid       6
+  matid        -1
+  group        1
+  priority     0
+  sameframe    0
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.022     0.032     0.037   
+  rbound       0.053   
+  pos         -1.5e-05   0.071     0.00072 
+  quat         0.71     -0.00084  -0.015     0.71    
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.7       0.7       0.7       1       
+
+
+GEOM 16:
+  name         wrist3
+  type         7
+  contype      1
+  conaffinity  1
+  condim       3
+  bodyid       8
+  dataid       6
+  matid        -1
+  group        0
+  priority     0
+  sameframe    0
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.022     0.032     0.037   
+  rbound       0.053   
+  pos         -1.5e-05   0.071     0.00072 
+  quat         0.71     -0.00084  -0.015     0.71    
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.7       0.7       0.7       1       
+
+
+GEOM 17:
+  name         
+  type         6
+  contype      1
+  conaffinity  1
+  condim       3
+  bodyid       8
+  dataid       -1
+  matid        -1
+  group        2
+  priority     0
+  sameframe    0
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.005     0.005     0.005   
+  rbound       0.0087  
+  pos          0         0.082     0       
+  quat         0.71      0         0         0.71    
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.5       0.5       0.5       1       
+
+
+GEOM 18:
+  name         ghost
+  type         7
+  contype      0
+  conaffinity  0
+  condim       3
+  bodyid       9
+  dataid       7
+  matid        -1
+  group        1
+  priority     0
+  sameframe    2
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.029     0.076     0.17    
+  rbound       0.19    
+  pos         -0.0041    0.016    -0.00048 
+  quat         0.48      0.54     -0.48      0.5     
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.1       0.8       0.1       1       
+
+
+
+SITE 0:
+  name         fish_front
+  type         2
+  bodyid       1
+  matid        -1
+  group        2
+  sameframe    0
+  size         0.001     0.005     0.005   
+  pos         -0.038     0         0.01    
+  quat         1         0         0         0       
+  rgba         1         1         0         1       
+
+
+SITE 1:
+  name         end_effector
+  type         2
+  bodyid       8
+  matid        -1
+  group        2
+  sameframe    0
+  size         0.001     0.005     0.005   
+  pos          0         0.092     0       
+  quat         1         0         0         0       
+  rgba         0         1         0         1       
+
+
+
+LIGHT 0:
+  name         light0
+  mode         0
+  bodyid       0
+  targetbodyid -1
+  directional  0
+  castshadow   0
+  active       1
+  pos          0         0         3       
+  dir          0         0        -1       
+  poscom0     -0.21     -0.068     2.9     
+  pos0         0         0         3       
+  dir0         0         0        -1       
+  attenuation  1         0         0       
+  cutoff       45      
+  exponent     10      
+  ambient      0         0         0       
+  diffuse      1         1         1       
+  specular     0.3       0.3       0.3     
+
+LIGHT 1:
+  name         light1
+  mode         0
+  bodyid       0
+  targetbodyid -1
+  directional  0
+  castshadow   0
+  active       1
+  pos          1        -1        -0.1     
+  dir         -0.58      0.58      0.58    
+  poscom0      0.79     -1.1      -0.22    
+  pos0         1        -1        -0.1     
+  dir0        -0.58      0.58      0.58    
+  attenuation  1         0         0       
+  cutoff       45      
+  exponent     10      
+  ambient      0         0         0       
+  diffuse      1         1         1       
+  specular     0.3       0.3       0.3     
+
+LIGHT 2:
+  name         light2
+  mode         0
+  bodyid       0
+  targetbodyid -1
+  directional  0
+  castshadow   0
+  active       1
+  pos          1.5       0         3       
+  dir          0         0        -1       
+  poscom0      1.3      -0.068     2.9     
+  pos0         1.5       0         3       
+  dir0         0         0        -1       
+  attenuation  1         0         0       
+  cutoff       45      
+  exponent     10      
+  ambient      0         0         0       
+  diffuse      1         1         1       
+  specular     0.3       0.3       0.3     
+
+
+MESH 0:
+  name         base
+  faceadr      0
+  facenum      434
+  vertadr      0
+  vertnum      219
+  texcoordadr  -1
+  graphadr     0
+  qhull face   434
+  qhull vert   219
+
+MESH 1:
+  name         shoulder
+  faceadr      434
+  facenum      1812
+  vertadr      219
+  vertnum      916
+  texcoordadr  -1
+  graphadr     3263
+  qhull face   1812
+  qhull vert   908
+
+MESH 2:
+  name         upperarm
+  faceadr      2246
+  facenum      2020
+  vertadr      1135
+  vertnum      1014
+  texcoordadr  -1
+  graphadr     16861
+  qhull face   2020
+  qhull vert   1012
+
+MESH 3:
+  name         forearm
+  faceadr      4266
+  facenum      1026
+  vertadr      2149
+  vertnum      515
+  texcoordadr  -1
+  graphadr     32019
+  qhull face   1026
+  qhull vert   515
+
+MESH 4:
+  name         wrist1
+  faceadr      5292
+  facenum      1270
+  vertadr      2664
+  vertnum      637
+  texcoordadr  -1
+  graphadr     39722
+  qhull face   1270
+  qhull vert   637
+
+MESH 5:
+  name         wrist2
+  faceadr      6562
+  facenum      1454
+  vertadr      3301
+  vertnum      733
+  texcoordadr  -1
+  graphadr     49255
+  qhull face   1454
+  qhull vert   729
+
+MESH 6:
+  name         wrist3
+  faceadr      8016
+  facenum      160
+  vertadr      4034
+  vertnum      82
+  texcoordadr  -1
+  graphadr     60168
+  qhull face   160
+  qhull vert   82
+
+MESH 7:
+  name         fish
+  faceadr      8176
+  facenum      17915
+  vertadr      4116
+  vertnum      25726
+  texcoordadr  -1
+  graphadr     61376
+  qhull face   236
+  qhull vert   120
+
+
+TEXTURE 0:
+  name         texplane
+  type         0
+  height       512
+  width        512
+  adr          0
+
+
+MATERIAL 0:
+  name         MatPlane
+  texid        0
+  texuniform   1
+  texrepeat    1         1       
+  emission     0       
+  specular     0.5     
+  shininess    0.5     
+  reflectance  0.3     
+  rgba         1         1         1         1       
+
+
+
+PAIR 0:
+  name         
+  dim          3
+  geom1        1
+  geom2        2
+  signature    65538
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 1:
+  name         
+  dim          3
+  geom1        1
+  geom2        8
+  signature    65541
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 2:
+  name         
+  dim          3
+  geom1        1
+  geom2        10
+  signature    65542
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 3:
+  name         
+  dim          3
+  geom1        1
+  geom2        12
+  signature    65543
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 4:
+  name         
+  dim          3
+  geom1        1
+  geom2        14
+  signature    65544
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 5:
+  name         
+  dim          3
+  geom1        1
+  geom2        16
+  signature    65545
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 6:
+  name         
+  dim          3
+  geom1        2
+  geom2        12
+  signature    131079
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 7:
+  name         
+  dim          3
+  geom1        2
+  geom2        14
+  signature    131080
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+PAIR 8:
+  name         
+  dim          3
+  geom1        2
+  geom2        16
+  signature    131081
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  margin       0       
+  gap          0       
+  friction     1         1         0.005     0.0001    0.0001  
+
+
+ACTUATOR 0:
+  name         shoulder_pan
+  trntype      0
+  dyntype      0
+  gaintype     0
+  biastype     0
+  trnid        1  -1
+  group        0
+  ctrllimited  1
+  forcelimited 0
+  dynprm       1         0         0         0         0         0         0         0         0         0        
+  gainprm      1         0         0         0         0         0         0         0         0         0        
+  biasprm      0         0         0         0         0         0         0         0         0         0        
+  ctrlrange   -3.3e+02   3.3e+02 
+  forcerange   0         0       
+  gear         1         0         0         0         0         0       
+  cranklength  0       
+  acc0         2.3     
+  length0      0       
+  lengthrange  0         0       
+
+ACTUATOR 1:
+  name         shoulder_lift
+  trntype      0
+  dyntype      0
+  gaintype     0
+  biastype     0
+  trnid        2  -1
+  group        0
+  ctrllimited  1
+  forcelimited 0
+  dynprm       1         0         0         0         0         0         0         0         0         0        
+  gainprm      1         0         0         0         0         0         0         0         0         0        
+  biasprm      0         0         0         0         0         0         0         0         0         0        
+  ctrlrange   -3.3e+02   3.3e+02 
+  forcerange   0         0       
+  gear         1         0         0         0         0         0       
+  cranklength  0       
+  acc0         28      
+  length0      0       
+  lengthrange  0         0       
+
+ACTUATOR 2:
+  name         elbow
+  trntype      0
+  dyntype      0
+  gaintype     0
+  biastype     0
+  trnid        3  -1
+  group        0
+  ctrllimited  1
+  forcelimited 0
+  dynprm       1         0         0         0         0         0         0         0         0         0        
+  gainprm      1         0         0         0         0         0         0         0         0         0        
+  biasprm      0         0         0         0         0         0         0         0         0         0        
+  ctrlrange   -1.5e+02   1.5e+02 
+  forcerange   0         0       
+  gear         1         0         0         0         0         0       
+  cranklength  0       
+  acc0         73      
+  length0      0       
+  lengthrange  0         0       
+
+ACTUATOR 3:
+  name         wrist_1
+  trntype      0
+  dyntype      0
+  gaintype     0
+  biastype     0
+  trnid        4  -1
+  group        0
+  ctrllimited  1
+  forcelimited 0
+  dynprm       1         0         0         0         0         0         0         0         0         0        
+  gainprm      1         0         0         0         0         0         0         0         0         0        
+  biasprm      0         0         0         0         0         0         0         0         0         0        
+  ctrlrange   -54        54      
+  forcerange   0         0       
+  gear         1         0         0         0         0         0       
+  cranklength  0       
+  acc0         2.3e+02 
+  length0      0       
+  lengthrange  0         0       
+
+ACTUATOR 4:
+  name         wrist_2
+  trntype      0
+  dyntype      0
+  gaintype     0
+  biastype     0
+  trnid        5  -1
+  group        0
+  ctrllimited  1
+  forcelimited 0
+  dynprm       1         0         0         0         0         0         0         0         0         0        
+  gainprm      1         0         0         0         0         0         0         0         0         0        
+  biasprm      0         0         0         0         0         0         0         0         0         0        
+  ctrlrange   -54        54      
+  forcerange   0         0       
+  gear         1         0         0         0         0         0       
+  cranklength  0       
+  acc0         3.1e+02 
+  length0      0       
+  lengthrange  0         0       
+
+ACTUATOR 5:
+  name         wrist_3
+  trntype      0
+  dyntype      0
+  gaintype     0
+  biastype     0
+  trnid        6  -1
+  group        0
+  ctrllimited  1
+  forcelimited 0
+  dynprm       1         0         0         0         0         0         0         0         0         0        
+  gainprm      1         0         0         0         0         0         0         0         0         0        
+  biasprm      0         0         0         0         0         0         0         0         0         0        
+  ctrlrange   -54        54      
+  forcerange   0         0       
+  gear         1         0         0         0         0         0       
+  cranklength  0       
+  acc0         1.3e+03 
+  length0      0       
+  lengthrange  0         0       
+
+key_name0    init_pose
+key_qpos0    0.5       0.15      0.02      1         0         0         0         0        -0.85      1.6      -0.65      1.5       0        
+
