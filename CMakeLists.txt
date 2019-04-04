@@ -5,10 +5,11 @@ add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(yaml-cpp REQUIRED)
+find_package(Boost COMPONENTS system REQUIRED)
 
-set(MUJOCO_DIR "$ENV{MJ_HOME}")
-set(SNOPT_DIR  "$ENV{SN_HOME}")
+set(MUJOCO_DIR    "$ENV{MJ_HOME}")
+set(SNOPT_DIR     "$ENV{SN_HOME}")
+set(PINOCCHIO_DIR "$ENV{PN_HOME}")
 
 catkin_package()
 
@@ -17,6 +18,7 @@ include_directories(
  ${EIGEN3_INCLUDE_DIR}
  ${MUJOCO_DIR}/include
  ${SNOPT_DIR}/include
+ ${PINOCCHIO_DIR}/build/include
 )
 
 add_library(${PROJECT_NAME}
@@ -30,10 +32,11 @@ add_library(${PROJECT_NAME}
 
 set(NODE_NAME1 main)
 set(NODE_NAME2 playlog)
+set(NODE_NAME3 deriv)
 
 # main: runs successive convexification w/ SQOPT and numerical differentiation in MuJoCo
 add_executable(${NODE_NAME1} src/main.cpp)
-### mujoco w/o rendering
+### MuJoCo w/o rendering
 target_link_libraries(${NODE_NAME1} ${MUJOCO_DIR}/bin/libmujoco200nogl.so
 				    pthread
 				    ${PROJECT_NAME}
@@ -42,11 +45,22 @@ target_link_libraries(${NODE_NAME1} ${MUJOCO_DIR}/bin/libmujoco200nogl.so
 )
 # playlog: shows motions generated
 add_executable(${NODE_NAME2} src/mj_playlog.cpp)
-### mujoco w/ rendering
+### MuJoCo w/ rendering
 target_link_libraries(${NODE_NAME2} ${MUJOCO_DIR}/bin/libmujoco200.so
 				    ${MUJOCO_DIR}/bin/libglew.so
 				    ${MUJOCO_DIR}/bin/libglfw.so.3
 				    GL
 				    yaml-cpp
 )
-
+# deriv: compares Pinocchio and MuJoCo derivatives
+add_executable(${NODE_NAME3} src/derivative_comparison.cpp)
+target_link_libraries(${NODE_NAME3} ${MUJOCO_DIR}/bin/libmujoco200nogl.so
+					pthread
+					${PROJECT_NAME}
+					yaml-cpp
+					${Boost_SYSTEM_LIBRARY}
+					urdfdom_model
+)
+target_compile_definitions(${NODE_NAME3} PUBLIC PINOCCHIO_URDFDOM_TYPEDEF_SHARED_PTR
+										 	    PINOCCHIO_WITH_URDFDOM
+)
