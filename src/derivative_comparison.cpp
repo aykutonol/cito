@@ -1,3 +1,5 @@
+#include <chrono>
+
 #include "cito_numdiff.h"
 #include "pinocchio/algorithm/joint-configuration.hpp"
 #include "pinocchio/parsers/urdf.hpp"
@@ -150,14 +152,19 @@ int main(int argc, char const *argv[]) {
     mjData* dmain = mj_makeData(m);
     mjData* d = mj_makeData(m);
 
+    dmain->qvel[0] = 1;
+
     mj_forward(m, dmain);
+    showConfig(m, dmain);
     // Allocate derivatives
     deriv = (mjtNum*) mju_malloc(3*sizeof(mjtNum)*m->nv*m->nv);
     // Calculate derivatives
+    auto tMjStart = std::chrono::system_clock::now();
     worker(m, dmain, d);
+    auto tMjEnd = std::chrono::system_clock::now();
+    std::cout << "\nINFO: MuJoCo took " << std::chrono::duration<double>(tMjEnd-tMjStart).count() << " s\n\n";
 
-    showConfig(m, dmain);
-    mju_printMat(deriv, 3*m->nv, m->nv);
+//    mju_printMat(deriv, 3*m->nv, m->nv);
     std::cout << "dqacc/dqpos:\n";
     mju_printMat(deriv, m->nv, m->nv);
     std::cout << "dqacc/dqvel:\n";
@@ -171,17 +178,35 @@ int main(int argc, char const *argv[]) {
     pinocchio::urdf::buildModel("/home/aykut/Development/ur_ws/src/universal_robot/ur_e_description/urdf/ur3e.urdf", model);
     pinocchio::Data data(model);
 
-    eigVd q = pinocchio::neutral(model);
-    eigVd v = Eigen::VectorXd::Zero(model.nv);
+    eigVd q   = pinocchio::neutral(model);
+    eigVd v   = Eigen::VectorXd::Zero(model.nv);
+    eigVd a   = Eigen::VectorXd::Zero(model.nv);
     eigVd tau = Eigen::VectorXd::Zero(model.nv);
+
+    for( int i=0; i<model.nv; i++ )
+    {
+        q[i]   = dmain->qpos[i];
+        v[i]   = dmain->qvel[i];
+        a[i]   = dmain->qacc[i];
+        tau[i] = dmain->ctrl[i];
+    }
+
     std::cout<< "Pinocchio model name: " << model.name << "\n";
-    std::cout << "q = " << q.transpose() << "\n";
-    std::cout << "v = " << v.transpose() << "\n";
+    std::cout << "q   = " << q.transpose() << "\n";
+    std::cout << "v   = " << v.transpose() << "\n";
+    std::cout << "a   = " << a.transpose() << "\n";
+    std::cout << "tau = " << tau.transpose() << "\n";
+
+    auto tPinStart = std::chrono::system_clock::now();
     pinocchio::computeABADerivatives(model, data, q, v, tau);
+    auto tPinEnd = std::chrono::system_clock::now();
+    std::cout << "\nINFO: Pinocchio took " << std::chrono::duration<double>(tPinEnd-tPinStart).count() << " s\n\n";
 
     std::cout << "dqacc/dqpos:\n" << data.ddq_dq << "\n\n";
     std::cout << "dqacc/dqvel:\n" << data.ddq_dv << "\n\n";
     std::cout << "dqacc/dtau: \n" << data.Minv << "\n\n";
+
+
 
     // Shut down MuJoCo
     mju_free(deriv);
