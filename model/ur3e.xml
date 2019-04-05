@@ -51,4 +51,14 @@
             </body>
         </body>
     </worldbody>
+
+    <!-- Actuators -->
+    <actuator>
+      <motor name="shoulder_pan"  joint="shoulder_pan_joint"  ctrllimited="true" ctrlrange="-330 330" />
+      <motor name="shoulder_lift" joint="shoulder_lift_joint" ctrllimited="true" ctrlrange="-330 330" />
+      <motor name="elbow"         joint="elbow_joint"         ctrllimited="true" ctrlrange="-150 150" />
+      <motor name="wrist_1"       joint="wrist_1_joint"       ctrllimited="true" ctrlrange="-54 54" />
+      <motor name="wrist_2"       joint="wrist_2_joint"       ctrllimited="true" ctrlrange="-54 54" />
+      <motor name="wrist_3"       joint="wrist_3_joint"       ctrllimited="true" ctrlrange="-54 54" />
+    </actuator>
 </mujoco>
