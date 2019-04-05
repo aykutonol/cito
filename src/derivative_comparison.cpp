@@ -1,6 +1,7 @@
 #include "cito_numdiff.h"
 #include "pinocchio/algorithm/joint-configuration.hpp"
 #include "pinocchio/parsers/urdf.hpp"
+#include "pinocchio/algorithm/aba-derivatives.hpp"
 
 mjtNum* deriv = 0;          // dynamics derivatives (6*nv*nv):
 int nwarmup = 3;            // center point repetitions to improve warmstart
@@ -150,12 +151,12 @@ int main(int argc, char const *argv[]) {
     mjData* d = mj_makeData(m);
 
     mj_forward(m, dmain);
-    showConfig(m, dmain);
     // Allocate derivatives
     deriv = (mjtNum*) mju_malloc(3*sizeof(mjtNum)*m->nv*m->nv);
     // Calculate derivatives
     worker(m, dmain, d);
 
+    showConfig(m, dmain);
     mju_printMat(deriv, 3*m->nv, m->nv);
     std::cout << "dqacc/dqpos:\n";
     mju_printMat(deriv, m->nv, m->nv);
@@ -172,8 +173,15 @@ int main(int argc, char const *argv[]) {
 
     eigVd q = pinocchio::neutral(model);
     eigVd v = Eigen::VectorXd::Zero(model.nv);
+    eigVd tau = Eigen::VectorXd::Zero(model.nv);
     std::cout<< "Pinocchio model name: " << model.name << "\n";
     std::cout << "q = " << q.transpose() << "\n";
+    std::cout << "v = " << v.transpose() << "\n";
+    pinocchio::computeABADerivatives(model, data, q, v, tau);
+
+    std::cout << "dqacc/dqpos:\n" << data.ddq_dq << "\n\n";
+    std::cout << "dqacc/dqvel:\n" << data.ddq_dv << "\n\n";
+    std::cout << "dqacc/dtau: \n" << data.Minv << "\n\n";
 
     // Shut down MuJoCo
     mju_free(deriv);
