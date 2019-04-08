@@ -58,6 +58,7 @@ target_link_libraries(${NODE_NAME3} ${MUJOCO_DIR}/bin/libmujoco200nogl.so
 					pthread
 					${PROJECT_NAME}
 					yaml-cpp
+					${SNOPT_DIR}/lib/libsnopt7_cpp.so
 					${Boost_SYSTEM_LIBRARY}
 					urdfdom_model
 )
