@@ -19,7 +19,7 @@ CitoControl::CitoControl(const mjModel* model) : m(model), cp(model), sl(model)
     isJFree = new int[m->nv];      isAFree = new int[m->nu];
     // initialize Eigen variables
     h.resize(6*cp.nFree,1); hCon.resize(6*cp.nFree,1);
-    x.resize(cp.n,1);
+    x.resize(cp.n);
 }
 CitoControl::~CitoControl()
 {
@@ -110,7 +110,7 @@ eigMd CitoControl::contactModel(const mjData* d, const eigMd u)
 
 // getState: converts free joints' quaternions to Euler angles so that
 // the dimensionality of the state vector is 2*nv instead of nq+nv
-eigMm CitoControl::getState(const mjData* d)
+eigVm CitoControl::getState(const mjData* d)
 {
     x.setZero();
     int freeNo = 0;
@@ -136,6 +136,8 @@ eigMm CitoControl::getState(const mjData* d)
                 x(i-freeNo) = d->qpos[i];
             }
         }
+        std::cout << "xpos = " << x.head(m->nv).transpose() << "\nqpos = ";
+        mju_printMat(d->qpos, 1, m->nq);
     }
     else
     {

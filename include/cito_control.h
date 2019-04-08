@@ -27,7 +27,7 @@ public:
     void setControl(mjData* d, const eigMd u);
     /** This function converts free joints' quaternions to Euler angles so that
      *  the dimensionality of the state vector is 2*nv instead of nq+nv */
-    eigMm getState(const mjData* d);
+    eigVm getState(const mjData* d);
     /// This function gets bounds on joint positions, actuator forces from the model
     void getBounds();
     /// position & torque limits
@@ -45,7 +45,7 @@ private:
     double phiE, phiN, zeta, phiC, gamma, alpha, phiR;
     Eigen::Matrix<double, 3, 1> pSR, pSE, pBF, nCS, vRE, vEF, lambda;
     /// getState variables
-    eigMm x;
+    eigVm x;
     Eigen::Matrix<mjtNum, 4, 1> jFreeQuat;
     /// Objects
     CitoParams cp;
