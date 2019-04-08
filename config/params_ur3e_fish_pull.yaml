@@ -1,17 +1,17 @@
 # Model
-model: "ur3e.xml"
+model: "ur3e_fish.xml"
 
 # Simulation
-tf: 0.05 	# [s] final time
+tf: 0.75 	# [s] final time
 tc: 5e-2 	# [s] control sampling period
 
 # Contact pairs
 ## number of contact pairs
-npair: 0
+npair: 1
 ## indices of the sites on the robot
-spair1: []
+spair1: [2]
 ## indices of the corresponding sites in the environment	
-spair2: []
+spair2: [1]
 
 # Task
 ## desired final pose of the control joint
