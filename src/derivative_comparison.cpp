@@ -1,9 +1,10 @@
 #include <chrono>
 
-#include "cito_numdiff.h"
-#include "pinocchio/algorithm/joint-configuration.hpp"
-#include "pinocchio/parsers/urdf.hpp"
-#include "pinocchio/algorithm/aba-derivatives.hpp"
+#include "cito_scvx.h"
+
+//#include "pinocchio/algorithm/joint-configuration.hpp"
+//#include "pinocchio/parsers/urdf.hpp"
+//#include "pinocchio/algorithm/aba-derivatives.hpp"
 
 mjtNum* deriv = 0;          // dynamics derivatives (6*nv*nv):
 int nwarmup = 3;            // center point repetitions to improve warmstart
@@ -174,38 +175,51 @@ int main(int argc, char const *argv[]) {
 
 
     // Pinocchio
-    pinocchio::Model model;
-    pinocchio::urdf::buildModel("/home/aykut/Development/ur_ws/src/universal_robot/ur_e_description/urdf/ur3e.urdf", model);
-    pinocchio::Data data(model);
+//    pinocchio::Model model;
+//    pinocchio::urdf::buildModel("/home/aykut/Development/ur_ws/src/universal_robot/ur_e_description/urdf/ur3e.urdf", model);
+//    pinocchio::Data data(model);
+//
+//    eigVd q   = pinocchio::neutral(model);
+//    eigVd v   = Eigen::VectorXd::Zero(model.nv);
+//    eigVd a   = Eigen::VectorXd::Zero(model.nv);
+//    eigVd tau = Eigen::VectorXd::Zero(model.nv);
+//
+//    for( int i=0; i<model.nv; i++ )
+//    {
+//        q[i]   = dmain->qpos[i];
+//        v[i]   = dmain->qvel[i];
+//        a[i]   = dmain->qacc[i];
+//        tau[i] = dmain->ctrl[i];
+//    }
+//
+//    std::cout<< "Pinocchio model name: " << model.name << "\n";
+//    std::cout << "q   = " << q.transpose() << "\n";
+//    std::cout << "v   = " << v.transpose() << "\n";
+//    std::cout << "a   = " << a.transpose() << "\n";
+//    std::cout << "tau = " << tau.transpose() << "\n";
+//
+//    auto tPinStart = std::chrono::system_clock::now();
+//    pinocchio::computeABADerivatives(model, data, q, v, tau);
+//    auto tPinEnd = std::chrono::system_clock::now();
+//    std::cout << "\nINFO: Pinocchio took " << std::chrono::duration<double>(tPinEnd-tPinStart).count() << " s\n\n";
+//
+//    std::cout << "dqacc/dqpos:\n" << data.ddq_dq << "\n\n";
+//    std::cout << "dqacc/dqvel:\n" << data.ddq_dv << "\n\n";
+//    std::cout << "dqacc/dtau: \n" << data.Minv << "\n\n";
 
-    eigVd q   = pinocchio::neutral(model);
-    eigVd v   = Eigen::VectorXd::Zero(model.nv);
-    eigVd a   = Eigen::VectorXd::Zero(model.nv);
-    eigVd tau = Eigen::VectorXd::Zero(model.nv);
 
-    for( int i=0; i<model.nv; i++ )
-    {
-        q[i]   = dmain->qpos[i];
-        v[i]   = dmain->qvel[i];
-        a[i]   = dmain->qacc[i];
-        tau[i] = dmain->ctrl[i];
-    }
+    // MuJoCo prediction
+    CitoNumDiff nd(m);
+    CitoParams  cp(m);
+    eigMm U;        U = Eigen:: MatrixXd::Zero(cp.m, 1);
+    derTraj Fx, Fu; Fx.resize(cp.n*cp.n, 1); Fu.resize(cp.n*cp.m, 1);
+    std::cout << "n = " << cp.n << ", m = " << cp.m << ", N: " << cp.N << "\n";
+    double tM = cp.dt*cp.ndpc;
+    std::cout << "dt = " << cp.dt << ", ndpc = " << cp.ndpc << ", tM = " << tM << "\n";
 
-    std::cout<< "Pinocchio model name: " << model.name << "\n";
-    std::cout << "q   = " << q.transpose() << "\n";
-    std::cout << "v   = " << v.transpose() << "\n";
-    std::cout << "a   = " << a.transpose() << "\n";
-    std::cout << "tau = " << tau.transpose() << "\n";
-
-    auto tPinStart = std::chrono::system_clock::now();
-    pinocchio::computeABADerivatives(model, data, q, v, tau);
-    auto tPinEnd = std::chrono::system_clock::now();
-    std::cout << "\nINFO: Pinocchio took " << std::chrono::duration<double>(tPinEnd-tPinStart).count() << " s\n\n";
-
-    std::cout << "dqacc/dqpos:\n" << data.ddq_dq << "\n\n";
-    std::cout << "dqacc/dqvel:\n" << data.ddq_dv << "\n\n";
-    std::cout << "dqacc/dtau: \n" << data.Minv << "\n\n";
-
+    nd.linDyn(dmain, U, Fx.data(), Fu.data());
+    std::cout << "Fx:\n";
+    mju_printMat(Fx.data(), cp.n, cp.n);
 
 
     // Shut down MuJoCo
