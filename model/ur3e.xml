@@ -11,6 +11,7 @@
         <mesh name="wrist3"   file="wrist3.stl" />
     </asset>
     <worldbody>
+    <body name="base" pos="0 0 0">
         <geom type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="base" />
         <geom type="mesh" rgba="0.7 0.7 0.7 1" mesh="base" />
         <body name="shoulder_link" pos="0 0 0.152">
@@ -50,6 +51,7 @@
                 </body>
             </body>
         </body>
+      </body>
     </worldbody>
 
     <!-- Actuators -->
