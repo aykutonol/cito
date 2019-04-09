@@ -49,7 +49,7 @@ void CitoControl::setControl(mjData* d, const eigMd u)
     // set control given the control input
     for( int i=0; i<m->nu; i++ )
     {
-      d->ctrl[i] = u(i) + d->qfrc_bias[cp.dAct[i]];
+      d->ctrl[i] = u(i) + 0*d->qfrc_bias[cp.dAct[i]];
     }
     // contact model
     hCon.setZero();
