@@ -20,7 +20,7 @@ void worker(const mjModel* m, const mjData* dmain, mjData* d)
     mjtNum* center = mj_stackAlloc(d, nv);
     mjtNum* warmstart = mj_stackAlloc(d, nv);
 
-    // copy state and control from dmain to thread-specific d
+    // copy state and control from dmain to d
     d->time = dmain->time;
     mju_copy(d->qpos, dmain->qpos, m->nq);
     mju_copy(d->qvel, dmain->qvel, m->nv);
@@ -127,7 +127,7 @@ void worker(const mjModel* m, const mjData* dmain, mjData* d)
     mjFREESTACK
 }
 
-void showConfig(mjModel*m, mjData* d)
+void showConfig(mjModel* m, mjData* d)
 {
     std::cout << "\ntime: " << d->time << "\n";
     std::cout << "qpos: ";
@@ -140,6 +140,21 @@ void showConfig(mjModel*m, mjData* d)
     mju_printMat(d->ctrl, 1, m->nu);
 }
 
+void copyData(mjModel* m, mjData* dmain, mjData* d)
+{
+    // copy state and control from dmain to thread-specific d
+    d->time = dmain->time;
+    mju_copy(d->qpos, dmain->qpos, m->nq);
+    mju_copy(d->qvel, dmain->qvel, m->nv);
+    mju_copy(d->qacc, dmain->qacc, m->nv);
+    mju_copy(d->qacc_warmstart, dmain->qacc_warmstart, m->nv);
+    mju_copy(d->qfrc_applied, dmain->qfrc_applied, m->nv);
+    mju_copy(d->xfrc_applied, dmain->xfrc_applied, 6*m->nbody);
+    mju_copy(d->ctrl, dmain->ctrl, m->nu);
+    // run full computation at center point (usually faster than copying dmain)
+    mj_forward(m, d);
+}
+
 int main(int argc, char const *argv[]) {
     // Activate MuJoCo
     const char* mjKeyPath = std::getenv("MJ_KEY");
@@ -150,28 +165,31 @@ int main(int argc, char const *argv[]) {
     if( !m )
         mju_error("Could not load model");
     // Create data
-    mjData* dmain = mj_makeData(m);
     mjData* d = mj_makeData(m);
+    mjData* dtemp = mj_makeData(m);
 
-    dmain->qvel[0] = 1;
+    d->qvel[0] = 1;
 
-    mj_forward(m, dmain);
-    showConfig(m, dmain);
+    mj_forward(m, d);
+    showConfig(m, d);
     // Allocate derivatives
     deriv = (mjtNum*) mju_malloc(3*sizeof(mjtNum)*m->nv*m->nv);
     // Calculate derivatives
     auto tMjStart = std::chrono::system_clock::now();
-    worker(m, dmain, d);
+    worker(m, d, dtemp);
     auto tMjEnd = std::chrono::system_clock::now();
     std::cout << "\nINFO: MuJoCo took " << std::chrono::duration<double>(tMjEnd-tMjStart).count() << " s\n\n";
 
+    eigMm da_dq, da_dv, da_df;
+    da_dq.resize(m->nv, m->nv); da_dv.resize(m->nv, m->nv); da_df.resize(m->nv, m->nu);
+    mju_copy(da_dq.data(), deriv, m->nv*m->nv);
+    mju_copy(da_dv.data(), deriv+m->nv*m->nv, m->nv*m->nv);
+    mju_copy(da_df.data(), deriv+2*m->nv*m->nv, m->nv*m->nu);
+
 //    mju_printMat(deriv, 3*m->nv, m->nv);
-    std::cout << "dqacc/dqpos:\n";
-    mju_printMat(deriv, m->nv, m->nv);
-    std::cout << "dqacc/dqvel:\n";
-    mju_printMat(deriv+m->nv*m->nv, m->nv, m->nv);
-    std::cout << "dqacc/dtau:\n";
-    mju_printMat(deriv+2*m->nv*m->nv, m->nv, m->nv);
+    std::cout << "dqacc/dqpos:\n" << da_dq << "\n----------------\n";
+    std::cout << "dqacc/dqvel:\n" << da_dv << "\n----------------\n";
+    std::cout << "dqacc/dtau:\n"  << da_df << "\n----------------\n";
 
 
     // Pinocchio
@@ -186,10 +204,10 @@ int main(int argc, char const *argv[]) {
 //
 //    for( int i=0; i<model.nv; i++ )
 //    {
-//        q[i]   = dmain->qpos[i];
-//        v[i]   = dmain->qvel[i];
-//        a[i]   = dmain->qacc[i];
-//        tau[i] = dmain->ctrl[i];
+//        q[i]   = d->qpos[i];
+//        v[i]   = d->qvel[i];
+//        a[i]   = d->qacc[i];
+//        tau[i] = d->ctrl[i];
 //    }
 //
 //    std::cout<< "Pinocchio model name: " << model.name << "\n";
@@ -212,20 +230,55 @@ int main(int argc, char const *argv[]) {
     CitoNumDiff nd(m);
     CitoParams  cp(m);
     eigMm U;        U = Eigen:: MatrixXd::Zero(cp.m, 1);
-    derTraj Fx, Fu; Fx.resize(cp.n*cp.n, 1); Fu.resize(cp.n*cp.m, 1);
+    eigTm Fx, Fu; Fx.resize(1); Fu.resize(1);
+    Fx[0].resize(cp.n, cp.n); Fu[0].resize(cp.n, cp.m);
     std::cout << "n = " << cp.n << ", m = " << cp.m << ", N: " << cp.N << "\n";
     double tM = cp.dt*cp.ndpc;
     std::cout << "dt = " << cp.dt << ", ndpc = " << cp.ndpc << ", tM = " << tM << "\n";
 
-    nd.linDyn(dmain, U, Fx.data(), Fu.data());
-    std::cout << "Fx:\n";
-    mju_printMat(Fx.data(), cp.n, cp.n);
+    nd.linDyn(d, U, Fx[0].data(), Fu[0].data());
+    std::cout << "Fx:\n" << Fx[0] << "\n\n";
+    std::cout << "Fu:\n" << Fu[0] << "\n";
+
+    eigMm FxTest; FxTest.resize(cp.n, cp.n); FxTest.setZero();
+    FxTest.topLeftCorner(m->nv, m->nv)     = Eigen::MatrixXd::Identity(m->nv, m->nv);
+    FxTest.topRightCorner(m->nv, m->nv)    = tM*Eigen::MatrixXd::Identity(m->nv, m->nv);
+    FxTest.bottomLeftCorner(m->nv, m->nv)  = tM*da_dq;
+    FxTest.bottomRightCorner(m->nv, m->nv) = Eigen::MatrixXd::Identity(m->nv, m->nv) + tM*da_dv;
+
+    eigMm FuTest; FuTest.resize(cp.n, cp.m); FuTest.setZero();
+    FuTest.bottomRows(m->nv) = tM*da_df;
+
+    std::cout << "FxTest:\n" << FxTest << "\n\n";
+    std::cout << "FuTest:\n" << FuTest << "\n\n";
+
+    mjData* dNom = mj_makeData(m);
+    copyData(m, d, dNom);
+
+    std::cout << "Nominal data:\n";
+    showConfig(m, dNom);
+    for( int i=0; i<cp.ndpc; i++ )
+        mj_step(m, dNom);
+    showConfig(m, dNom);
+
+    mjData* dP = mj_makeData(m);
+    copyData(m, d, dP);
+
+    std::cout << "Perturbed data:\n";
+    showConfig(m, dP);
+    for( int i=0; i<cp.ndpc; i++ )
+    {
+        mj_step1(m, dP);
+        dP->ctrl[1] = 1e-2;
+        mj_step2(m, dP);
+    }
+    showConfig(m, dP);
 
 
     // Shut down MuJoCo
     mju_free(deriv);
-    mj_deleteData(dmain);
     mj_deleteData(d);
+    mj_deleteData(dtemp);
     mj_deleteModel(m);
     mj_deactivate();
     return 0;
