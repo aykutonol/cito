@@ -2,9 +2,9 @@
 
 #include "cito_scvx.h"
 
-//#include "pinocchio/algorithm/joint-configuration.hpp"
-//#include "pinocchio/parsers/urdf.hpp"
-//#include "pinocchio/algorithm/aba-derivatives.hpp"
+#include "pinocchio/algorithm/joint-configuration.hpp"
+#include "pinocchio/parsers/urdf.hpp"
+#include "pinocchio/algorithm/aba-derivatives.hpp"
 
 mjtNum* deriv = 0;          // dynamics derivatives (6*nv*nv):
 int nwarmup = 3;            // center point repetitions to improve warmstart
@@ -151,8 +151,6 @@ void copyData(mjModel* m, mjData* dmain, mjData* d)
     mju_copy(d->qfrc_applied, dmain->qfrc_applied, m->nv);
     mju_copy(d->xfrc_applied, dmain->xfrc_applied, 6*m->nbody);
     mju_copy(d->ctrl, dmain->ctrl, m->nu);
-    // run full computation at center point (usually faster than copying dmain)
-    mj_forward(m, d);
 }
 
 int main(int argc, char const *argv[]) {
@@ -178,7 +176,7 @@ int main(int argc, char const *argv[]) {
     auto tMjStart = std::chrono::system_clock::now();
     worker(m, d, dtemp);
     auto tMjEnd = std::chrono::system_clock::now();
-    std::cout << "\nINFO: MuJoCo took " << std::chrono::duration<double>(tMjEnd-tMjStart).count() << " s\n\n";
+    std::cout << "\nINFO: MuJoCo worker took " << std::chrono::duration<double>(tMjEnd-tMjStart).count() << " s\n\n";
 
     eigMm da_dq, da_dv, da_df;
     da_dq.resize(m->nv, m->nv); da_dv.resize(m->nv, m->nv); da_df.resize(m->nv, m->nu);
@@ -186,94 +184,176 @@ int main(int argc, char const *argv[]) {
     mju_copy(da_dv.data(), deriv+m->nv*m->nv, m->nv*m->nv);
     mju_copy(da_df.data(), deriv+2*m->nv*m->nv, m->nv*m->nu);
 
-//    mju_printMat(deriv, 3*m->nv, m->nv);
     std::cout << "dqacc/dqpos:\n" << da_dq << "\n----------------\n";
     std::cout << "dqacc/dqvel:\n" << da_dv << "\n----------------\n";
     std::cout << "dqacc/dtau:\n"  << da_df << "\n----------------\n";
 
 
     // Pinocchio
-//    pinocchio::Model model;
-//    pinocchio::urdf::buildModel("/home/aykut/Development/ur_ws/src/universal_robot/ur_e_description/urdf/ur3e.urdf", model);
-//    pinocchio::Data data(model);
-//
-//    eigVd q   = pinocchio::neutral(model);
-//    eigVd v   = Eigen::VectorXd::Zero(model.nv);
-//    eigVd a   = Eigen::VectorXd::Zero(model.nv);
-//    eigVd tau = Eigen::VectorXd::Zero(model.nv);
-//
-//    for( int i=0; i<model.nv; i++ )
-//    {
-//        q[i]   = d->qpos[i];
-//        v[i]   = d->qvel[i];
-//        a[i]   = d->qacc[i];
-//        tau[i] = d->ctrl[i];
-//    }
-//
-//    std::cout<< "Pinocchio model name: " << model.name << "\n";
-//    std::cout << "q   = " << q.transpose() << "\n";
-//    std::cout << "v   = " << v.transpose() << "\n";
-//    std::cout << "a   = " << a.transpose() << "\n";
-//    std::cout << "tau = " << tau.transpose() << "\n";
-//
-//    auto tPinStart = std::chrono::system_clock::now();
-//    pinocchio::computeABADerivatives(model, data, q, v, tau);
-//    auto tPinEnd = std::chrono::system_clock::now();
-//    std::cout << "\nINFO: Pinocchio took " << std::chrono::duration<double>(tPinEnd-tPinStart).count() << " s\n\n";
-//
-//    std::cout << "dqacc/dqpos:\n" << data.ddq_dq << "\n\n";
-//    std::cout << "dqacc/dqvel:\n" << data.ddq_dv << "\n\n";
-//    std::cout << "dqacc/dtau: \n" << data.Minv << "\n\n";
+    pinocchio::Model model;
+    pinocchio::urdf::buildModel("/home/aykut/Development/ur_ws/src/universal_robot/ur_e_description/urdf/ur3e.urdf", model);
+    pinocchio::Data data(model);
 
+    eigVd q   = pinocchio::neutral(model);
+    eigVd v   = Eigen::VectorXd::Zero(model.nv);
+    eigVd a   = Eigen::VectorXd::Zero(model.nv);
+    eigVd tau = Eigen::VectorXd::Zero(model.nv);
+
+    for( int i=0; i<model.nv; i++ )
+    {
+        q[i]   = d->qpos[i];
+        v[i]   = d->qvel[i];
+        a[i]   = d->qacc[i];
+        tau[i] = d->ctrl[i];
+    }
+
+    std::cout<< "Pinocchio model name: " << model.name << "\n";
+    std::cout << "q   = " << q.transpose() << "\n";
+    std::cout << "v   = " << v.transpose() << "\n";
+    std::cout << "a   = " << a.transpose() << "\n";
+    std::cout << "tau = " << tau.transpose() << "\n";
+
+    auto tPinStart = std::chrono::system_clock::now();
+    pinocchio::computeABADerivatives(model, data, q, v, tau);
+    auto tPinEnd = std::chrono::system_clock::now();
+    std::cout << "\nINFO: Pinocchio took " << std::chrono::duration<double>(tPinEnd-tPinStart).count() << " s\n\n";
+
+    std::cout << "dqacc/dqpos:\n" << data.ddq_dq << "\n\n";
+    std::cout << "dqacc/dqvel:\n" << data.ddq_dv << "\n\n";
+    std::cout << "dqacc/dtau: \n" << data.Minv << "\n\n";
 
     // MuJoCo prediction
-    CitoNumDiff nd(m);
     CitoParams  cp(m);
+    CitoNumDiff nd(m);
+    CitoControl cc(m);
     eigMm U;        U = Eigen:: MatrixXd::Zero(cp.m, 1);
-    eigTm Fx, Fu; Fx.resize(1); Fu.resize(1);
-    Fx[0].resize(cp.n, cp.n); Fu[0].resize(cp.n, cp.m);
+    eigMm FxHW, FuHW;
+    FxHW.resize(cp.n, cp.n); FuHW.resize(cp.n, cp.m);
     std::cout << "n = " << cp.n << ", m = " << cp.m << ", N: " << cp.N << "\n";
     double tM = cp.dt*cp.ndpc;
     std::cout << "dt = " << cp.dt << ", ndpc = " << cp.ndpc << ", tM = " << tM << "\n";
 
-    nd.linDyn(d, U, Fx[0].data(), Fu[0].data());
-    std::cout << "Fx:\n" << Fx[0] << "\n\n";
-    std::cout << "Fu:\n" << Fu[0] << "\n";
+    // hardWorkder derivatives
+    auto tHWStart = std::chrono::system_clock::now();
+    nd.linDyn(d, U, FxHW.data(), FuHW.data());
+    auto tHWEnd = std::chrono::system_clock::now();
+    std::cout << "\nINFO: MuJoCo hardWorker took " << std::chrono::duration<double>(tHWEnd-tHWStart).count() << " s\n\n";
 
-    eigMm FxTest; FxTest.resize(cp.n, cp.n); FxTest.setZero();
-    FxTest.topLeftCorner(m->nv, m->nv)     = Eigen::MatrixXd::Identity(m->nv, m->nv);
-    FxTest.topRightCorner(m->nv, m->nv)    = tM*Eigen::MatrixXd::Identity(m->nv, m->nv);
-    FxTest.bottomLeftCorner(m->nv, m->nv)  = tM*da_dq;
-    FxTest.bottomRightCorner(m->nv, m->nv) = Eigen::MatrixXd::Identity(m->nv, m->nv) + tM*da_dv;
 
-    eigMm FuTest; FuTest.resize(cp.n, cp.m); FuTest.setZero();
-    FuTest.bottomRows(m->nv) = tM*da_df;
+    // worker derivatives
+    eigMm FxW; FxW.resize(cp.n, cp.n); FxW.setZero();
+    FxW.topLeftCorner(m->nv, m->nv)     = Eigen::MatrixXd::Identity(m->nv, m->nv);
+    FxW.topRightCorner(m->nv, m->nv)    = tM*Eigen::MatrixXd::Identity(m->nv, m->nv);
+    FxW.bottomLeftCorner(m->nv, m->nv)  = tM*da_dq;
+    FxW.bottomRightCorner(m->nv, m->nv) = Eigen::MatrixXd::Identity(m->nv, m->nv) + tM*da_dv;
 
-    std::cout << "FxTest:\n" << FxTest << "\n\n";
-    std::cout << "FuTest:\n" << FuTest << "\n\n";
+    eigMm FuW; FuW.resize(cp.n, cp.m); FuW.setZero();
+    FuW.bottomRows(m->nv) = tM*da_df;
 
-    mjData* dNom = mj_makeData(m);
-    copyData(m, d, dNom);
 
-    std::cout << "Nominal data:\n";
-    showConfig(m, dNom);
+    // pinocchio derivatives
+    eigMm FxP; FxP.resize(cp.n, cp.n); FxP.setZero();
+    FxP.topLeftCorner(m->nv, m->nv)     = Eigen::MatrixXd::Identity(m->nv, m->nv);
+    FxP.topRightCorner(m->nv, m->nv)    = tM*Eigen::MatrixXd::Identity(m->nv, m->nv);
+    FxP.bottomLeftCorner(m->nv, m->nv)  = tM*data.ddq_dq;
+    FxP.bottomRightCorner(m->nv, m->nv) = Eigen::MatrixXd::Identity(m->nv, m->nv) + tM*data.ddq_dv;
+
+    eigMm FuP; FuP.resize(cp.n, cp.m); FuP.setZero();
+    FuP.bottomRows(m->nv) = tM*data.Minv;
+
+    // show derivative matrices
+    std::cout << "FxHW:\n" << FxHW << "\n\n";
+    std::cout << "FxW:\n" << FxW << "\n\n";
+    std::cout << "FxP:\n" << FxP << "\n\n";
+    std::cout << "FuHW:\n" << FuHW << "\n";
+    std::cout << "FuW:\n" << FuW << "\n\n";
+    std::cout << "FuP:\n" << FuP << "\n\n";
+
+    // Nominal trajectory
+    mjData* dNominal = mj_makeData(m);
+    copyData(m, d, dNominal);
+
+    std::cout << "Nominal trajectory:";
+    showConfig(m, dNominal);
     for( int i=0; i<cp.ndpc; i++ )
-        mj_step(m, dNom);
-    showConfig(m, dNom);
+        mj_step(m, dNominal);
+    showConfig(m, dNominal);
+    eigVm xNewN = cc.getState(dNominal);
 
-    mjData* dP = mj_makeData(m);
-    copyData(m, d, dP);
+    // Perturbation
+    eigVm x, dx, u, du;
+    x.resize(cp.n);  dx.resize(cp.n);   dx.setZero();
+    u.resize(m->nu); du.resize(m->nu);  du.setZero();
 
-    std::cout << "Perturbed data:\n";
-    showConfig(m, dP);
+    YAML::Node perturb = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/perturbation.yaml");
+    std::vector<double> dqInput = { perturb["dq"].as<std::vector<double>>() };
+    std::vector<double> dvInput = { perturb["dv"].as<std::vector<double>>() };
+    std::vector<double> duInput = { perturb["du"].as<std::vector<double>>() };
+    dx.head(m->nv) = Eigen::Map<Eigen::VectorXd>(dqInput.data(), dqInput.size());
+    dx.tail(m->nv) = Eigen::Map<Eigen::VectorXd>(dvInput.data(), dvInput.size());
+    du = Eigen::Map<Eigen::VectorXd>(duInput.data(), duInput.size());
+
+    mju_copy(u.data(), d->ctrl, m->nu);
+    std::cout << "  u: " << u.transpose() << "\n  du: " << du.transpose() <<  "\n";
+    u += du;
+    std::cout << "  unew: " << u.transpose() << "\n";
+
+    x = cc.getState(d);
+    std::cout << "  x: " << x.transpose() << "\n  dq: " << dx.head(m->nv).transpose() << "\n";
+    std::cout << "  dv: " << dx.tail(m->nv).transpose() << "\n";
+    x += dx;
+    std::cout << "  xnew: " << x.transpose() << "\n\n";
+
+
+    // Perturbed trajectory
+    mjData* dPerturbed = mj_makeData(m);
+    copyData(m, d, dPerturbed);
+    mju_copy(dPerturbed->ctrl, u.data(), m->nu);
+    mju_copy(dPerturbed->qpos, x.head(m->nv).data(), m->nv);
+    mju_copy(dPerturbed->qvel, x.tail(m->nv).data(), m->nv);
+    // run full computation at center point (usually faster than copying dmain)
+    mj_forward(m, dPerturbed);
+
+    std::cout << "Perturbed trajectory:";
+    showConfig(m, dPerturbed);
     for( int i=0; i<cp.ndpc; i++ )
     {
-        mj_step1(m, dP);
-        dP->ctrl[1] = 1e-2;
-        mj_step2(m, dP);
+        mj_step(m, dPerturbed);
     }
-    showConfig(m, dP);
+    showConfig(m, dPerturbed);
+    eigVm xNewPerturbed = cc.getState(dPerturbed);
 
+    std::cout << "Perturbation:\n";
+    std::cout << "  dx: " << dx.transpose() << "\n";
+    std::cout << "  du: " << du.transpose() << "\n\n";
+
+    std::cout << "actual next state:\n";
+    std::cout << "  pos: " << xNewPerturbed.head(m->nv).transpose() << "\n";
+    std::cout << "  vel: " << xNewPerturbed.tail(m->nv).transpose() << "\n\n";
+
+    eigVm xNewHW(cp.n); xNewHW.setZero();
+    xNewHW = xNewN + FxHW*dx + FuHW*du;
+    std::cout << "hardWorker prediction:\n";
+    std::cout << "  pos: " << xNewHW.head(m->nv).transpose() << "\n";
+    std::cout << "  vel: " << xNewHW.tail(m->nv).transpose() << "\n";
+    std::cout << "  norm(error): " << (xNewPerturbed-xNewHW).norm() << "\n";
+    std::cout << "  comp. time: " << std::chrono::duration<double>(tHWEnd-tHWStart).count() << " s\n\n";
+
+    eigVm xNewW(cp.n); xNewW.setZero();
+    xNewW = xNewN + FxW*dx + FuW*du;
+    std::cout << "worker prediction:\n";
+    std::cout << "  pos: " << xNewW.head(m->nv).transpose() << "\n";
+    std::cout << "  vel: " << xNewW.tail(m->nv).transpose() << "\n";
+    std::cout << "  norm(error): " << (xNewPerturbed-xNewW).norm() << "\n";
+    std::cout << "  comp. time: " << std::chrono::duration<double>(tMjEnd-tMjStart).count() << " s\n\n";
+
+    eigVm xNewP(cp.n); xNewP.setZero();
+    xNewP = xNewN + FxP*dx + FuP*du;
+    std::cout << "pinocchio prediction:\n";
+    std::cout << "  pos: " << xNewP.head(m->nv).transpose() << "\n";
+    std::cout << "  vel: " << xNewP.tail(m->nv).transpose() << "\n";
+    std::cout << "  norm(error): " << (xNewPerturbed-xNewP).norm() << "\n";
+    std::cout << "  comp. time: " << std::chrono::duration<double>(tPinEnd-tPinStart).count() << " s\n\n";
 
     // Shut down MuJoCo
     mju_free(deriv);
