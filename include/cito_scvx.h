@@ -46,7 +46,7 @@ private:
     /// Trajectories
     eigMm XSucc, dX, XTilde;
     eigMd USucc, dU, UTemp;
-    derTraj Fx, Fu;
+    eigTm Fx, Fu;
     trajectory traj, trajS, trajTemp;
     /// Cost function variables
     eigVd finalPos;

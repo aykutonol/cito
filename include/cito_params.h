@@ -15,7 +15,6 @@
 
 #include "mujoco.h"
 #include <Eigen/Dense>
-#include <Eigen/StdVector>
 #include <yaml-cpp/yaml.h>
 
 #ifndef CITO_PARAMS_H
@@ -26,15 +25,15 @@ typedef Eigen::VectorXd eigVd;
 typedef Eigen::MatrixXd eigMd;
 typedef Eigen::Matrix<mjtNum, Eigen::Dynamic, 1> eigVm;
 typedef Eigen::Matrix<mjtNum, Eigen::Dynamic, Eigen::Dynamic> eigMm;
-typedef Eigen::Matrix<mjtNum, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor> derTraj;
+typedef std::vector<eigMm> eigTm;
 
 /// Structs
 struct trajectory
 {
     eigMm X;
-    eigMd  U;
-    derTraj Fx;
-    derTraj Fu;
+    eigMd U;
+    eigTm Fx;
+    eigTm Fu;
 };
 
 /// Paths

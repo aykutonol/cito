@@ -85,7 +85,6 @@ void CitoNumDiff::hardWorker(const mjData* dMain, const eigMd uMain, mjtNum* der
         }
         else
         {
-            std::cout << "jID: " << jID << "\n";
             d->qpos[m->jnt_qposadr[jID] + i - m->jnt_dofadr[jID]] -= eps;
         }
         // get the negative perturbed state
@@ -150,9 +149,6 @@ void CitoNumDiff::linDyn(const mjData* dMain, const eigMd uMain, mjtNum* Fxd, mj
 {
     mjtNum* deriv = (mjtNum*) mju_malloc(sizeof(mjtNum)*cp.n*(cp.n+cp.m));
     this->hardWorker( dMain, uMain, deriv);
-
-    mju_printMat(deriv, cp.n, cp.n);
-
     mju_copy(Fxd, deriv, cp.n*cp.n);
     mju_copy(Fud, deriv+cp.n*cp.n, cp.n*cp.m);
     mju_free(deriv);
