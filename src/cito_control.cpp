@@ -31,7 +31,7 @@ CitoControl::~CitoControl()
 
 // ***** FUNCTIONS *************************************************************
 // takeStep: takes a full control step given a control input
-void CitoControl::takeStep(mjData*d, const eigMd u, bool save)
+void CitoControl::takeStep(mjData*d, const eigVd u, bool save)
 {
     if( save ) { sl.writeData(d); }
     for( int i=0; i<cp.ndpc; i++ )
@@ -44,12 +44,12 @@ void CitoControl::takeStep(mjData*d, const eigMd u, bool save)
 }
 
 // setControl: sets generalized forces on joints and free bodies
-void CitoControl::setControl(mjData* d, const eigMd u)
+void CitoControl::setControl(mjData* d, const eigVd u)
 {
     // set control given the control input
     for( int i=0; i<m->nu; i++ )
     {
-      d->ctrl[i] = u(i) + 0*d->qfrc_bias[cp.dAct[i]];
+      d->ctrl[i] = u(i) + 1*d->qfrc_bias[cp.dAct[i]];
     }
     // contact model
     hCon.setZero();
@@ -65,7 +65,7 @@ void CitoControl::setControl(mjData* d, const eigMd u)
 }
 
 // contactModel: returns contact wrench given current state and control input
-eigMd CitoControl::contactModel(const mjData* d, const eigMd u)
+eigMd CitoControl::contactModel(const mjData* d, const eigVd u)
 {
     h.setZero();
     // loop for each contact pair
