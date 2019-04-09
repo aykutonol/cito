@@ -13,7 +13,7 @@ CitoNumDiff::CitoNumDiff(const mjModel* model) : m(model), cp(model), cc(model)
 }
 // ***** FUNCTIONS *************************************************************
 // copyTakeStep: sets xNew to the integration of data given a control input
-void CitoNumDiff::copyTakeStep(const mjData* dMain, const eigVd u, mjtNum* xNew)
+void CitoNumDiff::copyTakeStep(const mjData* dMain, const eigVd u, mjtNum* xNew, double compensateBias)
 {
     // create new data
     mjData* d;
@@ -29,9 +29,9 @@ void CitoNumDiff::copyTakeStep(const mjData* dMain, const eigVd u, mjtNum* xNew)
     mju_copy(d->ctrl, dMain->ctrl, m->nu);
     // run full computation at center point (usually faster than copying dMain)
     mj_forward(m, d);
-    cc.setControl(d, u);
+    cc.setControl(d, u, compensateBias);
     // take a full control step (i.e., tc/dt steps)
-    cc.takeStep(d, u, false);
+    cc.takeStep(d, u, false, compensateBias);
     // get new state
     xNewTemp.setZero();
     xNewTemp = cc.getState(d);
@@ -41,7 +41,7 @@ void CitoNumDiff::copyTakeStep(const mjData* dMain, const eigVd u, mjtNum* xNew)
 }
 
 // hardWorker: for full, slow finite-difference computation
-void CitoNumDiff::hardWorker(const mjData* dMain, const eigVd uMain, mjtNum* deriv)
+void CitoNumDiff::hardWorker(const mjData* dMain, const eigVd uMain, mjtNum* deriv, double compensateBias)
 {
     // create data
     mjData* d;
@@ -73,7 +73,7 @@ void CitoNumDiff::hardWorker(const mjData* dMain, const eigVd uMain, mjtNum* der
         }
         // get the positive perturbed state
         xNewP.setZero();
-        this->copyTakeStep(d, uMain, xNewP.data());
+        this->copyTakeStep(d, uMain, xNewP.data(), compensateBias);
         // undo perturbation
         mju_copy(d->qpos, dMain->qpos, m->nq);
         // apply quaternion or simple perturbation
@@ -89,7 +89,7 @@ void CitoNumDiff::hardWorker(const mjData* dMain, const eigVd uMain, mjtNum* der
         }
         // get the negative perturbed state
         xNewN.setZero();
-        this->copyTakeStep(d, uMain, xNewN.data());
+        this->copyTakeStep(d, uMain, xNewN.data(), compensateBias);
         // undo perturbation
         mju_copy(d->qpos, dMain->qpos, m->nq);
         // compute column i of dx/dqpos
@@ -105,12 +105,12 @@ void CitoNumDiff::hardWorker(const mjData* dMain, const eigVd uMain, mjtNum* der
         d->qvel[i] += eps;
         // get the positive perturbed state
         xNewP.setZero();
-        this->copyTakeStep(d, uMain, xNewP.data());
+        this->copyTakeStep(d, uMain, xNewP.data(), compensateBias);
         // perturb velocity
         d->qvel[i] = dMain->qvel[i]-eps;
         // get the negative perturbed state
         xNewN.setZero();
-        this->copyTakeStep(d, uMain, xNewN.data());
+        this->copyTakeStep(d, uMain, xNewN.data(), compensateBias);
         // undo perturbation
         d->qvel[i] = dMain->qvel[i];
         // compute column i of dx/dqvel
@@ -128,12 +128,12 @@ void CitoNumDiff::hardWorker(const mjData* dMain, const eigVd uMain, mjtNum* der
         uTemp(i) += eps;
         // get the positive perturbed state
         xNewP.setZero();
-        this->copyTakeStep(d, uTemp, xNewP.data());
+        this->copyTakeStep(d, uTemp, xNewP.data(), compensateBias);
         // perturbation in the negative direction
         uTemp(i) -= 2*eps;
         // get the negative perturbed state
         xNewN.setZero();
-        this->copyTakeStep(d, uTemp, xNewN.data());
+        this->copyTakeStep(d, uTemp, xNewN.data(), compensateBias);
         // compute column i of dx/du
         for( int j=0; j<cp.n; j++ )
         {
@@ -145,10 +145,10 @@ void CitoNumDiff::hardWorker(const mjData* dMain, const eigVd uMain, mjtNum* der
 }
 
 // linDyn: calculates derivatives of the state and control trajectories
-void CitoNumDiff::linDyn(const mjData* dMain, const eigVd uMain, mjtNum* Fxd, mjtNum* Fud)
+void CitoNumDiff::linDyn(const mjData* dMain, const eigVd uMain, mjtNum* Fxd, mjtNum* Fud, double compensateBias)
 {
     mjtNum* deriv = (mjtNum*) mju_malloc(sizeof(mjtNum)*cp.n*(cp.n+cp.m));
-    this->hardWorker( dMain, uMain, deriv);
+    this->hardWorker( dMain, uMain, deriv, compensateBias);
     mju_copy(Fxd, deriv, cp.n*cp.n);
     mju_copy(Fud, deriv+cp.n*cp.n, cp.n*cp.m);
     mju_free(deriv);

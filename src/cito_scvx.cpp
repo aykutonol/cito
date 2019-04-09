@@ -59,7 +59,7 @@ double CitoSCvx::getCost(const eigMm X, const eigMd U)
 }
 
 // runSimulation: rolls-out and linearizes the dynamics given control trajectory
-trajectory CitoSCvx::runSimulation(const eigMd U, bool linearize, bool save)
+trajectory CitoSCvx::runSimulation(const eigMd U, bool linearize, bool save, double compensateBias)
 {
     // make mjData
     mjData* d = NULL;
@@ -67,7 +67,7 @@ trajectory CitoSCvx::runSimulation(const eigMd U, bool linearize, bool save)
     // initialize d
     mju_copy(d->qpos, m->key_qpos, m->nq);
     mj_forward(m, d);
-    cc.setControl(d, U.col(0));
+    cc.setControl(d, U.col(0), compensateBias);
     // rollout (and linearize) the dynamics
     for( int i=0; i<cp.N; i++ )
     {
@@ -78,10 +78,10 @@ trajectory CitoSCvx::runSimulation(const eigMd U, bool linearize, bool save)
         if( linearize )
         {
             Fx[i].setZero(); Fu[i].setZero();
-            nd.linDyn(d, U.col(i), Fx[i].data(), Fu[i].data());
+            nd.linDyn(d, U.col(i), Fx[i].data(), Fu[i].data(), compensateBias);
         }
         // take tc/dt steps
-        cc.takeStep(d, U.col(i), save);
+        cc.takeStep(d, U.col(i), save, compensateBias);
     }
     XSucc.col(cp.N).setZero();
     XSucc.col(cp.N) = cc.getState(d);
@@ -112,7 +112,7 @@ eigMd CitoSCvx::solveSCvx(const eigMd U0)
             std::cout << "INFO: convexification in progress\n";
             auto tDiffStart = std::chrono::system_clock::now();
             trajS = {};
-            trajS = this->runSimulation(USucc, true, false);
+            trajS = this->runSimulation(USucc, true, false, 1);
             auto tDiffEnd = std::chrono::system_clock::now();
             std::cout << "INFO: convexification took " << std::chrono::duration<double>(tDiffEnd-tDiffStart).count() << " s \n";
         }
@@ -149,7 +149,7 @@ eigMd CitoSCvx::solveSCvx(const eigMd U0)
         }
         // evaluate the dynamics for the change and get the cost values ========
         trajTemp = {};
-        trajTemp = this->runSimulation(UTemp, false, false);
+        trajTemp = this->runSimulation(UTemp, false, false, 1);
         // get the linear and nonlinear costs
         JTilde[iter] = this->getCost(XTilde, UTemp);
         JTemp[iter]  = this->getCost(trajTemp.X, UTemp);

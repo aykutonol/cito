@@ -31,25 +31,25 @@ CitoControl::~CitoControl()
 
 // ***** FUNCTIONS *************************************************************
 // takeStep: takes a full control step given a control input
-void CitoControl::takeStep(mjData*d, const eigVd u, bool save)
+void CitoControl::takeStep(mjData*d, const eigVd u, bool save, double compensateBias)
 {
     if( save ) { sl.writeData(d); }
     for( int i=0; i<cp.ndpc; i++ )
     {
         mj_step1(m, d);
-        this->setControl(d, u);
+        this->setControl(d, u, compensateBias);
         mj_step2(m, d);
         if( save ) { sl.writeData(d); }
     }
 }
 
 // setControl: sets generalized forces on joints and free bodies
-void CitoControl::setControl(mjData* d, const eigVd u)
+void CitoControl::setControl(mjData* d, const eigVd u, double compensateBias)
 {
     // set control given the control input
     for( int i=0; i<m->nu; i++ )
     {
-      d->ctrl[i] = u(i) + 1*d->qfrc_bias[cp.dAct[i]];
+      d->ctrl[i] = u(i) + compensateBias*d->qfrc_bias[cp.dAct[i]];
     }
     // contact model
     hCon.setZero();

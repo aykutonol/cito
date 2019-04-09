@@ -27,7 +27,7 @@ public:
     /// This function returns the nonlinear cost given control trajectory and final state
     double getCost(const eigMm X, const eigMd U);
     /// This function rolls-out and linearizes the dynamics given control trajectory
-    trajectory runSimulation(const eigMd U0, bool linearize, bool save);
+    trajectory runSimulation(const eigMd U0, bool linearize, bool save, double compensateBias);
     /// This function executes the successive convexification algorithm
     eigMd solveSCvx(const eigMd U);
 

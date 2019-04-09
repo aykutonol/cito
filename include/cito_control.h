@@ -22,9 +22,9 @@ public:
     /// Destructor
     ~CitoControl();
     /// This function takes a full control step given a control input
-    void takeStep(mjData*d, const eigVd u, bool save);
+    void takeStep(mjData*d, const eigVd u, bool save, double compensateBias);
     /// This function sets generalized forces on joints and free bodies
-    void setControl(mjData* d, const eigVd u);
+    void setControl(mjData* d, const eigVd u, double compensateBias);
     /** This function converts free joints' quaternions to Euler angles so that
      *  the dimensionality of the state vector is 2*nv instead of nq+nv */
     eigVm getState(const mjData* d);
