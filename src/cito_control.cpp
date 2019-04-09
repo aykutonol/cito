@@ -19,7 +19,7 @@ CitoControl::CitoControl(const mjModel* model) : m(model), cp(model), sl(model)
     isJFree = new int[m->nv];      isAFree = new int[m->nu];
     // initialize Eigen variables
     h.resize(6*cp.nFree,1); hCon.resize(6*cp.nFree,1);
-    x.resize(cp.n,1);
+    x.resize(cp.n);
 }
 CitoControl::~CitoControl()
 {
@@ -110,36 +110,30 @@ eigMd CitoControl::contactModel(const mjData* d, const eigMd u)
 
 // getState: converts free joints' quaternions to Euler angles so that
 // the dimensionality of the state vector is 2*nv instead of nq+nv
-eigMm CitoControl::getState(const mjData* d)
+eigVm CitoControl::getState(const mjData* d)
 {
     x.setZero();
     int freeNo = 0;
-    if ( m->nq != m->nv )
+    // get the positions
+    for ( int i=0; i<m->nq; i++ )
     {
-        for ( int i=0; i<m->nq; i++ )
+        int jID = m->dof_jntid[i-freeNo];
+        if( m->jnt_type[jID] == mjJNT_FREE )
         {
-            int jid = m->dof_jntid[i];
-            if( m->jnt_type[jid]==mjJNT_FREE )
-            {
-                jFreeQuat.setZero();
-                mju_copy(x.block<3,1>(i,0).data(), d->qpos+i, 3);
-                mju_copy(jFreeQuat.data(), d->qpos+i+3, 4);
-                // calculate the Euler angles from the quaternion
-                x(i+3) = atan2(2*(jFreeQuat[0]*jFreeQuat[1]+jFreeQuat[2]*jFreeQuat[3]), 1-2*(pow(jFreeQuat[1],2)+pow(jFreeQuat[2],2)));
-                x(i+4) =  asin(2*(jFreeQuat[0]*jFreeQuat[2]-jFreeQuat[3]*jFreeQuat[1]));
-                x(i+5) = atan2(2*(jFreeQuat[0]*jFreeQuat[3]+jFreeQuat[1]*jFreeQuat[2]), 1-2*(pow(jFreeQuat[2],2)+pow(jFreeQuat[3],2)));
-                i += 6;             // proceed to next joint
-                freeNo++;           // free joint counter
-            }
-            else
-            {
-                x(i-freeNo) = d->qpos[i];
-            }
+            jFreeQuat.setZero();
+            mju_copy(x.block<3,1>(i,0).data(), d->qpos+i, 3);
+            mju_copy(jFreeQuat.data(), d->qpos+i+3, 4);
+            // calculate the Euler angles from the quaternion
+            x(i+3) = atan2(2*(jFreeQuat[0]*jFreeQuat[1]+jFreeQuat[2]*jFreeQuat[3]), 1-2*(pow(jFreeQuat[1],2)+pow(jFreeQuat[2],2)));
+            x(i+4) =  asin(2*(jFreeQuat[0]*jFreeQuat[2]-jFreeQuat[3]*jFreeQuat[1]));
+            x(i+5) = atan2(2*(jFreeQuat[0]*jFreeQuat[3]+jFreeQuat[1]*jFreeQuat[2]), 1-2*(pow(jFreeQuat[2],2)+pow(jFreeQuat[3],2)));
+            i += 6;             // proceed to next joint
+            freeNo++;           // free joint counter
         }
-    }
-    else
-    {
-        mju_copy(x.data(), d->qpos, m->nq);
+        else
+        {
+            x(i-freeNo) = d->qpos[m->jnt_qposadr[jID]];
+        }
     }
     // get the velocities
     mju_copy(x.data()+m->nv, d->qvel, m->nv);
@@ -152,12 +146,12 @@ void CitoControl::getBounds()
 {
     for( int i=0; i<m->nv; i++ )
     {
-        int jid =  m->dof_jntid[i];
-        if( m->jnt_limited[jid] )
+        int jID =  m->dof_jntid[i];
+        if( m->jnt_limited[jID] )
         {
             isJFree[i] = 0;
-            qposLB[i]  = m->jnt_range[jid*2];
-            qposUB[i]  = m->jnt_range[jid*2+1];
+            qposLB[i]  = m->jnt_range[jID*2];
+            qposUB[i]  = m->jnt_range[jID*2+1];
         }
         else
         {

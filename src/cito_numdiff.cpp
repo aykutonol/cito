@@ -8,8 +8,8 @@
 CitoNumDiff::CitoNumDiff(const mjModel* model) : m(model), cp(model), cc(model)
 {
     // initialize Eigen variables
-    xNewTemp.resize(cp.n,1); xNewP.resize(cp.n,1); xNewN.resize(cp.n,1);
-    uTemp.resize(cp.m,1);
+    xNewTemp.resize(cp.n); xNewP.resize(cp.n); xNewN.resize(cp.n);
+    uTemp.resize(cp.m);
 }
 // ***** FUNCTIONS *************************************************************
 // copyTakeStep: sets xNew to the integration of data given a control input

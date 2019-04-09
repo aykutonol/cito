@@ -9,7 +9,7 @@ In this framework, MuJoCo is used to evaluate the nonlinear dynamics. The partia
 of the dynamics about the previous trajectory are obtained by numerical differentiation.
 The resulting convex subproblems are solved by SQOPT to exploit the sparsity.
 
-The libraries implemented in C++. The package is built in a catkin workspace.
+The code is implemented in C++. The package is built in a catkin workspace.
 
 _Please note that both the method and the code are currently under development._
 

@@ -34,7 +34,12 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(mo
     // resize trajectories
     XSucc.resize(cp.n,cp.N+1);  dX.resize(cp.n,cp.N+1);     XTilde.resize(cp.n,cp.N+1);
     USucc.resize(cp.m,cp.N);    UTemp.resize(cp.m,cp.N);    dU.resize(cp.m,cp.N);
-    Fx.resize(cp.n*cp.n,cp.N);  Fu.resize(cp.n*cp.m,cp.N);
+    Fx.resize(cp.N);    Fu.resize(cp.N);
+    for( int i=0; i<cp.N; i++ )
+    {
+        Fx[i].resize(cp.n, cp.n);
+        Fu[i].resize(cp.n, cp.m);
+    }
 }
 
 // ***** FUNCTIONS *************************************************************
@@ -72,8 +77,8 @@ trajectory CitoSCvx::runSimulation(const eigMd U, bool linearize, bool save)
         // linearization
         if( linearize )
         {
-            Fx.col(i).setZero(); Fu.col(i).setZero();
-            nd.linDyn(d, U.col(i), Fx.col(i).data(), Fu.col(i).data());
+            Fx[i].setZero(); Fu[i].setZero();
+            nd.linDyn(d, U.col(i), Fx[i].data(), Fu[i].data());
         }
         // take tc/dt steps
         cc.takeStep(d, U.col(i), save);
