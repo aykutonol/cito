@@ -1,6 +1,6 @@
 <mujoco model="ur3e">
     <compiler angle="radian" meshdir="./mesh/ur3e/collision/" texturedir="./mesh/ur3e/visual/" />
-    <size njmax="500" nconmax="100" />
+    <option collision="predefined" />
     <asset>
         <mesh name="base"     file="base.stl" />
         <mesh name="shoulder" file="shoulder.stl" />
@@ -53,7 +53,6 @@
         </body>
       </body>
     </worldbody>
-
     <!-- Actuators -->
     <actuator>
       <motor name="shoulder_pan_motor"  joint="shoulder_pan_joint"  ctrllimited="true" ctrlrange="-330 330" />
