@@ -19,7 +19,7 @@
   </asset>
 
   <worldbody>
-    <!-- Lıghts -->
+    <!-- Lights -->
     <light name="light0" diffuse="1 1 1" pos="0 0 3" dir="0 0 -1" castshadow="false"/>
     <light name="light1" diffuse="1 1 1" pos="1 -1 -.1" dir="-1 1 1" castshadow="false"/>
     <light name="light2" diffuse="1 1 1" pos="1.5 0 3"  dir="0 0 -1" castshadow="false"/>
