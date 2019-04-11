@@ -166,7 +166,7 @@ bool showTime  = false;
 bool readYAML  = false;
 
 /// Number of samples
-int nSample = 50;
+int nSample = 10;
 
 int main(int argc, char const *argv[]) {
     /// Initialize MuJoCo
@@ -238,18 +238,9 @@ int main(int argc, char const *argv[]) {
     {
         std::cout << "\n================================================================================\nSample no: " << k+1 << "\n";
         /// Generate random configuration
-        if( k==0 )
-        {
-            qRand = Eigen::VectorXd::Zero(m->nq);
-            vRand = Eigen::VectorXd::Zero(m->nv);
-            uRand = Eigen::VectorXd::Zero(m->nu);
-        }
-        else
-        {
-            qRand = Eigen::VectorXd::Random(m->nq)*2;
-            vRand = Eigen::VectorXd::Random(m->nv)*1;
-            uRand = Eigen::VectorXd::Random(m->nu)*1;
-        }
+        qRand = Eigen::VectorXd::Random(m->nq)*2;
+        vRand = Eigen::VectorXd::Random(m->nv)*1;
+        uRand = Eigen::VectorXd::Random(m->nu)*1;
         // copy random variables to MuJoCo data
         mju_copy(d->qpos, qRand.data(), m->nq);
         mju_copy(d->qvel, vRand.data(), m->nv);
@@ -429,12 +420,12 @@ int main(int argc, char const *argv[]) {
     }
     std::cout << "\n================================================================================\n\n";
     std::cout << "INFO: Test done.\n\nTest summary:\n";
+    printf("%-12s%-36s%-36s\n",
+           "Sample","Error","Comp. Time [s]");
     for( int k=0; k<nSample; k++ )
     {
         if( k%10 == 0 )
         {
-            printf("%-12s%-36s%-36s\n",
-                   "Sample","Error","Comp. Time [s]");
             printf("%-12s%-12s%-12s%-12s%-12s%-12s%-12s\n",
                    " ","hardWorker","worker","Pinocchio","hardWorker","worker","Pinocchio");
         }
@@ -442,21 +433,20 @@ int main(int argc, char const *argv[]) {
                k+1,eHW(k),eW(k),eP(k),tHW(k),tW(k),tP(k));
     }
 
-    printf("\nStatistics for %d samples:\n",nSample);
-    printf("%-16s%-16s%-16s%-16s\n",
-           "Function:","hardWorker","worker","Pinocchio");
+    printf("\n%-16s%-16s%-16s%-16s\n",
+           "function:","hardWorker","worker","Pinocchio");
     printf("%-16s%-16.6g%-16.6g%-16.6g\n",
-           "Mean error:",eHW.mean(),eW.mean(),eP.mean());
+           "mean error:",eHW.mean(),eW.mean(),eP.mean());
     printf("%-16s%-16.6g%-16.6g%-16.6g\n",
-           "Min. error:",eHW.minCoeff(),eW.minCoeff(),eP.minCoeff());
+           "min. error:",eHW.minCoeff(),eW.minCoeff(),eP.minCoeff());
     printf("%-16s%-16.6g%-16.6g%-16.6g\n",
-           "Max. error:",eHW.maxCoeff(),eW.maxCoeff(),eP.maxCoeff());
+           "max. error:",eHW.maxCoeff(),eW.maxCoeff(),eP.maxCoeff());
     printf("%-16s%-16.6g%-16.6g%-16.6g\n",
-           "Mean time:",tHW.mean(),tW.mean(),tP.mean());
+           "mean time:",tHW.mean(),tW.mean(),tP.mean());
     printf("%-16s%-16.6g%-16.6g%-16.6g\n",
-           "Min. time:",tHW.minCoeff(),tW.minCoeff(),tP.minCoeff());
+           "min. time:",tHW.minCoeff(),tW.minCoeff(),tP.minCoeff());
     printf("%-16s%-16.6g%-16.6g%-16.6g\n",
-           "Max. time:",tHW.maxCoeff(),tW.maxCoeff(),tP.maxCoeff());
+           "max. time:",tHW.maxCoeff(),tW.maxCoeff(),tP.maxCoeff());
 
 
 
