@@ -13,5 +13,6 @@
 
   <buildtool_depend>catkin</buildtool_depend>
   <depend>eigen</depend>
+  <depend>yaml-cpp</depend>
 
 </package>
