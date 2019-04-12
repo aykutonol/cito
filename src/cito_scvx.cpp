@@ -5,7 +5,7 @@
 // evaluate the cost, and execute the SCvx algorithm.
 
 // ***** CONSTRUCTOR ***********************************************************
-CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(model), sq(model)
+CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), cd(model), sq(model)
 {
     // initialize Eigen variables
     finalPos.resize(6);
@@ -78,7 +78,8 @@ trajectory CitoSCvx::runSimulation(const eigMd U, bool linearize, bool save, dou
         if( linearize )
         {
             Fx[i].setZero(); Fu[i].setZero();
-            nd.linDyn(d, U.col(i), Fx[i].data(), Fu[i].data(), compensateBias);
+            cd.linDyn(d, U.col(i), Fx[i].data(), Fu[i].data(), compensateBias);
+//            nd.linDyn(d, U.col(i), Fx[i].data(), Fu[i].data(), compensateBias);
         }
         // take tc/dt steps
         cc.takeStep(d, U.col(i), save, compensateBias);

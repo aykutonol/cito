@@ -12,9 +12,9 @@
 #ifndef CITO_SCVX_H
 #define CITO_SCVX_H
 
-#include <chrono>
-#include "cito_numdiff.h"
 #include "cito_sqopt.h"
+#include "cito_control.h"
+#include "cito_deriv.h"
 
 
 class CitoSCvx
@@ -54,7 +54,7 @@ private:
     /// Objects
     CitoParams  cp;
     CitoControl cc;
-    CitoNumDiff nd;
+    CitoDeriv   cd;
     CitoSQOPT   sq;
 };
 

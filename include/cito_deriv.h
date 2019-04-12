@@ -16,22 +16,26 @@
 #include "pinocchio/algorithm/aba-derivatives.hpp"
 
 
-
-
 class CitoDeriv {
 public:
     /// Constructor
-    CitoDeriv(const mjModel* model);
+    CitoDeriv(const mjModel* mModel);
     /// Destructor
     ~CitoDeriv() {}
     /// This function calculates the derivatives of the dynamics given state and control vectors
-    void linDyn(const mjData* dMain, const eigVd uMain, mjtNum* Fxd, mjtNum* Fud, double compensateBias);
+    void linDyn(const mjData* d, const eigVd u, mjtNum* Fxd, mjtNum* Fud, double compensateBias);
 private:
     /// MuJoCo model
     const mjModel* m;
+    /// Pinocchio model, state, and control
+    pinocchio::Model model;
+    eigVd q, v, tau;
+    /// Derivative matrices
+    eigMm Fx, Fu;
+    /// Time coefficient: (time step size)*(number of dynamic time steps per control period)
+    double tM;
     /// Objects
-    CitoParams  cp;
+    CitoParams cp;
 };
-
 
 #endif //CITO_DERIV_H
