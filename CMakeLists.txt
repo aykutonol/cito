@@ -18,7 +18,7 @@ include_directories(
  ${EIGEN3_INCLUDE_DIR}
  ${MUJOCO_DIR}/include
  ${SNOPT_DIR}/include
- ${PINOCCHIO_DIR}/build/include
+# ${PINOCCHIO_DIR}/build/include
 )
 
 add_library(${PROJECT_NAME}
@@ -30,10 +30,14 @@ add_library(${PROJECT_NAME}
 	src/cito_sqopt.cpp
 	src/mj_savelog.cpp
 )
+target_compile_definitions(${PROJECT_NAME} PUBLIC PINOCCHIO_URDFDOM_TYPEDEF_SHARED_PTR
+												  PINOCCHIO_WITH_URDFDOM
+)
 
 set(NODE_NAME1 main)
 set(NODE_NAME2 playlog)
-set(NODE_NAME3 deriv)
+set(NODE_NAME3 tosc)
+set(NODE_NAME4 deriv)
 
 # main: runs successive convexification w/ SQOPT and numerical differentiation in MuJoCo
 add_executable(${NODE_NAME1} src/main.cpp)
@@ -53,16 +57,26 @@ target_link_libraries(${NODE_NAME2} ${MUJOCO_DIR}/bin/libmujoco200.so
 				    GL
 				    yaml-cpp
 )
-# deriv: compares Pinocchio and MuJoCo derivatives
-add_executable(${NODE_NAME3} src/derivative_comparison.cpp)
+# tosc: runs successive convexification w/ SQOPT and analytical derivatives from Pinocchio
+add_executable(${NODE_NAME3} src/tosc.cpp)
 target_link_libraries(${NODE_NAME3} ${MUJOCO_DIR}/bin/libmujoco200nogl.so
 					pthread
 					${PROJECT_NAME}
-					yaml-cpp
 					${SNOPT_DIR}/lib/libsnopt7_cpp.so
+					yaml-cpp
 					${Boost_SYSTEM_LIBRARY}
 					urdfdom_model
 )
-target_compile_definitions(${NODE_NAME3} PUBLIC PINOCCHIO_URDFDOM_TYPEDEF_SHARED_PTR
+# deriv: compares Pinocchio and MuJoCo derivatives
+add_executable(${NODE_NAME4} src/derivative_comparison.cpp)
+target_link_libraries(${NODE_NAME4} ${MUJOCO_DIR}/bin/libmujoco200nogl.so
+					pthread
+					${PROJECT_NAME}
+					${SNOPT_DIR}/lib/libsnopt7_cpp.so
+					yaml-cpp
+					${Boost_SYSTEM_LIBRARY}
+					urdfdom_model
+)
+target_compile_definitions(${NODE_NAME4} PUBLIC PINOCCHIO_URDFDOM_TYPEDEF_SHARED_PTR
 										 	    PINOCCHIO_WITH_URDFDOM
 )
