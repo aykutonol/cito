@@ -8,10 +8,10 @@
  *  \author Aykut Onol
  */
 
-#include "cito_control.h"
-
 #ifndef CITO_NUMDIFF_H
 #define CITO_NUMDIFF_H
+
+#include "cito_control.h"
 
 class CitoNumDiff
 {

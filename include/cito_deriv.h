@@ -1,4 +1,4 @@
-/*! Numerical Differentiation */
+/*! Analytical Derivatives */
 /**
  *  \brief CitoDeriv class consists of functions for taking derivatives.
  *
@@ -11,9 +11,26 @@
 #ifndef CITO_DERIV_H
 #define CITO_DERIV_H
 
+#include "cito_params.h"
+#include "pinocchio/parsers/urdf.hpp"
+#include "pinocchio/algorithm/aba-derivatives.hpp"
 
-class cito_deriv {
 
+
+
+class CitoDeriv {
+public:
+    /// Constructor
+    CitoDeriv(const mjModel* model);
+    /// Destructor
+    ~CitoDeriv() {}
+    /// This function calculates the derivatives of the dynamics given state and control vectors
+    void linDyn(const mjData* dMain, const eigVd uMain, mjtNum* Fxd, mjtNum* Fud, double compensateBias);
+private:
+    /// MuJoCo model
+    const mjModel* m;
+    /// Objects
+    CitoParams  cp;
 };
 
 
