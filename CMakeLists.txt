@@ -25,6 +25,7 @@ add_library(${PROJECT_NAME}
  	src/cito_params.cpp
 	src/cito_control.cpp
 	src/cito_numdiff.cpp
+	src/cito_deriv.cpp
 	src/cito_scvx.cpp
 	src/cito_sqopt.cpp
 	src/mj_savelog.cpp
