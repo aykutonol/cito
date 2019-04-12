@@ -1,16 +1,13 @@
 #include <chrono>
 
-#include "cito_scvx.h"
+#include "cito_numdiff.h"
 
-#include "pinocchio/algorithm/joint-configuration.hpp"
 #include "pinocchio/parsers/urdf.hpp"
 #include "pinocchio/algorithm/aba-derivatives.hpp"
 
 mjtNum* deriv = 0;          // dynamics derivatives (6*nv*nv):
 int nwarmup = 3;            // center point repetitions to improve warmstart
 double eps = 1e-6;          // finite-difference epsilon
-
-
 
 // worker function for parallel finite-difference computation of derivatives
 void worker(const mjModel* m, const mjData* dmain, mjData* d)
@@ -185,7 +182,7 @@ int main(int argc, char const *argv[]) {
     deriv = (mjtNum*) mju_malloc(3*sizeof(mjtNum)*m->nv*m->nv);
     /// Initialize Pinocchio
     pinocchio::Model model;
-    pinocchio::urdf::buildModel("/home/aykut/Development/ur_ws/src/universal_robot/ur_e_description/urdf/ur3e.urdf", model);
+    pinocchio::urdf::buildModel("/home/aykut/Development/cito_ws/src/cito/model/ur3e.urdf", model);
     pinocchio::Data data(model);
     /// Initialize CITO objects
     CitoParams  cp(m);
@@ -434,9 +431,9 @@ int main(int argc, char const *argv[]) {
         if( k%10 == 0 )
         {
             printf("%-12s%-36s%-36s\n",
-                   "Sample","Error","Comp. Time [s]");
+                   "Sample","Prediction Error","Computation Time [s]");
             printf("%-12s%-12s%-12s%-12s%-12s%-12s%-12s\n",
-                   " ","hardWorker","worker","Pinocchio","hardWorker","worker","Pinocchio");
+                   "#","hardWorker","worker","Pinocchio","hardWorker","worker","Pinocchio");
         }
         printf("%-12d%-12.6g%-12.6g%-12.6g%-12.6g%-12.6g%-12.6g\n",
                k+1,eHW(k),eW(k),eP(k),tHW(k),tW(k),tP(k));
