@@ -1,6 +1,6 @@
 /*! Numerical Differentiation */
 /**
- *  \brief CitoSCvx class consists of functions for numerical differentiation.
+ *  \brief CitoNumDiff class consists of functions for numerical differentiation.
  *
  *  This class defines functions for numerical differentiation of the MuJoCo
  *  dynamics including the forces imposed by the contact model.
