@@ -21,6 +21,6 @@ controlJointDOF0: 0
 
 # Weights
 w1: 1e4  	# weight on deviations in x and y directions
-w2: 1e0  	# weight on deviations in z and orientation
+w2: 1e1  	# weight on deviations in z and orientation
 w3: 1e-2  	# weight on final velocities
-w4: 5e0  	# weight on virtual stiffness
+w4: 2e0  	# weight on virtual stiffness
