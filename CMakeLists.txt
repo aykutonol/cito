@@ -30,7 +30,7 @@ add_library(${PROJECT_NAME}
 set(NODE_NAME1 main)
 set(NODE_NAME2 playlog)
 
-# cito: solves the CITO problem using successive convexification
+# main: solves the CITO problem using successive convexification
 # 		w/ SQOPT and numerical differentiation in MuJoCo
 add_executable(${NODE_NAME1} src/main.cpp)
 ### MuJoCo w/o rendering
