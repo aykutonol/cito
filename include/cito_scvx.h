@@ -12,7 +12,6 @@
 #ifndef CITO_SCVX_H
 #define CITO_SCVX_H
 
-#include <chrono>
 #include "cito_numdiff.h"
 #include "cito_sqopt.h"
 

@@ -8,11 +8,11 @@
  *  \author Aykut Onol
  */
 
-#include "cito_params.h"
-#include "mj_savelog.h"
-
 #ifndef CITO_CONTROL_H
 #define CITO_CONTROL_H
+
+#include "cito_params.h"
+#include "mj_savelog.h"
 
 class CitoControl
 {

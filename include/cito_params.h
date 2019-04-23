@@ -9,16 +9,16 @@
  *  \author Aykut Onol
  */
 
-#include <stdio.h>
-#include <iostream>
-#include <string>
-
-#include "mujoco.h"
-#include <Eigen/Dense>
-#include <yaml-cpp/yaml.h>
-
 #ifndef CITO_PARAMS_H
 #define CITO_PARAMS_H
+
+#include <iostream>
+#include <string>
+#include <chrono>
+
+#include <Eigen/Dense>
+#include <yaml-cpp/yaml.h>
+#include "mujoco.h"
 
 /// Types
 typedef Eigen::VectorXd eigVd;
