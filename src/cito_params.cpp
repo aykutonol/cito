@@ -1,8 +1,8 @@
-#include "cito_params.h"
-
 // ***** DESCRIPTION ***********************************************************
 // CitoParams class parses the model and config files and defines parameters
 // that are used across classes.
+
+#include "cito_params.h"
 
 // ***** CONSTRUCTOR & DESTRUCTOR **********************************************
 CitoParams::CitoParams(const mjModel* model) : model(model)

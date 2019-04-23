@@ -1,9 +1,9 @@
-#include "cito_control.h"
-
 // ***** DESCRIPTION ***********************************************************
 // CitoControl class defines functions for calculating and setting control- and
 // contact-related variables, i.e., joint torques and external forces on the free
 // bodies.
+
+#include "cito_control.h"
 
 
 // ***** CONSTRUCTOR & DESTRUCTOR **********************************************

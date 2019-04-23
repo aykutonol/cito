@@ -1,7 +1,7 @@
-#include "mj_savelog.h"
-
 // ***** DESCRIPTION ***********************************************************
 // This class consists of functions for saving data from a MuJoCo simulation.
+
+#include "mj_savelog.h"
 
 // ***** CONSTRUCTOR & DESTRUCTOR **********************************************
 MjSaveLog::MjSaveLog(const mjModel* model) : m(model), cp(model)

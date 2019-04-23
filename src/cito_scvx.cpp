@@ -1,8 +1,8 @@
-#include "cito_scvx.h"
-
 // ***** DESCRIPTION ***********************************************************
 // CitoSCvx class defines functions that are used to roll-out the dynamics,
 // evaluate the cost, and execute the SCvx algorithm.
+
+#include "cito_scvx.h"
 
 // ***** CONSTRUCTOR ***********************************************************
 CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(model), sq(model)

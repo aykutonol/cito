@@ -1,8 +1,8 @@
-#include "cito_sqopt.h"
-
 // ***** DESCRIPTION ***********************************************************
 // CitoSQOPT class consists of functions that are used to convert the convex
 // subproblems used in SCvx to the appropriate form for SQOPT.
+
+#include "cito_sqopt.h"
 
 // ***** CONSTRUCTOR & DESTRUCTOR **********************************************
 CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)

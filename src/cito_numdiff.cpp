@@ -1,8 +1,8 @@
-#include "cito_numdiff.h"
-
 // ***** DESCRIPTION ***********************************************************
 // CitoNumDiff class defines functions for numerical differentiation of MuJoCo
 // dynamics including the forces imposed by the contact model.
+
+#include "cito_numdiff.h"
 
 // ***** CONSTRUCTOR ***********************************************************
 CitoNumDiff::CitoNumDiff(const mjModel* model) : m(model), cp(model), cc(model)
