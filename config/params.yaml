@@ -3,7 +3,7 @@ model: "hsr.xml"
 
 # Simulation
 tf: 5.00	# [s] final time
-tc: 1e-1 	# [s] control sampling period
+tc: 5e-1 	# [s] control sampling period
 
 # Contact pairs
 ## number of contact pairs
@@ -15,12 +15,12 @@ spair2: [0]
 
 # Task
 ## desired final pose of the control joint
-desiredFinalPos: [0.75, 0, 0.0647, 0.0, 0.0, 0.0]
+desiredFinalPos: [0.75, 0,  0.0397, 0.0, 0.0, 0.0]
 ## initial index of the DOF associated with the control joint
 controlJointDOF0: 0
 
 # Weights
-w1: 1e4  	# weight on deviations in x and y directions
-w2: 1e0  	# weight on deviations in z and orientation
+w1: 1e3  	# weight on deviations in x and y directions
+w2: 1e1  	# weight on deviations in z and orientation
 w3: 0e-2  	# weight on velocities
-w4: 2e1  	# weight on virtual stiffness
+w4: 1e0  	# weight on virtual stiffness
