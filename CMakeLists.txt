@@ -30,7 +30,8 @@ add_library(${PROJECT_NAME}
 set(NODE_NAME1 main)
 set(NODE_NAME2 playlog)
 
-# main: runs successive convexification w/ SQOPT and numerical differentiation in MuJoCo
+# cito: solves the CITO problem using successive convexification
+# 		w/ SQOPT and numerical differentiation in MuJoCo
 add_executable(${NODE_NAME1} src/main.cpp)
 ### MuJoCo w/o rendering
 target_link_libraries(${NODE_NAME1} ${MUJOCO_DIR}/bin/libmujoco200nogl.so
@@ -39,7 +40,7 @@ target_link_libraries(${NODE_NAME1} ${MUJOCO_DIR}/bin/libmujoco200nogl.so
 				    ${SNOPT_DIR}/lib/libsnopt7_cpp.so
 				    yaml-cpp
 )
-# playlog: shows motions generated
+# playlog: shows the motion generated in MuJoCo
 add_executable(${NODE_NAME2} src/mj_playlog.cpp)
 ### MuJoCo w/ rendering
 target_link_libraries(${NODE_NAME2} ${MUJOCO_DIR}/bin/libmujoco200.so

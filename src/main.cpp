@@ -1,6 +1,6 @@
 /*! Main */
 /**
- *  \brief main solves the CITO problem
+ *  \brief main solves the CITO problem using SCvx
  *
  *  This file initializes MuJoCo and runs the successive convexification algorithm.
  *  The optimal trajectory is recorded to cito_ws/logs for playback and execution.
