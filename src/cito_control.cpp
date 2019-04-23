@@ -20,7 +20,7 @@ CitoControl::CitoControl(const mjModel* model) : m(model), cp(model), sl(model)
     // initialize Eigen variables
     h.resize(6*cp.nFree,1); hCon.resize(6*cp.nFree,1);
     x.resize(cp.n);
-    pSR.setZero(); pSE.setZero(); nCS.setZero(); vRE.setZero();
+    pSR.setZero(); pSE.setZero(); nCS.setZero(); vRE.setZero(); pBF.setZero();
 }
 CitoControl::~CitoControl()
 {
@@ -81,11 +81,12 @@ eigMd CitoControl::contactModel(const mjData* d, const eigVd u)
         // loop for each free body
         for( int fI=0; fI<cp.nFree; fI++ )
         {
-          for( int i=0; i<3; i++ )
+          for( int i=0; i<2; i++ )
           {
             pBF[i] = d->qpos[cp.pFree[fI]+i];          // position of the center of mass of the free body
           }
           vEF = pBF - pSR;                             // vector from the end effector to the free body
+          vEF = vEF*(1-0.215);                         // from the surface of the body
           // wrench on the free body due to the contact pI: [lambda; cross(vEF, lambda)]
           h(fI*6+0) += lambda[0];
           h(fI*6+1) += lambda[1];
