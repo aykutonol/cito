@@ -25,6 +25,10 @@ public:
     void takeStep(mjData*d, const eigVd u, bool save, double compensateBias);
     /// This function sets generalized forces on joints and free bodies
     void setControl(mjData* d, const eigVd u, double compensateBias);
+    /// This function calculates the planar distance between sites given data and a pair ID
+    double getPDistance(const mjData* d, int pairID);
+    /// This function calculates the distance between sites given data and a pair ID
+    double getDistance(const mjData* d, int pairID);
     /** This function converts free joints' quaternions to Euler angles so that
      *  the dimensionality of the state vector is 2*nv instead of nq+nv */
     eigVm getState(const mjData* d);
@@ -42,7 +46,7 @@ private:
     /// Contact wrench
     eigMd h, hCon;
     /// Contact model variables
-    double phiE, phiN, zeta, phiC, gamma, alpha, phiR;
+    double phiE, phiN, zeta, phiC, phi, gamma, alpha, phiR;
     Eigen::Matrix<double, 3, 1> pSR, pSE, pBF, nCS, vRE, vEF, lambda;
     /// getState variables
     eigVm x;

@@ -45,6 +45,7 @@
 
         <!-- Robot -->
         <body name="base" pos="0 0 0">
+            <site name="base" pos="0 0 0.064" quat="1 0 0 0" type="sphere" size="1e-3" group="2" rgba="1 1 0 1" />
             <geom name = "base" type="mesh" mesh="base" />
             <geom pos="0.1675 0 0.1844" type="mesh" mesh="laser" />
             <inertial pos="-0.019482 0.002191 0.071013" quat="-0.163088 0.695987 0.176074 0.676759" mass="10.2394" diaginertia="0.145076 0.0958414 0.0713624" />
@@ -91,23 +92,11 @@
                 <inertial pos="0 0 0" quat="0.5 0.5 -0.5 0.5" mass="0.06" diaginertia="0.00191633 0.00191633 0.00191633" />
                 <!--            <joint name="base_f_bumper_joint" pos="0 0 0" axis="1 0 0" />-->
                 <geom type="mesh" mesh="bumper" />
-                <site name="base1" type="sphere" size="1e-3" pos="0 0.225 0.0315" group="2" rgba="0 1 0 1" />
-                <site name="base2" type="sphere" size="1e-3" pos="0 -0.225 0.0315" group="2" rgba="0 1 0 1" />
-                <site name="base3" type="sphere" size="1e-3" pos="0.225 0 0.0315" group="2" rgba="0 1 0 1" />
-                <site name="base4" type="sphere" size="1e-3" pos="0.1 0.2 0.0315" group="2" rgba="0 1 0 1" />
-                <site name="base5" type="sphere" size="1e-3" pos="0.1 -0.2 0.0315" group="2" rgba="0 1 0 1" />
-                <site name="base6" type="sphere" size="1e-3" pos="0.2 0.1 0.0315" group="2" rgba="0 1 0 1" />
-                <site name="base7" type="sphere" size="1e-3" pos="0.2 -0.1 0.0315" group="2" rgba="0 1 0 1" />
             </body>
             <body name="base_b_bumper_link" pos="0 0.0013 0" quat="0 0 0 1">
                 <inertial pos="0 0 0" quat="0.5 0.5 -0.5 0.5" mass="0.06" diaginertia="0.00191633 0.00191633 0.00191633" />
                 <!--            <joint name="base_b_bumper_joint" pos="0 0 0" axis="1 0 0" />-->
                 <geom type="mesh" mesh="bumper" />
-                <site name="base8" type="sphere" size="1e-3" pos="0.225 0 0.0315" group="2" rgba="0 1 0 1" />
-                <site name="base9" type="sphere" size="1e-3" pos="0.1 0.2 0.0315" group="2" rgba="0 1 0 1" />
-                <site name="base10" type="sphere" size="1e-3" pos="0.1 -0.2 0.0315" group="2" rgba="0 1 0 1" />
-                <site name="base11" type="sphere" size="1e-3" pos="0.2 0.1 0.0315" group="2" rgba="0 1 0 1" />
-                <site name="base12" type="sphere" size="1e-3" pos="0.2 -0.1 0.0315" group="2" rgba="0 1 0 1" />
             </body>
             <body name="torso_lift_link" pos="0 0 0.752">
                 <inertial pos="-0.051142 0.003454 -0.2905" quat="0.511154 0.00760492 -0.0140194 0.859341" mass="3.42078" diaginertia="0.105342 0.104252 0.0127461" />
@@ -215,7 +204,7 @@
 
     <!-- Key frames -->
     <keyframe>
-        <key name="init_pose" qpos="0 0.25 0.5 0 0.5 -0.75 1.75 0.5 -1 0.5" />
+        <key name="init_pose" qpos="0.5 0 0.05 1 0 0 0 0 0 0" />
     </keyframe>
 
 </mujoco>

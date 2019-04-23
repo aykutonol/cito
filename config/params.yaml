@@ -1,9 +1,9 @@
 # Model
-model: "sawyer_push.xml"
+model: "hsr.xml"
 
 # Simulation
-tf: 1.00	# [s] final time
-tc: 5e-2 	# [s] control sampling period
+tf: 5.00	# [s] final time
+tc: 1e-1 	# [s] control sampling period
 
 # Contact pairs
 ## number of contact pairs
@@ -15,12 +15,12 @@ spair2: [0]
 
 # Task
 ## desired final pose of the control joint
-desiredFinalPos: [1.3, 0, 0.0647, 0.0, 0.0, 0.0]
+desiredFinalPos: [0.75, 0, 0.0647, 0.0, 0.0, 0.0]
 ## initial index of the DOF associated with the control joint
 controlJointDOF0: 0
 
 # Weights
 w1: 1e4  	# weight on deviations in x and y directions
 w2: 1e0  	# weight on deviations in z and orientation
-w3: 1e-2  	# weight on final velocities
-w4: 5e0  	# weight on virtual stiffness
+w3: 0e-2  	# weight on velocities
+w4: 2e1  	# weight on virtual stiffness

@@ -20,6 +20,7 @@ CitoControl::CitoControl(const mjModel* model) : m(model), cp(model), sl(model)
     // initialize Eigen variables
     h.resize(6*cp.nFree,1); hCon.resize(6*cp.nFree,1);
     x.resize(cp.n);
+    pSR.setZero(); pSE.setZero(); nCS.setZero(); vRE.setZero();
 }
 CitoControl::~CitoControl()
 {
@@ -71,21 +72,10 @@ eigMd CitoControl::contactModel(const mjData* d, const eigVd u)
     // loop for each contact pair
     for( int pI=0; pI<cp.nPair; pI++ )
     {
-        // vectors in the world frame
-        for( int i=0; i<3; i++ )
-        {
-          pSR[i] = d->site_xpos[cp.sPair1[pI]*3+i];         // position of the site on the robot
-          pSE[i] = d->site_xpos[cp.sPair2[pI]*3+i];         // position of the site in the environment
-          nCS[i] = cp.nCS.col(pI)[i];                       // contact surface normal
-        }
-        vRE  = pSE - pSR;                                   // vector from the robot (end effector) to the environment
-        // distance
-        phiE = vRE.norm();                                  // Euclidean distance between the end effector and the environment
-        phiN = vRE.dot(nCS);                                // normal distance between the end effector and the environment
-        zeta  = tanh(phiR*phiE);                            // semi-sphere based on the Euclidean distance
-        phiC = zeta*phiE + (1-zeta)*phiN;                   // combined distance
+        // calculate the distance between the sites
+        phi = getPDistance(d, pI);
         // normal force in the contact frame
-        gamma = u(m->nu+pI)*exp(-alpha*phiC);
+        gamma = u(m->nu+pI)*exp(-alpha*phi);
         // contact generalized in the world frame
         lambda = gamma*nCS;
         // loop for each free body
@@ -95,7 +85,7 @@ eigMd CitoControl::contactModel(const mjData* d, const eigVd u)
           {
             pBF[i] = d->qpos[cp.pFree[fI]+i];          // position of the center of mass of the free body
           }
-          vEF = pBF - pSE;                                  // vector from the end effector to the free body
+          vEF = pBF - pSR;                             // vector from the end effector to the free body
           // wrench on the free body due to the contact pI: [lambda; cross(vEF, lambda)]
           h(fI*6+0) += lambda[0];
           h(fI*6+1) += lambda[1];
@@ -106,6 +96,49 @@ eigMd CitoControl::contactModel(const mjData* d, const eigVd u)
         }
     }
     return h;
+}
+
+// getPDistance: returns the planar distance between sites given data and a pair ID
+double CitoControl::getPDistance(const mjData* d, int pairID)
+{
+    // vectors in the world frame
+    for( int i=0; i<2; i++ )
+    {
+        pSR[i] = d->site_xpos[cp.sPair1[pairID]*3+i];   // position of the site on the robot
+        pSE[i] = d->site_xpos[cp.sPair2[pairID]*3+i];   // position of the site in the environment
+        nCS[i] = cp.nCS.col(pairID)[i];                 // contact surface normal
+    }
+    nCS.normalize();
+    // vector from the site on the robot to the site in the environment
+    vRE  = pSE - pSR;
+    // distance
+    phiE = vRE.norm();                                  // Euclidean distance between the end effector and the environment
+    phiN = vRE.dot(nCS);                                // normal distance between the end effector and the environment
+    zeta  = tanh(phiR*phiE);                            // semi-sphere based on the Euclidean distance
+    phiC = zeta*phiE + (1-zeta)*phiN;                   // combined distance
+    // subtract the base radius of HSR
+    phiC = phiC - 0.215;
+    return phiC;
+}
+
+// getDistance: returns the distance between sites given data and a pair ID
+double CitoControl::getDistance(const mjData* d, int pairID)
+{
+    // vectors in the world frame
+    for( int i=0; i<3; i++ )
+    {
+        pSR[i] = d->site_xpos[cp.sPair1[pairID]*3+i];   // position of the site on the robot
+        pSE[i] = d->site_xpos[cp.sPair2[pairID]*3+i];   // position of the site in the environment
+        nCS[i] = cp.nCS.col(pairID)[i];                 // contact surface normal
+    }
+    // vector from the site on the robot to the site in the environment
+    vRE  = pSE - pSR;
+    // distance
+    phiE = vRE.norm();                                  // Euclidean distance between the end effector and the environment
+    phiN = vRE.dot(nCS);                                // normal distance between the end effector and the environment
+    zeta  = tanh(phiR*phiE);                            // semi-sphere based on the Euclidean distance
+    phiC = zeta*phiE + (1-zeta)*phiN;                   // combined distance
+    return phiC;
 }
 
 // getState: converts free joints' quaternions to Euler angles so that

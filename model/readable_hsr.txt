@@ -5,10 +5,10 @@ nq             10
 nv             9
 nu             3
 na             0
-nbody          23
+nbody          31
 njnt           4
-ngeom          22
-nsite          16
+ngeom          25
+nsite          5
 ncam           0
 nlight         3
 nmesh          17
@@ -48,7 +48,7 @@ nuser_cam      0
 nuser_tendon   0
 nuser_actuator 0
 nuser_sensor   0
-nnames         852
+nnames         995
 
 nM             27
 nemax          0
@@ -58,7 +58,7 @@ nstack         1297145
 nuserdata      0
 nmocap         0
 nsensordata    0
-nbuffer        901924
+nbuffer        903243
 
 timestep       0.005   
 apirate        1e+02   
@@ -86,11 +86,11 @@ mpr_iterations 50
 disableflags   0
 enableflags    0
 
-totalmass      21      
+totalmass      23      
 
-meaninertia    2.3     
-meanmass       0.97    
-meansize       0.12    
+meaninertia    5.5     
+meanmass       0.77    
+meansize       0.11    
 extent         2       
 center         0.39      0.00045   0.28    
 
@@ -109,7 +109,7 @@ BODY 0:
   jntadr       -1
   dofnum       0
   dofadr       -1
-  geomnum      4
+  geomnum      1
   geomadr      0
   simple       1
   sameframe    1
@@ -118,7 +118,7 @@ BODY 0:
   ipos         0         0         0       
   iquat        1         0         0         0       
   mass         0       
-  subtreemass  21      
+  subtreemass  23      
   inertia      0         0         0       
   invweight0   0         0       
 
@@ -133,7 +133,7 @@ BODY 1:
   dofnum       6
   dofadr       0
   geomnum      1
-  geomadr      4
+  geomadr      1
   simple       1
   sameframe    1
   pos          1.2       0         0.066   
@@ -146,7 +146,7 @@ BODY 1:
   invweight0   6.5       1.4e+03 
 
 BODY 2:
-  name         base_roll_link
+  name         base
   parentid     0
   rootid       2
   weldid       2
@@ -155,8 +155,8 @@ BODY 2:
   jntadr       1
   dofnum       3
   dofadr       6
-  geomnum      0
-  geomadr      -1
+  geomnum      2
+  geomadr      2
   simple       0
   sameframe    0
   pos          0         0         0       
@@ -164,15 +164,38 @@ BODY 2:
   ipos        -0.019     0.0022    0.071   
   iquat       -0.16      0.7       0.18      0.68    
   mass         10      
-  subtreemass  10      
+  subtreemass  23      
   inertia      0.15      0.096     0.071   
-  invweight0   0.065     2.3     
+  invweight0   0.029     0.11    
 
 BODY 3:
-  name         base_f_bumper_link
-  parentid     0
-  rootid       3
-  weldid       0
+  name         base_r_drive_wheel_link
+  parentid     2
+  rootid       2
+  weldid       2
+  mocapid      -1
+  jntnum       0
+  jntadr       -1
+  dofnum       0
+  dofadr       -1
+  geomnum      1
+  geomadr      4
+  simple       0
+  sameframe    1
+  pos         -0.11     -0.13      0.04    
+  quat         1         0         0         0       
+  ipos         0         0         0       
+  iquat        1         0         0         0       
+  mass         0.2     
+  subtreemass  0.2     
+  inertia      0.015     0.015     0.015   
+  invweight0   0.033     0.11    
+
+BODY 4:
+  name         base_l_drive_wheel_link
+  parentid     2
+  rootid       2
+  weldid       2
   mocapid      -1
   jntnum       0
   jntadr       -1
@@ -181,21 +204,67 @@ BODY 3:
   geomnum      1
   geomadr      5
   simple       0
-  sameframe    0
+  sameframe    1
+  pos         -0.11      0.13      0.04    
+  quat         1         0         0         0       
+  ipos         0         0         0       
+  iquat        1         0         0         0       
+  mass         0.2     
+  subtreemass  0.2     
+  inertia      0.015     0.015     0.015   
+  invweight0   0.032     0.11    
+
+BODY 5:
+  name         base_r_passive_wheel_x_frame
+  parentid     2
+  rootid       2
+  weldid       2
+  mocapid      -1
+  jntnum       0
+  jntadr       -1
+  dofnum       0
+  dofadr       -1
+  geomnum      0
+  geomadr      -1
+  simple       0
+  sameframe    1
+  pos          0.15     -0.055     0.03    
+  quat         1         0         0         0       
+  ipos         0         0         0       
+  iquat        1         0         0         0       
+  mass         0.2     
+  subtreemass  0.6     
+  inertia      0.015     0.015     0.015   
+  invweight0   0.032     0.11    
+
+BODY 6:
+  name         base_r_passive_wheel_y_frame
+  parentid     5
+  rootid       2
+  weldid       2
+  mocapid      -1
+  jntnum       0
+  jntadr       -1
+  dofnum       0
+  dofadr       -1
+  geomnum      0
+  geomadr      -1
+  simple       0
+  sameframe    1
   pos          0         0         0       
   quat         1         0         0         0       
   ipos         0         0         0       
-  iquat        0.5       0.5      -0.5       0.5     
-  mass         0.06    
-  subtreemass  0.06    
-  inertia      0.0019    0.0019    0.0019  
-  invweight0   0         0       
+  iquat        1         0         0         0       
+  mass         0.2     
+  subtreemass  0.4     
+  inertia      0.015     0.015     0.015   
+  invweight0   0.032     0.11    
 
-BODY 4:
-  name         base_b_bumper_link
-  parentid     0
-  rootid       4
-  weldid       0
+BODY 7:
+  name         base_r_passive_wheel_z_link
+  parentid     6
+  rootid       2
+  weldid       2
   mocapid      -1
   jntnum       0
   jntadr       -1
@@ -204,21 +273,67 @@ BODY 4:
   geomnum      1
   geomadr      6
   simple       0
-  sameframe    0
-  pos          0         0.0013    0       
-  quat         0         0         0         1       
+  sameframe    1
+  pos          0         0         0       
+  quat         1         0         0         0       
   ipos         0         0         0       
-  iquat        0.5       0.5      -0.5       0.5     
-  mass         0.06    
-  subtreemass  0.06    
-  inertia      0.0019    0.0019    0.0019  
-  invweight0   0         0       
+  iquat        1         0         0         0       
+  mass         0.2     
+  subtreemass  0.2     
+  inertia      0.015     0.015     0.015   
+  invweight0   0.032     0.11    
 
-BODY 5:
-  name         torso_lift_link
-  parentid     0
-  rootid       5
-  weldid       0
+BODY 8:
+  name         base_l_passive_wheel_x_frame
+  parentid     2
+  rootid       2
+  weldid       2
+  mocapid      -1
+  jntnum       0
+  jntadr       -1
+  dofnum       0
+  dofadr       -1
+  geomnum      0
+  geomadr      -1
+  simple       0
+  sameframe    1
+  pos          0.15      0.055     0.03    
+  quat         1         0         0         0       
+  ipos         0         0         0       
+  iquat        1         0         0         0       
+  mass         0.2     
+  subtreemass  0.6     
+  inertia      0.015     0.015     0.015   
+  invweight0   0.031     0.11    
+
+BODY 9:
+  name         base_l_passive_wheel_y_frame
+  parentid     8
+  rootid       2
+  weldid       2
+  mocapid      -1
+  jntnum       0
+  jntadr       -1
+  dofnum       0
+  dofadr       -1
+  geomnum      0
+  geomadr      -1
+  simple       0
+  sameframe    1
+  pos          0         0         0       
+  quat         1         0         0         0       
+  ipos         0         0         0       
+  iquat        1         0         0         0       
+  mass         0.2     
+  subtreemass  0.4     
+  inertia      0.015     0.015     0.015   
+  invweight0   0.031     0.11    
+
+BODY 10:
+  name         base_l_passive_wheel_z_link
+  parentid     9
+  rootid       2
+  weldid       2
   mocapid      -1
   jntnum       0
   jntadr       -1
@@ -227,21 +342,21 @@ BODY 5:
   geomnum      1
   geomadr      7
   simple       0
-  sameframe    0
-  pos          0         0         0.75    
+  sameframe    1
+  pos          0         0         0       
   quat         1         0         0         0       
-  ipos        -0.051     0.0035   -0.29    
-  iquat        0.51      0.0076   -0.014     0.86    
-  mass         3.4     
-  subtreemass  6.2     
-  inertia      0.11      0.1       0.013   
-  invweight0   0         0       
+  ipos         0         0         0       
+  iquat        1         0         0         0       
+  mass         0.2     
+  subtreemass  0.2     
+  inertia      0.015     0.015     0.015   
+  invweight0   0.031     0.11    
 
-BODY 6:
-  name         head_pan_link
-  parentid     5
-  rootid       5
-  weldid       0
+BODY 11:
+  name         base_f_bumper_link
+  parentid     2
+  rootid       2
+  weldid       2
   mocapid      -1
   jntnum       0
   jntadr       -1
@@ -253,25 +368,94 @@ BODY 6:
   sameframe    0
   pos          0         0         0       
   quat         1         0         0         0       
+  ipos         0         0         0       
+  iquat        0.5       0.5      -0.5       0.5     
+  mass         0.06    
+  subtreemass  0.06    
+  inertia      0.0019    0.0019    0.0019  
+  invweight0   0.029     0.11    
+
+BODY 12:
+  name         base_b_bumper_link
+  parentid     2
+  rootid       2
+  weldid       2
+  mocapid      -1
+  jntnum       0
+  jntadr       -1
+  dofnum       0
+  dofadr       -1
+  geomnum      1
+  geomadr      9
+  simple       0
+  sameframe    0
+  pos          0         0.0013    0       
+  quat         0         0         0         1       
+  ipos         0         0         0       
+  iquat        0.5       0.5      -0.5       0.5     
+  mass         0.06    
+  subtreemass  0.06    
+  inertia      0.0019    0.0019    0.0019  
+  invweight0   0.029     0.11    
+
+BODY 13:
+  name         torso_lift_link
+  parentid     2
+  rootid       2
+  weldid       2
+  mocapid      -1
+  jntnum       0
+  jntadr       -1
+  dofnum       0
+  dofadr       -1
+  geomnum      1
+  geomadr      10
+  simple       0
+  sameframe    0
+  pos          0         0         0.75    
+  quat         1         0         0         0       
+  ipos        -0.051     0.0035   -0.29    
+  iquat        0.51      0.0076   -0.014     0.86    
+  mass         3.4     
+  subtreemass  6.2     
+  inertia      0.11      0.1       0.013   
+  invweight0   0.03      0.11    
+
+BODY 14:
+  name         head_pan_link
+  parentid     13
+  rootid       2
+  weldid       2
+  mocapid      -1
+  jntnum       0
+  jntadr       -1
+  dofnum       0
+  dofadr       -1
+  geomnum      1
+  geomadr      11
+  simple       0
+  sameframe    0
+  pos          0         0         0       
+  quat         1         0         0         0       
   ipos         0.0017   -0.002    -0.029   
   iquat        0.87      0.46      0.19     -0.055   
   mass         0.57    
   subtreemass  2.8     
   inertia      0.001     0.00078   0.00059 
-  invweight0   0         0       
+  invweight0   0.029     0.11    
 
-BODY 7:
+BODY 15:
   name         head_tilt_link
-  parentid     6
-  rootid       5
-  weldid       0
+  parentid     14
+  rootid       2
+  weldid       2
   mocapid      -1
   jntnum       0
   jntadr       -1
   dofnum       0
   dofadr       -1
   geomnum      3
-  geomadr      9
+  geomadr      12
   simple       0
   sameframe    0
   pos          0.02      0         0       
@@ -281,82 +465,13 @@ BODY 7:
   mass         2.2     
   subtreemass  2.2     
   inertia      0.031     0.024     0.018   
-  invweight0   0         0       
+  invweight0   0.029     0.11    
 
-BODY 8:
+BODY 16:
   name         arm_lift_link
-  parentid     0
-  rootid       8
-  weldid       0
-  mocapid      -1
-  jntnum       0
-  jntadr       -1
-  dofnum       0
-  dofadr       -1
-  geomnum      1
-  geomadr      12
-  simple       0
-  sameframe    0
-  pos          0         0         0.34    
-  quat         1         0         0         0       
-  ipos         0.052     0.042    -0.064   
-  iquat       -0.11      0.5      -0.11      0.85    
-  mass         1.3     
-  subtreemass  4.7     
-  inertia      0.0091    0.008     0.0033  
-  invweight0   0         0       
-
-BODY 9:
-  name         arm_flex_link
-  parentid     8
-  rootid       8
-  weldid       0
-  mocapid      -1
-  jntnum       0
-  jntadr       -1
-  dofnum       0
-  dofadr       -1
-  geomnum      1
-  geomadr      13
-  simple       0
-  sameframe    0
-  pos          0.14      0.078     0       
-  quat         1         0         0         0       
-  ipos         0.00063   0.0064    0.12    
-  iquat        1        -0.0083    1.5e-06  -1.3e-06 
-  mass         1.3     
-  subtreemass  3.4     
-  inertia      2.5       2.5       2.5     
-  invweight0   0         0       
-
-BODY 10:
-  name         arm_roll_link
-  parentid     9
-  rootid       8
-  weldid       0
-  mocapid      -1
-  jntnum       0
-  jntadr       -1
-  dofnum       0
-  dofadr       -1
-  geomnum      1
-  geomadr      14
-  simple       0
-  sameframe    0
-  pos          0.005     0         0.34    
-  quat         0.73      0         0        -0.68    
-  ipos        -0.0069    0.002    -0.065   
-  iquat        0.7       0.71     -0.044     0.041   
-  mass         0.25    
-  subtreemass  2.1     
-  inertia      0.0043    0.0041    0.00078 
-  invweight0   0         0       
-
-BODY 11:
-  name         wrist_flex_link
-  parentid     10
-  rootid       8
-  weldid       0
+  parentid     2
+  rootid       2
+  weldid       2
   mocapid      -1
   jntnum       0
   jntadr       -1
@@ -366,6 +481,75 @@ BODY 11:
   geomadr      15
   simple       0
   sameframe    0
+  pos          0         0         0.34    
+  quat         1         0         0         0       
+  ipos         0.052     0.042    -0.064   
+  iquat       -0.11      0.5      -0.11      0.85    
+  mass         1.3     
+  subtreemass  4.7     
+  inertia      0.0091    0.008     0.0033  
+  invweight0   0.029     0.11    
+
+BODY 17:
+  name         arm_flex_link
+  parentid     16
+  rootid       2
+  weldid       2
+  mocapid      -1
+  jntnum       0
+  jntadr       -1
+  dofnum       0
+  dofadr       -1
+  geomnum      1
+  geomadr      16
+  simple       0
+  sameframe    0
+  pos          0.14      0.078     0       
+  quat         1         0         0         0       
+  ipos         0.00063   0.0064    0.12    
+  iquat        1        -0.0083    1.5e-06  -1.3e-06 
+  mass         1.3     
+  subtreemass  3.4     
+  inertia      2.5       2.5       2.5     
+  invweight0   0.032     0.11    
+
+BODY 18:
+  name         arm_roll_link
+  parentid     17
+  rootid       2
+  weldid       2
+  mocapid      -1
+  jntnum       0
+  jntadr       -1
+  dofnum       0
+  dofadr       -1
+  geomnum      1
+  geomadr      17
+  simple       0
+  sameframe    0
+  pos          0.005     0         0.34    
+  quat         0.73      0         0        -0.68    
+  ipos        -0.0069    0.002    -0.065   
+  iquat        0.7       0.71     -0.044     0.041   
+  mass         0.25    
+  subtreemass  2.1     
+  inertia      0.0043    0.0041    0.00078 
+  invweight0   0.032     0.11    
+
+BODY 19:
+  name         wrist_flex_link
+  parentid     18
+  rootid       2
+  weldid       2
+  mocapid      -1
+  jntnum       0
+  jntadr       -1
+  dofnum       0
+  dofadr       -1
+  geomnum      1
+  geomadr      18
+  simple       0
+  sameframe    0
   pos          0         0         0       
   quat         0.73      0         0.68      0       
   ipos         0.00013  -0.0039    0.0022  
@@ -373,13 +557,13 @@ BODY 11:
   mass         0.68    
   subtreemass  1.8     
   inertia      7.4e-05   6.5e-05   3.8e-05 
-  invweight0   0         0       
+  invweight0   0.032     0.11    
 
-BODY 12:
+BODY 20:
   name         wrist_ft_sensor_mount_link
-  parentid     11
-  rootid       8
-  weldid       0
+  parentid     19
+  rootid       2
+  weldid       2
   mocapid      -1
   jntnum       0
   jntadr       -1
@@ -396,20 +580,20 @@ BODY 12:
   mass         0.01    
   subtreemass  1.2     
   inertia      0.001     0.001     0.001   
-  invweight0   0         0       
+  invweight0   0.032     0.11    
 
-BODY 13:
+BODY 21:
   name         wrist_ft_sensor_frame
-  parentid     12
-  rootid       8
-  weldid       0
+  parentid     20
+  rootid       2
+  weldid       2
   mocapid      -1
   jntnum       0
   jntadr       -1
   dofnum       0
   dofadr       -1
   geomnum      2
-  geomadr      16
+  geomadr      19
   simple       0
   sameframe    0
   pos          0         0         0.073   
@@ -419,13 +603,13 @@ BODY 13:
   mass         0.94    
   subtreemass  1.2     
   inertia      0.019     0.019     0.018   
-  invweight0   0         0       
+  invweight0   0.031     0.11    
 
-BODY 14:
+BODY 22:
   name         hand_motor_dummy_link
-  parentid     13
-  rootid       8
-  weldid       0
+  parentid     21
+  rootid       2
+  weldid       2
   mocapid      -1
   jntnum       0
   jntadr       -1
@@ -442,13 +626,13 @@ BODY 14:
   mass         0.01    
   subtreemass  0.01    
   inertia      0.0015    0.0015    0.0015  
-  invweight0   0         0       
+  invweight0   0.032     0.11    
 
-BODY 15:
+BODY 23:
   name         hand_l_proximal_link
-  parentid     13
-  rootid       8
-  weldid       0
+  parentid     21
+  rootid       2
+  weldid       2
   mocapid      -1
   jntnum       0
   jntadr       -1
@@ -465,20 +649,20 @@ BODY 15:
   mass         0.01    
   subtreemass  0.11    
   inertia      0.0015    0.0015    0.0015  
-  invweight0   0         0       
+  invweight0   0.033     0.11    
 
-BODY 16:
+BODY 24:
   name         hand_l_spring_proximal_link
-  parentid     15
-  rootid       8
-  weldid       0
+  parentid     23
+  rootid       2
+  weldid       2
   mocapid      -1
   jntnum       0
   jntadr       -1
   dofnum       0
   dofadr       -1
   geomnum      1
-  geomadr      18
+  geomadr      21
   simple       0
   sameframe    0
   pos          0         0         0       
@@ -488,13 +672,13 @@ BODY 16:
   mass         0.044   
   subtreemass  0.1     
   inertia      2.9e-05   2.6e-05   4.9e-06 
-  invweight0   0         0       
+  invweight0   0.033     0.11    
 
-BODY 17:
+BODY 25:
   name         hand_l_mimic_distal_link
-  parentid     16
-  rootid       8
-  weldid       0
+  parentid     24
+  rootid       2
+  weldid       2
   mocapid      -1
   jntnum       0
   jntadr       -1
@@ -511,20 +695,20 @@ BODY 17:
   mass         0.01    
   subtreemass  0.058   
   inertia      0.0015    0.0015    0.0015  
-  invweight0   0         0       
+  invweight0   0.034     0.11    
 
-BODY 18:
+BODY 26:
   name         hand_l_distal_link
-  parentid     17
-  rootid       8
-  weldid       0
+  parentid     25
+  rootid       2
+  weldid       2
   mocapid      -1
   jntnum       0
   jntadr       -1
   dofnum       0
   dofadr       -1
   geomnum      1
-  geomadr      19
+  geomadr      22
   simple       0
   sameframe    0
   pos          0         0         0       
@@ -534,13 +718,13 @@ BODY 18:
   mass         0.048   
   subtreemass  0.048   
   inertia      0.003     0.003     0.003   
-  invweight0   0         0       
+  invweight0   0.035     0.11    
 
-BODY 19:
+BODY 27:
   name         hand_r_proximal_link
-  parentid     13
-  rootid       8
-  weldid       0
+  parentid     21
+  rootid       2
+  weldid       2
   mocapid      -1
   jntnum       0
   jntadr       -1
@@ -557,20 +741,20 @@ BODY 19:
   mass         0.01    
   subtreemass  0.095   
   inertia      0.0015    0.0015    0.0015  
-  invweight0   0         0       
+  invweight0   0.031     0.11    
 
-BODY 20:
+BODY 28:
   name         hand_r_spring_proximal_link
-  parentid     19
-  rootid       8
-  weldid       0
+  parentid     27
+  rootid       2
+  weldid       2
   mocapid      -1
   jntnum       0
   jntadr       -1
   dofnum       0
   dofadr       -1
   geomnum      1
-  geomadr      20
+  geomadr      23
   simple       0
   sameframe    0
   pos          0         0         0       
@@ -580,13 +764,13 @@ BODY 20:
   mass         0.044   
   subtreemass  0.085   
   inertia      2.9e-05   2.6e-05   4.8e-06 
-  invweight0   0         0       
+  invweight0   0.031     0.11    
 
-BODY 21:
+BODY 29:
   name         hand_r_mimic_distal_link
-  parentid     20
-  rootid       8
-  weldid       0
+  parentid     28
+  rootid       2
+  weldid       2
   mocapid      -1
   jntnum       0
   jntadr       -1
@@ -603,20 +787,20 @@ BODY 21:
   mass         0.01    
   subtreemass  0.041   
   inertia      0.0015    0.0015    0.0015  
-  invweight0   0         0       
+  invweight0   0.033     0.11    
 
-BODY 22:
+BODY 30:
   name         hand_r_distal_link
-  parentid     21
-  rootid       8
-  weldid       0
+  parentid     29
+  rootid       2
+  weldid       2
   mocapid      -1
   jntnum       0
   jntadr       -1
   dofnum       0
   dofadr       -1
   geomnum      1
-  geomadr      21
+  geomadr      24
   simple       0
   sameframe    0
   pos          0         0         0       
@@ -626,7 +810,7 @@ BODY 22:
   mass         0.031   
   subtreemass  0.031   
   inertia      0.0015    0.0015    0.0015  
-  invweight0   0         0       
+  invweight0   0.034     0.11    
 
 
 JOINT 0:
@@ -789,8 +973,8 @@ DOF 6:
   frictionloss 0       
   armature     0       
   damping      0.7     
-  invweight0   0.098   
-  M0           10      
+  invweight0   0.044   
+  M0           23      
 
 DOF 7:
   bodyid       2
@@ -803,8 +987,8 @@ DOF 7:
   frictionloss 0       
   armature     0       
   damping      0.7     
-  invweight0   0.1     
-  M0           10      
+  invweight0   0.044   
+  M0           23      
 
 DOF 8:
   bodyid       2
@@ -817,8 +1001,8 @@ DOF 8:
   frictionloss 0       
   armature     0       
   damping      0.7     
-  invweight0   6.9     
-  M0           0.15    
+  invweight0   0.33    
+  M0           3       
 
 
 GEOM 0:
@@ -847,81 +1031,6 @@ GEOM 0:
 
 
 GEOM 1:
-  name         
-  type         7
-  contype      1
-  conaffinity  1
-  condim       3
-  bodyid       0
-  dataid       0
-  matid        -1
-  group        0
-  priority     0
-  sameframe    0
-  solmix       1       
-  solref       0.02      1       
-  solimp       0.9       0.95      0.001     0.5       2       
-  size         0.23      0.22      0.45    
-  rbound       0.55    
-  pos         -0.036     0.00045   0.26    
-  quat         0.99     -0.00089  -0.11      0.00037 
-  friction     1         0.005     0.0001  
-  margin       0       
-  gap          0       
-  rgba         0.5       0.5       0.5       1       
-
-
-GEOM 2:
-  name         base
-  type         7
-  contype      1
-  conaffinity  1
-  condim       3
-  bodyid       0
-  dataid       0
-  matid        -1
-  group        0
-  priority     0
-  sameframe    0
-  solmix       1       
-  solref       0.02      1       
-  solimp       0.9       0.95      0.001     0.5       2       
-  size         0.23      0.22      0.45    
-  rbound       0.55    
-  pos         -0.036     0.00045   0.26    
-  quat         0.99     -0.00089  -0.11      0.00037 
-  friction     1         0.005     0.0001  
-  margin       0       
-  gap          0       
-  rgba         0.5       0.5       0.5       1       
-
-
-GEOM 3:
-  name         
-  type         7
-  contype      1
-  conaffinity  1
-  condim       3
-  bodyid       0
-  dataid       1
-  matid        -1
-  group        0
-  priority     0
-  sameframe    0
-  solmix       1       
-  solref       0.02      1       
-  solimp       0.9       0.95      0.001     0.5       2       
-  size         0.02      0.02      0.019   
-  rbound       0.034   
-  pos          0.17     -1.4e-10   0.19    
-  quat         0.71      0         0         0.71    
-  friction     1         0.005     0.0001  
-  margin       0       
-  gap          0       
-  rgba         0.5       0.5       0.5       1       
-
-
-GEOM 4:
   name         object
   type         6
   contype      1
@@ -946,14 +1055,64 @@ GEOM 4:
   rgba         0.9       0         0         1       
 
 
-GEOM 5:
+GEOM 2:
+  name         base
+  type         7
+  contype      1
+  conaffinity  1
+  condim       3
+  bodyid       2
+  dataid       0
+  matid        -1
+  group        0
+  priority     0
+  sameframe    0
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.23      0.22      0.45    
+  rbound       0.55    
+  pos         -0.036     0.00045   0.26    
+  quat         0.99     -0.00089  -0.11      0.00037 
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.5       0.5       0.5       1       
+
+
+GEOM 3:
   name         
   type         7
+  contype      1
+  conaffinity  1
+  condim       3
+  bodyid       2
+  dataid       1
+  matid        -1
+  group        0
+  priority     0
+  sameframe    0
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.02      0.02      0.019   
+  rbound       0.034   
+  pos          0.17     -1.4e-10   0.19    
+  quat         0.71      0         0         0.71    
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.5       0.5       0.5       1       
+
+
+GEOM 4:
+  name         
+  type         5
   contype      1
   conaffinity  1
   condim       3
   bodyid       3
-  dataid       2
+  dataid       -1
   matid        -1
   group        0
   priority     0
@@ -961,23 +1120,98 @@ GEOM 5:
   solmix       1       
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
-  size         0.0077    0.12      0.23    
-  rbound       0.26    
-  pos          0.12      0.00065   0.029   
-  quat         0.5       0.5      -0.5       0.5     
+  size         0.04      0.015     0       
+  rbound       0.043   
+  pos          0         0         0       
+  quat         0.71      0.71      0         0       
   friction     1         0.005     0.0001  
   margin       0       
   gap          0       
-  rgba         0.5       0.5       0.5       1       
+  rgba         0.2       0.2       0.2       1       
 
 
-GEOM 6:
+GEOM 5:
   name         
-  type         7
+  type         5
   contype      1
   conaffinity  1
   condim       3
   bodyid       4
+  dataid       -1
+  matid        -1
+  group        0
+  priority     0
+  sameframe    0
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.04      0.015     0       
+  rbound       0.043   
+  pos          0         0         0       
+  quat         0.71      0.71      0         0       
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.2       0.2       0.2       1       
+
+
+GEOM 6:
+  name         
+  type         2
+  contype      1
+  conaffinity  1
+  condim       3
+  bodyid       7
+  dataid       -1
+  matid        -1
+  group        0
+  priority     0
+  sameframe    1
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.03      0         0       
+  rbound       0.03    
+  pos          0         0         0       
+  quat         1         0         0         0       
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.2       0.2       0.2       1       
+
+
+GEOM 7:
+  name         
+  type         2
+  contype      1
+  conaffinity  1
+  condim       3
+  bodyid       10
+  dataid       -1
+  matid        -1
+  group        0
+  priority     0
+  sameframe    1
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.03      0         0       
+  rbound       0.03    
+  pos          0         0         0       
+  quat         1         0         0         0       
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.2       0.2       0.2       1       
+
+
+GEOM 8:
+  name         
+  type         7
+  contype      1
+  conaffinity  1
+  condim       3
+  bodyid       11
   dataid       2
   matid        -1
   group        0
@@ -996,13 +1230,38 @@ GEOM 6:
   rgba         0.5       0.5       0.5       1       
 
 
-GEOM 7:
+GEOM 9:
   name         
   type         7
   contype      1
   conaffinity  1
   condim       3
-  bodyid       5
+  bodyid       12
+  dataid       2
+  matid        -1
+  group        0
+  priority     0
+  sameframe    0
+  solmix       1       
+  solref       0.02      1       
+  solimp       0.9       0.95      0.001     0.5       2       
+  size         0.0077    0.12      0.23    
+  rbound       0.26    
+  pos          0.12      0.00065   0.029   
+  quat         0.5       0.5      -0.5       0.5     
+  friction     1         0.005     0.0001  
+  margin       0       
+  gap          0       
+  rgba         0.5       0.5       0.5       1       
+
+
+GEOM 10:
+  name         
+  type         7
+  contype      1
+  conaffinity  1
+  condim       3
+  bodyid       13
   dataid       3
   matid        -1
   group        0
@@ -1021,13 +1280,13 @@ GEOM 7:
   rgba         0.5       0.5       0.5       1       
 
 
-GEOM 8:
+GEOM 11:
   name         
   type         7
   contype      1
   conaffinity  1
   condim       3
-  bodyid       6
+  bodyid       14
   dataid       4
   matid        -1
   group        0
@@ -1046,13 +1305,13 @@ GEOM 8:
   rgba         0.5       0.5       0.5       1       
 
 
-GEOM 9:
+GEOM 12:
   name         
   type         7
   contype      1
   conaffinity  1
   condim       3
-  bodyid       7
+  bodyid       15
   dataid       5
   matid        -1
   group        0
@@ -1071,13 +1330,13 @@ GEOM 9:
   rgba         0.5       0.5       0.5       1       
 
 
-GEOM 10:
+GEOM 13:
   name         
   type         7
   contype      1
   conaffinity  1
   condim       3
-  bodyid       7
+  bodyid       15
   dataid       6
   matid        -1
   group        0
@@ -1096,13 +1355,13 @@ GEOM 10:
   rgba         0.5       0.5       0.5       1       
 
 
-GEOM 11:
+GEOM 14:
   name         
   type         7
   contype      1
   conaffinity  1
   condim       3
-  bodyid       7
+  bodyid       15
   dataid       7
   matid        -1
   group        0
@@ -1121,13 +1380,13 @@ GEOM 11:
   rgba         0.5       0.5       0.5       1       
 
 
-GEOM 12:
+GEOM 15:
   name         
   type         7
   contype      1
   conaffinity  1
   condim       3
-  bodyid       8
+  bodyid       16
   dataid       8
   matid        -1
   group        0
@@ -1146,13 +1405,13 @@ GEOM 12:
   rgba         0.5       0.5       0.5       1       
 
 
-GEOM 13:
+GEOM 16:
   name         
   type         7
   contype      1
   conaffinity  1
   condim       3
-  bodyid       9
+  bodyid       17
   dataid       9
   matid        -1
   group        0
@@ -1171,13 +1430,13 @@ GEOM 13:
   rgba         0.5       0.5       0.5       1       
 
 
-GEOM 14:
+GEOM 17:
   name         
   type         7
   contype      1
   conaffinity  1
   condim       3
-  bodyid       10
+  bodyid       18
   dataid       10
   matid        -1
   group        0
@@ -1196,13 +1455,13 @@ GEOM 14:
   rgba         0.5       0.5       0.5       1       
 
 
-GEOM 15:
+GEOM 18:
   name         
   type         5
   contype      1
   conaffinity  1
   condim       3
-  bodyid       11
+  bodyid       19
   dataid       -1
   matid        -1
   group        0
@@ -1221,13 +1480,13 @@ GEOM 15:
   rgba         0.33      0.33      0.33      1       
 
 
-GEOM 16:
+GEOM 19:
   name         
   type         7
   contype      1
   conaffinity  1
   condim       3
-  bodyid       13
+  bodyid       21
   dataid       11
   matid        -1
   group        0
@@ -1246,13 +1505,13 @@ GEOM 16:
   rgba         0.5       0.5       0.5       1       
 
 
-GEOM 17:
+GEOM 20:
   name         
   type         7
   contype      1
   conaffinity  1
   condim       3
-  bodyid       13
+  bodyid       21
   dataid       12
   matid        -1
   group        0
@@ -1271,13 +1530,13 @@ GEOM 17:
   rgba         0.5       0.5       0.5       1       
 
 
-GEOM 18:
+GEOM 21:
   name         
   type         7
   contype      1
   conaffinity  1
   condim       3
-  bodyid       16
+  bodyid       24
   dataid       13
   matid        -1
   group        0
@@ -1296,13 +1555,13 @@ GEOM 18:
   rgba         0.5       0.5       0.5       1       
 
 
-GEOM 19:
+GEOM 22:
   name         
   type         7
   contype      1
   conaffinity  1
   condim       3
-  bodyid       18
+  bodyid       26
   dataid       14
   matid        -1
   group        0
@@ -1321,13 +1580,13 @@ GEOM 19:
   rgba         0.5       0.5       0.5       1       
 
 
-GEOM 20:
+GEOM 23:
   name         
   type         7
   contype      1
   conaffinity  1
   condim       3
-  bodyid       20
+  bodyid       28
   dataid       15
   matid        -1
   group        0
@@ -1346,13 +1605,13 @@ GEOM 20:
   rgba         0.5       0.5       0.5       1       
 
 
-GEOM 21:
+GEOM 24:
   name         
   type         7
   contype      1
   conaffinity  1
   condim       3
-  bodyid       22
+  bodyid       30
   dataid       16
   matid        -1
   group        0
@@ -1425,159 +1684,16 @@ SITE 3:
 
 
 SITE 4:
-  name         base1
+  name         base
   type         2
-  bodyid       3
+  bodyid       2
   matid        -1
   group        2
   sameframe    0
   size         0.001     0.005     0.005   
-  pos          0         0.23      0.032   
+  pos          0         0         0.064   
   quat         1         0         0         0       
-  rgba         0         1         0         1       
-
-
-SITE 5:
-  name         base2
-  type         2
-  bodyid       3
-  matid        -1
-  group        2
-  sameframe    0
-  size         0.001     0.005     0.005   
-  pos          0        -0.23      0.032   
-  quat         1         0         0         0       
-  rgba         0         1         0         1       
-
-
-SITE 6:
-  name         base3
-  type         2
-  bodyid       3
-  matid        -1
-  group        2
-  sameframe    0
-  size         0.001     0.005     0.005   
-  pos          0.23      0         0.032   
-  quat         1         0         0         0       
-  rgba         0         1         0         1       
-
-
-SITE 7:
-  name         base4
-  type         2
-  bodyid       3
-  matid        -1
-  group        2
-  sameframe    0
-  size         0.001     0.005     0.005   
-  pos          0.1       0.2       0.032   
-  quat         1         0         0         0       
-  rgba         0         1         0         1       
-
-
-SITE 8:
-  name         base5
-  type         2
-  bodyid       3
-  matid        -1
-  group        2
-  sameframe    0
-  size         0.001     0.005     0.005   
-  pos          0.1      -0.2       0.032   
-  quat         1         0         0         0       
-  rgba         0         1         0         1       
-
-
-SITE 9:
-  name         base6
-  type         2
-  bodyid       3
-  matid        -1
-  group        2
-  sameframe    0
-  size         0.001     0.005     0.005   
-  pos          0.2       0.1       0.032   
-  quat         1         0         0         0       
-  rgba         0         1         0         1       
-
-
-SITE 10:
-  name         base7
-  type         2
-  bodyid       3
-  matid        -1
-  group        2
-  sameframe    0
-  size         0.001     0.005     0.005   
-  pos          0.2      -0.1       0.032   
-  quat         1         0         0         0       
-  rgba         0         1         0         1       
-
-
-SITE 11:
-  name         base8
-  type         2
-  bodyid       4
-  matid        -1
-  group        2
-  sameframe    0
-  size         0.001     0.005     0.005   
-  pos          0.23      0         0.032   
-  quat         1         0         0         0       
-  rgba         0         1         0         1       
-
-
-SITE 12:
-  name         base9
-  type         2
-  bodyid       4
-  matid        -1
-  group        2
-  sameframe    0
-  size         0.001     0.005     0.005   
-  pos          0.1       0.2       0.032   
-  quat         1         0         0         0       
-  rgba         0         1         0         1       
-
-
-SITE 13:
-  name         base10
-  type         2
-  bodyid       4
-  matid        -1
-  group        2
-  sameframe    0
-  size         0.001     0.005     0.005   
-  pos          0.1      -0.2       0.032   
-  quat         1         0         0         0       
-  rgba         0         1         0         1       
-
-
-SITE 14:
-  name         base11
-  type         2
-  bodyid       4
-  matid        -1
-  group        2
-  sameframe    0
-  size         0.001     0.005     0.005   
-  pos          0.2       0.1       0.032   
-  quat         1         0         0         0       
-  rgba         0         1         0         1       
-
-
-SITE 15:
-  name         base12
-  type         2
-  bodyid       4
-  matid        -1
-  group        2
-  sameframe    0
-  size         0.001     0.005     0.005   
-  pos          0.2      -0.1       0.032   
-  quat         1         0         0         0       
-  rgba         0         1         0         1       
+  rgba         1         1         0         1       
 
 
 
@@ -1591,7 +1707,7 @@ LIGHT 0:
   active       1
   pos          0         0         3       
   dir          0         0        -1       
-  poscom0     -0.014    -0.011     2.7     
+  poscom0     -0.019    -0.01      2.7     
   pos0         0         0         3       
   dir0         0         0        -1       
   attenuation  1         0         0       
@@ -1611,7 +1727,7 @@ LIGHT 1:
   active       1
   pos          1        -1        -0.1     
   dir         -0.58      0.58      0.58    
-  poscom0      0.99     -1        -0.43    
+  poscom0      0.98     -1        -0.41    
   pos0         1        -1        -0.1     
   dir0        -0.58      0.58      0.58    
   attenuation  1         0         0       
@@ -1631,7 +1747,7 @@ LIGHT 2:
   active       1
   pos          1.5       0         3       
   dir          0         0        -1       
-  poscom0      1.5      -0.011     2.7     
+  poscom0      1.5      -0.01      2.7     
   pos0         1.5       0         3       
   dir0         0         0        -1       
   attenuation  1         0         0       
@@ -1855,8 +1971,8 @@ PAIR 0:
   name         
   dim          3
   geom1        0
-  geom2        2
-  signature    65537
+  geom2        1
+  signature    65538
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
   margin       0       
@@ -1866,9 +1982,9 @@ PAIR 0:
 PAIR 1:
   name         
   dim          3
-  geom1        2
-  geom2        4
-  signature    65538
+  geom1        0
+  geom2        2
+  signature    65539
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
   margin       0       
@@ -1878,9 +1994,9 @@ PAIR 1:
 PAIR 2:
   name         
   dim          3
-  geom1        0
-  geom2        4
-  signature    65538
+  geom1        1
+  geom2        2
+  signature    131075
   solref       0.02      1       
   solimp       0.9       0.95      0.001     0.5       2       
   margin       0       
@@ -1905,7 +2021,7 @@ ACTUATOR 0:
   forcerange   0         0       
   gear         1         0         0         0         0         0       
   cranklength  0       
-  acc0         0.099   
+  acc0         0.044   
   length0      0       
   lengthrange  0         0       
 
@@ -1926,7 +2042,7 @@ ACTUATOR 1:
   forcerange   0         0       
   gear         1         0         0         0         0         0       
   cranklength  0       
-  acc0         0.17    
+  acc0         0.044   
   length0      0       
   lengthrange  0         0       
 
@@ -1947,10 +2063,10 @@ ACTUATOR 2:
   forcerange   0         0       
   gear         1         0         0         0         0         0       
   cranklength  0       
-  acc0         6.9     
+  acc0         0.33    
   length0      0       
   lengthrange  0         0       
 
 key_name0    init_pose
-key_qpos0    0         0.25      0.5       0         0.25     -0.38      0.89     -1        -1         0        
+key_qpos0    0         0.25      0.5       0         0.25     -0.38      0.89      0.5      -1         0.5      
 
