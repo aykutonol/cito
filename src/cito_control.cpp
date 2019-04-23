@@ -93,9 +93,9 @@ eigMd CitoControl::contactModel(const mjData* d, const eigVd u)
         {
           for( int i=0; i<3; i++ )
           {
-            pBF[i] = d->qpos[cp.pFree[fI]+i];          // position of the center of mass of the free body
+            pBF[i] = d->qpos[cp.pFree[fI]+i];               // position of the center of mass of the free body
           }
-          vEF = pBF - pSE;                                  // vector from the end effector to the free body
+          vEF = pBF - pSR;                                  // vector from the end effector to the free body
           // wrench on the free body due to the contact pI: [lambda; cross(vEF, lambda)]
           h(fI*6+0) += lambda[0];
           h(fI*6+1) += lambda[1];
