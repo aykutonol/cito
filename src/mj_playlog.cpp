@@ -195,6 +195,7 @@ void initMuJoCo(const char* modelFilePath, const char* logFilePath)
         std::vector<double> desiredPos = { params["desiredFinalPos"].as<std::vector<double>>() };
         for( int i=0; i<3; i++ )
         {
+            desiredPos[2] = 0;  // navigation
             m->body_pos[mj_name2id(m, mjOBJ_BODY, "ghost")*3+i] = desiredPos[i];
         }
     }
