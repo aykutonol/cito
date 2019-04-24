@@ -8,7 +8,8 @@
 CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(model), sq(model)
 {
     // initialize Eigen variables
-    finalPos.resize(6);
+//    finalPos.resize(6);   // manipulation
+    finalPos.resize(3);     // navigation
     // get SCvx parameters
     YAML::Node paramSCvx = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/scvx.yaml");
     beta_expand = paramSCvx["beta_expand"].as<double>();
