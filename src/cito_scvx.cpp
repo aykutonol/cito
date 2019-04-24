@@ -46,10 +46,14 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(mo
 // getCost: returns the nonlinear cost given control trajectory and final state
 double CitoSCvx::getCost(const eigMm X, const eigMd U)
 {
-    // final cost
-    finalPos = X.col(cp.N).segment(cp.controlJointDOF0, 6);
+    // final cost: manipulation
+//    finalPos = X.col(cp.N).segment(cp.controlJointDOF0, 6);
+//    Jf = 0.5*(cp.weight[0]*(cp.desiredPos.head(2)-finalPos.head(2)).squaredNorm()+
+//              cp.weight[1]*(cp.desiredPos.tail(4)-finalPos.tail(4)).squaredNorm());
+    // final cost: navigation
+    finalPos = X.col(cp.N).segment(cp.controlJointDOF0, 3);
     Jf = 0.5*(cp.weight[0]*(cp.desiredPos.head(2)-finalPos.head(2)).squaredNorm()+
-              cp.weight[1]*(cp.desiredPos.tail(4)-finalPos.tail(4)).squaredNorm());
+              cp.weight[1]*(cp.desiredPos.tail(1)-finalPos.tail(1)).squaredNorm());
     // integrated cost
     Ji = cp.weight[2]*X.leftCols(cp.N).bottomRows(m->nv).squaredNorm()+
          cp.weight[3]*U.bottomRows(cp.nPair).sum();

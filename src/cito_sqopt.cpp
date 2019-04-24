@@ -8,13 +8,16 @@
 CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
 {
     // initialize Eigen variables
-    deltaPos.resize(6);
+//    deltaPos.resize(6);   // manipulation
+    deltaPos.resize(3);     // navigation
     // get the upper bound (initial value) for the virtual stiffness
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
     kCon0 = vscm["kCon0"].as<double>();
     // SQOPT parameters
-    nnH     = 6 + cp.N*m->nv;
-    lencObj = 6 + cp.N*m->nv + cp.N*cp.nPair;
+//    nnH     = 6 + cp.N*m->nv;                     // manipulation
+//    lencObj = 6 + cp.N*m->nv + cp.N*cp.nPair;     // manipulation
+    nnH     = 3 + cp.N*m->nv;                       // navigation
+    lencObj = 3 + cp.N*m->nv + cp.N*cp.nPair;       // navigation
     neA     = cp.N*cp.n*cp.n + (cp.N+1)*cp.n + cp.N*cp.n*cp.m + ((cp.N+1)*cp.n+cp.N*cp.m)*5;
     n       = ((cp.N+1)*cp.n + cp.N*cp.m)*2;    // *2 is for auxiliary variables for l1-norm (trust region)
     nc      = n + (cp.N+1)*cp.n + 1;
@@ -23,7 +26,8 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
     dUOffset  = (cp.N+1)*cp.n;
     auxOffset = (cp.N+1)*cp.n+cp.N*cp.m;
     // indices to move
-    nMove = 6 + cp.N*m->nv + cp.N*cp.nPair;
+//    nMove = 6 + cp.N*m->nv + cp.N*cp.nPair;   // manipulation
+    nMove = 3 + cp.N*m->nv + cp.N*cp.nPair;     // navigation
     indMove = new int[nMove];
     // * virtual stiffness variables
     for( int i=0; i<cp.N; i ++ )
@@ -34,7 +38,8 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
         }
     }
     // * final pose variables for the control joint
-    for( int i=0; i<6; i++ )
+//    for( int i=0; i<6; i++ )      // manipulation
+    for( int i=0; i<3; i++ )        // navigation
     {
         indMove[nMove-1-cp.N*m->nv-i] = cp.N*cp.n + cp.controlJointDOF0 + i;
     }
@@ -43,9 +48,13 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
     {
         for( int j=0; j<m->nv; j++ )
         {
-            indMove[cp.N*cp.nPair+6+i*m->nv+j] = cp.N*cp.n - 1 - i*cp.n - j;
+//            indMove[cp.N*cp.nPair+6+i*m->nv+j] = cp.N*cp.n - 1 - i*cp.n - j;  // manipulation
+            indMove[cp.N*cp.nPair+3+i*m->nv+j] = cp.N*cp.n - 1 - i*cp.n - j;    // navigation
         }
     }
+    // display indMove
+//    for( int i=0; i<nMove; i++ )
+//        std::cout << "indMove " << i << ": " << indMove[i] << "\n";
     // initialize & set options for SQOPT
     cvxProb.initialize("", 1);
     cvxProb.setProbName("SubQP");
@@ -85,7 +94,8 @@ void CitoSQOPT::qpHx(int *nnH, double x[], double Hx[], int *nState,
         Hx[i] = ru[0]*x[i];
     }
     // final z position and orientation of the control body
-    for( int i=N*nv+2; i<N*nv+6; i++ )
+//    for( int i=N*nv+2; i<N*nv+6; i++ )    // manipulation
+    for( int i=N*nv+2; i<N*nv+3; i++ )      // navigation
     {
         Hx[i] = ru[1]*x[i];
     }
@@ -97,7 +107,8 @@ void CitoSQOPT::setCObj(const eigMm X, const eigMd U,
 {
     // desired change in the final pose
     deltaPos.setZero();
-    deltaPos = cp.desiredPos - X.col(cp.N).segment(cp.controlJointDOF0, 6);
+//    deltaPos = cp.desiredPos - X.col(cp.N).segment(cp.controlJointDOF0, 6);   // manipulation
+    deltaPos = cp.desiredPos - X.col(cp.N).segment(cp.controlJointDOF0, 3);     // navigation
     // set linear objective terms
     // * velocities
     for( int i=0; i<cp.N*m->nv; i++ )
@@ -110,7 +121,8 @@ void CitoSQOPT::setCObj(const eigMm X, const eigMd U,
         cObj[cp.N*m->nv+i] = -ru[0]*deltaPos(i);
     }
     // * final orientation
-    for( int i=2; i<6; i++ )
+//    for( int i=2; i<6; i++ )  // manipulation
+    for( int i=2; i<3; i++ )    // navigation
     {
         cObj[cp.N*m->nv+i] = -ru[1]*deltaPos(i);
     }
@@ -119,12 +131,14 @@ void CitoSQOPT::setCObj(const eigMm X, const eigMd U,
     {
         for( int j=0; j<cp.nPair; j++ )
         {
-            cObj[cp.N*m->nv+6+i*cp.nPair+j] = ru[3];
+//            cObj[cp.N*m->nv+6+i*cp.nPair+j] = ru[3];  // manipulation
+            cObj[cp.N*m->nv+3+i*cp.nPair+j] = ru[3];    // navigation
         }
     }
     // constant objective term
     ObjAdd = 0.5*(ru[0]*deltaPos.head(2).squaredNorm() +
-                  ru[1]*deltaPos.tail(4).squaredNorm());// +
+                  ru[1]*deltaPos.tail(1).squaredNorm());    // navigation
+//                  ru[1]*deltaPos.tail(4).squaredNorm());  // manipulation
                   ru[3]*U.bottomRows(cp.nPair).sum();
 }
 
