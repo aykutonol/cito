@@ -20,7 +20,7 @@ desiredFinalPos: [0.5, 0.2, 0.0]
 controlJointDOF0: 6
 
 # Weights
-w1: 1e3  	# weight on deviations in x and y directions
-w2: 0e0  	# weight on deviations in z and orientation
+w1: 1e3  	# weight on position
+w2: 0e3  	# weight on orientation
 w3: 0e0  	# weight on velocities
 w4: 2e-1  	# weight on virtual stiffness
