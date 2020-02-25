@@ -5,7 +5,7 @@ add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED)
 find_package(Eigen3 REQUIRED)
-find_package(Boost COMPONENTS system REQUIRED)
+find_package(Boost REQUIRED COMPONENTS system)
 
 set(MUJOCO_DIR    "$ENV{MJ_HOME}")
 set(SNOPT_DIR     "$ENV{SN_HOME}")
@@ -39,15 +39,15 @@ set(NODE_NAME2 playlog)
 set(NODE_NAME3 tosc)
 set(NODE_NAME4 deriv)
 
-# main: runs successive convexification w/ SQOPT and numerical differentiation in MuJoCo
-add_executable(${NODE_NAME1} src/main.cpp)
-### MuJoCo w/o rendering
-target_link_libraries(${NODE_NAME1} ${MUJOCO_DIR}/bin/libmujoco200nogl.so
-				    pthread
-				    ${PROJECT_NAME}
-				    ${SNOPT_DIR}/lib/libsnopt7_cpp.so
-				    yaml-cpp
-)
+# # main: runs successive convexification w/ SQOPT and numerical differentiation in MuJoCo
+# add_executable(${NODE_NAME1} src/main.cpp)
+# ### MuJoCo w/o rendering
+# target_link_libraries(${NODE_NAME1} ${MUJOCO_DIR}/bin/libmujoco200nogl.so
+# 				    pthread
+# 				    ${PROJECT_NAME}
+# 				    ${SNOPT_DIR}/lib/libsnopt7_cpp.so
+# 				    yaml-cpp
+# )
 # playlog: shows motions generated
 add_executable(${NODE_NAME2} src/mj_playlog.cpp)
 ### MuJoCo w/ rendering
