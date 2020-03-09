@@ -4,34 +4,14 @@
 <!-- |    EDITING THIS FILE BY HAND IS NOT RECOMMENDED                                 | -->
 <!-- =================================================================================== -->
 <robot name="ur3e" xmlns:xacro="http://ros.org/wiki/xacro">
-  <gazebo>
-    <plugin filename="libgazebo_ros_control.so" name="ros_control">
-      <!--robotNamespace>/</robotNamespace-->
-      <!--robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType-->
-    </plugin>
-    <!--
-    <plugin name="gazebo_ros_power_monitor_controller" filename="libgazebo_ros_power_monitor.so">
-      <alwaysOn>true</alwaysOn>
-      <updateRate>1.0</updateRate>
-      <timeout>5</timeout>
-      <powerStateTopic>power_state</powerStateTopic>
-      <powerStateRate>10.0</powerStateRate>
-      <fullChargeCapacity>87.78</fullChargeCapacity>     
-      <dischargeRate>-474</dischargeRate>
-      <chargeRate>525</chargeRate>
-      <dischargeVoltage>15.52</dischargeVoltage>
-      <chargeVoltage>16.41</chargeVoltage>
-    </plugin>
--->
-  </gazebo>
   <!--
   Author: Felix Messmer
--->
+  -->
   <!-- measured from model -->
   <link name="base_link">
     <visual>
       <geometry>
-        <mesh filename="package://ur_e_description/meshes/ur3e/visual/base.dae"/>
+        <mesh filename="package://cito/model/mesh/ur3e/visual/base.dae"/>
       </geometry>
       <material name="LightGrey">
         <color rgba="0.7 0.7 0.7 1.0"/>
@@ -39,7 +19,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://ur_e_description/meshes/ur3e/collision/base.stl"/>
+        <mesh filename="package://cito/model/mesh/ur3e/collision/base.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -59,7 +39,7 @@
   <link name="shoulder_link">
     <visual>
       <geometry>
-        <mesh filename="package://ur_e_description/meshes/ur3e/visual/shoulder.dae"/>
+        <mesh filename="package://cito/model/mesh/ur3e/visual/shoulder.dae"/>
       </geometry>
       <material name="LightGrey">
         <color rgba="0.7 0.7 0.7 1.0"/>
@@ -67,7 +47,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://ur_e_description/meshes/ur3e/collision/shoulder.stl"/>
+        <mesh filename="package://cito/model/mesh/ur3e/collision/shoulder.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -87,7 +67,7 @@
   <link name="upper_arm_link">
     <visual>
       <geometry>
-        <mesh filename="package://ur_e_description/meshes/ur3e/visual/upperarm.dae"/>
+        <mesh filename="package://cito/model/mesh/ur3e/visual/upperarm.dae"/>
       </geometry>
       <material name="LightGrey">
         <color rgba="0.7 0.7 0.7 1.0"/>
@@ -95,7 +75,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://ur_e_description/meshes/ur3e/collision/upperarm.stl"/>
+        <mesh filename="package://cito/model/mesh/ur3e/collision/upperarm.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -115,7 +95,7 @@
   <link name="forearm_link">
     <visual>
       <geometry>
-        <mesh filename="package://ur_e_description/meshes/ur3e/visual/forearm.dae"/>
+        <mesh filename="package://cito/model/mesh/ur3e/visual/forearm.dae"/>
       </geometry>
       <material name="LightGrey">
         <color rgba="0.7 0.7 0.7 1.0"/>
@@ -123,7 +103,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://ur_e_description/meshes/ur3e/collision/forearm.stl"/>
+        <mesh filename="package://cito/model/mesh/ur3e/collision/forearm.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -143,7 +123,7 @@
   <link name="wrist_1_link">
     <visual>
       <geometry>
-        <mesh filename="package://ur_e_description/meshes/ur3e/visual/wrist1.dae"/>
+        <mesh filename="package://cito/model/mesh/ur3e/visual/wrist1.dae"/>
       </geometry>
       <material name="LightGrey">
         <color rgba="0.7 0.7 0.7 1.0"/>
@@ -151,7 +131,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://ur_e_description/meshes/ur3e/collision/wrist1.stl"/>
+        <mesh filename="package://cito/model/mesh/ur3e/collision/wrist1.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -171,7 +151,7 @@
   <link name="wrist_2_link">
     <visual>
       <geometry>
-        <mesh filename="package://ur_e_description/meshes/ur3e/visual/wrist2.dae"/>
+        <mesh filename="package://cito/model/mesh/ur3e/visual/wrist2.dae"/>
       </geometry>
       <material name="LightGrey">
         <color rgba="0.7 0.7 0.7 1.0"/>
@@ -179,7 +159,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://ur_e_description/meshes/ur3e/collision/wrist2.stl"/>
+        <mesh filename="package://cito/model/mesh/ur3e/collision/wrist2.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -199,7 +179,7 @@
   <link name="wrist_3_link">
     <visual>
       <geometry>
-        <mesh filename="package://ur_e_description/meshes/ur3e/visual/wrist3.dae"/>
+        <mesh filename="package://cito/model/mesh/ur3e/visual/wrist3.dae"/>
       </geometry>
       <material name="LightGrey">
         <color rgba="0.7 0.7 0.7 1.0"/>
@@ -207,7 +187,7 @@
     </visual>
     <collision>
       <geometry>
-        <mesh filename="package://ur_e_description/meshes/ur3e/collision/wrist3.stl"/>
+        <mesh filename="package://cito/model/mesh/ur3e/collision/wrist3.stl"/>
       </geometry>
     </collision>
     <inertial>
@@ -229,81 +209,6 @@
       <origin rpy="0 0 0" xyz="-0.01 0 0"/>
     </collision>
   </link>
-  <transmission name="shoulder_pan_trans">
-    <type>transmission_interface/SimpleTransmission</type>
-    <joint name="shoulder_pan_joint">
-      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
-    </joint>
-    <actuator name="shoulder_pan_motor">
-      <mechanicalReduction>1</mechanicalReduction>
-    </actuator>
-  </transmission>
-  <transmission name="shoulder_lift_trans">
-    <type>transmission_interface/SimpleTransmission</type>
-    <joint name="shoulder_lift_joint">
-      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
-    </joint>
-    <actuator name="shoulder_lift_motor">
-      <mechanicalReduction>1</mechanicalReduction>
-    </actuator>
-  </transmission>
-  <transmission name="elbow_trans">
-    <type>transmission_interface/SimpleTransmission</type>
-    <joint name="elbow_joint">
-      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
-    </joint>
-    <actuator name="elbow_motor">
-      <mechanicalReduction>1</mechanicalReduction>
-    </actuator>
-  </transmission>
-  <transmission name="wrist_1_trans">
-    <type>transmission_interface/SimpleTransmission</type>
-    <joint name="wrist_1_joint">
-      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
-    </joint>
-    <actuator name="wrist_1_motor">
-      <mechanicalReduction>1</mechanicalReduction>
-    </actuator>
-  </transmission>
-  <transmission name="wrist_2_trans">
-    <type>transmission_interface/SimpleTransmission</type>
-    <joint name="wrist_2_joint">
-      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
-    </joint>
-    <actuator name="wrist_2_motor">
-      <mechanicalReduction>1</mechanicalReduction>
-    </actuator>
-  </transmission>
-  <transmission name="wrist_3_trans">
-    <type>transmission_interface/SimpleTransmission</type>
-    <joint name="wrist_3_joint">
-      <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
-    </joint>
-    <actuator name="wrist_3_motor">
-      <mechanicalReduction>1</mechanicalReduction>
-    </actuator>
-  </transmission>
-  <gazebo reference="shoulder_link">
-    <selfCollide>true</selfCollide>
-  </gazebo>
-  <gazebo reference="upper_arm_link">
-    <selfCollide>true</selfCollide>
-  </gazebo>
-  <gazebo reference="forearm_link">
-    <selfCollide>true</selfCollide>
-  </gazebo>
-  <gazebo reference="wrist_1_link">
-    <selfCollide>true</selfCollide>
-  </gazebo>
-  <gazebo reference="wrist_3_link">
-    <selfCollide>true</selfCollide>
-  </gazebo>
-  <gazebo reference="wrist_2_link">
-    <selfCollide>true</selfCollide>
-  </gazebo>
-  <gazebo reference="ee_link">
-    <selfCollide>true</selfCollide>
-  </gazebo>
   <!-- ROS base_link to UR 'Base' Coordinates transform -->
   <link name="base"/>
   <joint name="base_link-base_fixed_joint" type="fixed">
@@ -314,13 +219,6 @@
     <origin rpy="0 0 -3.14159265359" xyz="0 0 0"/>
     <parent link="base_link"/>
     <child link="base"/>
-  </joint>
-  <!-- Frame coincident with all-zeros TCP on UR controller -->
-  <link name="tool0"/>
-  <joint name="wrist_3_link-tool0_fixed_joint" type="fixed">
-    <origin rpy="-1.57079632679 0 0" xyz="0 0.092 0"/>
-    <parent link="wrist_3_link"/>
-    <child link="tool0"/>
   </joint>
   <link name="world"/>
   <joint name="world_joint" type="fixed">
