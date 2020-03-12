@@ -126,7 +126,7 @@ void worker(const mjModel* m, const mjData* dmain, mjData* d)
     mjFREESTACK
 }
 
-void showConfig(mjModel* m, mjData* d)
+void printConfig(mjModel* m, mjData* d)
 {
     std::cout << "\ntime: " << d->time << "\n";
     std::cout << "qpos: ";
@@ -153,17 +153,16 @@ void copyData(const mjModel* m, const mjData* dmain, mjData* d)
 }
 
 /// Flags
-bool showDeriv = false;
-bool showMInit = false;
-bool showPInit = true;
-bool showPred  = true;
-bool showPert  = false;
-bool showTraj  = false;
-bool showTime  = false;
-bool readYAML  = false;
+bool printDeriv = false;
+bool printMInit = true;
+bool printPInit = true;
+bool printPred  = true;
+bool printPert  = false;
+bool printTraj  = false;
+bool printTime  = false;
 
 /// Number of samples
-int nSample = 50;
+int nSample = 5;
 
 int main(int argc, char const *argv[]) {
     /// Initialize MuJoCo
@@ -215,17 +214,6 @@ int main(int argc, char const *argv[]) {
     // computation time and error vectors
     eigVd tHW(nSample), tW(nSample), tP(nSample), eHW(nSample), eW(nSample), eP(nSample);
     tHW.setZero(); tW.setZero(); tP.setZero(); eHW.setZero(); eW.setZero(); eP.setZero();
-    /// Perturbation
-    if( readYAML )
-    {
-        YAML::Node perturb = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/perturbation.yaml");
-        std::vector<double> dqInput = { perturb["dq"].as<std::vector<double>>() };
-        std::vector<double> dvInput = { perturb["dv"].as<std::vector<double>>() };
-        std::vector<double> duInput = { perturb["du"].as<std::vector<double>>() };
-        dx.head(m->nv) = Eigen::Map<Eigen::VectorXd>(dqInput.data(), dqInput.size());
-        dx.tail(m->nv) = Eigen::Map<Eigen::VectorXd>(dvInput.data(), dvInput.size());
-        du = Eigen::Map<Eigen::VectorXd>(duInput.data(), duInput.size());
-    }
 
     /// Set random seed
     std::srand(std::time(0));
@@ -233,34 +221,36 @@ int main(int argc, char const *argv[]) {
     /// Test loop
     for( int k=0; k<nSample; k++ )
     {
-        std::cout << "\n================================================================================\nSample no: " << k+1 << "\n";
+        std::cout << "\n====================== Sample no: " << k+1 << " ======================\n";
         /// Generate random configuration
         if( k==0 )
         {
-            qRand = Eigen::VectorXd::Zero(m->nq);
+            // qRand = Eigen::VectorXd::Zero(m->nq);
             vRand = Eigen::VectorXd::Zero(m->nv);
             uRand = Eigen::VectorXd::Zero(m->nu);
         }
         else
         {
-            qRand = Eigen::VectorXd::Random(m->nq)*2;
+            // qRand = Eigen::VectorXd::Random(m->nq)*2;
             vRand = Eigen::VectorXd::Random(m->nv)*1;
             uRand = Eigen::VectorXd::Random(m->nu)*1;
         }
-        // copy random variables to MuJoCo data
-        mju_copy(d->qpos, qRand.data(), m->nq);
+        // Set the joint positions to the preset configuration in the model
+        mju_copy(d->qpos, m->key_qpos, m->nq);
+        // Copy random variables to MuJoCo data
+        // mju_copy(d->qpos, qRand.data(), m->nq);
         mju_copy(d->qvel, vRand.data(), m->nv);
         mju_copy(d->ctrl, uRand.data(), m->nu);
         mj_forward(m, d);
-        if( showMInit )
+        if( printMInit )
         {
-            showConfig(m, d);
+            printConfig(m, d);
         }
-        // copy MuJoCo data to Pinocchio variables
+        // Copy MuJoCo data to Pinocchio variables
         mju_copy(q.data(), d->qpos, m->nq);
         mju_copy(v.data(), d->qvel, m->nv);
         mju_copy(tau.data(), d->ctrl, m->nu);
-        if( showPInit )
+        if( printPInit )
         {
             std::cout<< "Pinocchio state and control before perturbation:\n";
             std::cout << "  q   = " << q.transpose() << "\n";
@@ -269,18 +259,15 @@ int main(int argc, char const *argv[]) {
         }
 
         /// Generate random perturbation
-        if( !readYAML )
-        {
-            dx = Eigen::VectorXd::Random(cp.n)*1e-1;
-            du = Eigen::VectorXd::Random(cp.m)*1e-1;
-        }
+        dx = Eigen::VectorXd::Random(cp.n)*1e-1;
+        du = Eigen::VectorXd::Random(cp.m)*1e-1;
 
         /// Calculate derivatives with MuJoCo hardWorker
         auto tHWStart = std::chrono::system_clock::now();
         nd.linDyn(d, u, FxHW.data(), FuHW.data(), 0);
         auto tHWEnd = std::chrono::system_clock::now();
         tHW(k) = std::chrono::duration<double>(tHWEnd-tHWStart).count();
-        if( showTime )
+        if( printTime )
             std::cout << "\nINFO: MuJoCo hardWorker took " << tHW(k) << " s\n\n";
 
         /// Calculate derivatives with MuJoCo worker
@@ -288,7 +275,7 @@ int main(int argc, char const *argv[]) {
         worker(m, d, dTemp);
         auto tMjEnd = std::chrono::system_clock::now();
         tW(k) = std::chrono::duration<double>(tMjEnd-tMjStart).count();
-        if( showTime )
+        if( printTime )
             std::cout << "\nINFO: MuJoCo worker took " << tW(k) << " s\n\n";
         // get derivatives of acceleration
         mju_copy(da_dq.data(), deriv, m->nv*m->nv);
@@ -308,7 +295,7 @@ int main(int argc, char const *argv[]) {
         pinocchio::computeABADerivatives(model, data, q, v, tau);
         auto tPinEnd = std::chrono::system_clock::now();
         tP(k) = std::chrono::duration<double>(tPinEnd-tPinStart).count();
-        if( showTime )
+        if( printTime )
             std::cout << "\nINFO: Pinocchio took " << tP(k) << " s\n\n";
         // build derivative matrices
         FxP.setZero();
@@ -319,8 +306,8 @@ int main(int argc, char const *argv[]) {
         FuP.setZero();
         FuP.bottomRows(m->nv) = tM*data.Minv;
 
-        /// Show derivative matrices
-        if( showDeriv )
+        /// Print derivative matrices
+        if( printDeriv )
         {
             std::cout << "FxHW:\n" << FxHW << "\n\n";
             std::cout << "FxW:\n" << FxW << "\n\n";
@@ -334,17 +321,17 @@ int main(int argc, char const *argv[]) {
         mjData* dNominal = mj_makeData(m);
         copyData(m, d, dNominal);
         mj_forward(m, dNominal);
-        if( showTraj )
+        if( printTraj )
         {
             std::cout << "Nominal trajectory:";
-            showConfig(m, dNominal);
+            printConfig(m, dNominal);
         }
         for( int j=0; j<cp.ndpc; j++ )
         {
             mj_step(m, dNominal);
         }
-        if( showTraj )
-        { showConfig(m, dNominal); }
+        if( printTraj )
+        { printConfig(m, dNominal); }
         xNewNominal = cc.getState(dNominal);
         mj_deleteData(dNominal);
 
@@ -352,8 +339,8 @@ int main(int argc, char const *argv[]) {
         // get current state and control
         x = cc.getState(d);
         mju_copy(u.data(), d->ctrl, m->nu);
-        // show perturbation
-        if( showPert )
+        // print perturbation
+        if( printPert )
         {
             std::cout << "Perturbation:\n";
             std::cout << "  x: " << x.transpose() << "\n  dq: " << dx.head(m->nv).transpose() << "\n";
@@ -373,17 +360,17 @@ int main(int argc, char const *argv[]) {
         mju_copy(dPerturbed->qpos, x.head(m->nv).data(), m->nv);
         mju_copy(dPerturbed->qvel, x.tail(m->nv).data(), m->nv);
         mj_forward(m, dPerturbed);
-        if( showTraj )
+        if( printTraj )
         {
             std::cout << "Perturbed trajectory:";
-            showConfig(m, dPerturbed);
+            printConfig(m, dPerturbed);
         }
         for( int j=0; j<cp.ndpc; j++ )
         {
             mj_step(m, dPerturbed);
         }
-        if( showTraj )
-        { showConfig(m, dPerturbed); }
+        if( printTraj )
+        { printConfig(m, dPerturbed); }
         xNewPerturbed = cc.getState(dPerturbed);
         mj_deleteData(dPerturbed);
 
@@ -395,7 +382,7 @@ int main(int argc, char const *argv[]) {
         eHW(k) = (xNewPerturbed-xNewHW).norm();
         eW(k)  = (xNewPerturbed-xNewW).norm();
         eP(k)  = (xNewPerturbed-xNewP).norm();
-        if( showPred )
+        if( printPred )
         {
             std::cout << "Perturbation:\n";
             std::cout << "  dq: " << dx.head(m->nv).transpose() << "\n";
