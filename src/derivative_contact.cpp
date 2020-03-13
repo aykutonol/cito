@@ -196,6 +196,7 @@ int main(int argc, char const *argv[]) {
     eigVd q, v, tau;
     q.resize(model.nq); v.resize(model.nv); tau.resize(model.nv);
     q.setZero();        v.setZero();        tau.setZero();
+    std::vector<pinocchio::ForceTpl<double>> fext(6);
     // time multiplier
     double tM = cp.dt*cp.ndpc;
     // derivative matrices
@@ -250,6 +251,11 @@ int main(int argc, char const *argv[]) {
         mju_copy(q.data(), d->qpos, m->nq);
         mju_copy(v.data(), d->qvel, m->nv);
         mju_copy(tau.data(), d->ctrl, m->nu);
+        // for(int i=0; i<model.nv; i++)
+        // {
+        //     fext[i].linear(). = 0.0;
+        //     fext[i].angular() = d->qfrc_constraint[i];
+        // }
         if( printPInit )
         {
             std::cout<< "Pinocchio state and control before perturbation:\n";
@@ -293,6 +299,7 @@ int main(int argc, char const *argv[]) {
         /// Calculate derivatives with Pinocchio
         auto tPinStart = std::chrono::system_clock::now();
         pinocchio::computeABADerivatives(model, data, q, v, tau);
+        // pinocchio::computeABADerivatives(model, data, q, v, tau, fext);
         auto tPinEnd = std::chrono::system_clock::now();
         tP(k) = std::chrono::duration<double>(tPinEnd-tPinStart).count();
         if( printTime )
