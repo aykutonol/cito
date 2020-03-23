@@ -41,6 +41,15 @@ _Please note that both the method and the code are currently under development._
     source devel/setup.bash
     ```
 
+#### On Mac OSX
+Change the install names for MuJoCo libraries to absolute paths:
+```
+install_name_tool -id "$MJ_HOME/bin/libmujoco200nogl.dylib" $MJ_HOME/bin/libmujoco200nogl.dylib
+install_name_tool -id "$MJ_HOME/bin/libmujoco200.dylib" $MJ_HOME/bin/libmujoco200.dylib
+install_name_tool -id "$MJ_HOME/bin/libglfw.3.dylib" $MJ_HOME/bin/libglfw.3.dylib
+```
+
+
 ## Usage
 The parameters related to the model (i.e., model file and contact pairs), the task (i.e., desired final
 pose and velocity), and the simulation (i.e., time horizon length and control sampling period) are defined 
