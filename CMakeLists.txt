@@ -5,9 +5,15 @@ add_compile_options(-std=c++11)
 
 find_package(catkin REQUIRED)
 find_package(Eigen3 REQUIRED)
+find_package(yaml-cpp 0.6 REQUIRED)
 
 set(MUJOCO_DIR    "$ENV{MJ_HOME}")
 set(SNOPT_DIR     "$ENV{SN_HOME}")
+
+# To avoid Policy CPM0042 Warning on OSX
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	set(CMAKE_MACOSX_RPATH FALSE)
+endif()
 
 catkin_package()
 
@@ -26,6 +32,12 @@ add_library(${PROJECT_NAME}
 	src/cito_sqopt.cpp
 	src/mj_savelog.cpp
 )
+target_link_libraries(${PROJECT_NAME}
+					${MUJOCO_DIR}/bin/libmujoco200nogl.dylib
+				    pthread
+				    ${SNOPT_DIR}/lib/libsnopt7_cpp.dylib
+				    yaml-cpp
+)
 
 set(NODE_NAME1 main)
 set(NODE_NAME2 playlog)
@@ -33,19 +45,41 @@ set(NODE_NAME2 playlog)
 # main: solves the CITO problem using successive convexification
 # 		w/ SQOPT and numerical differentiation in MuJoCo
 add_executable(${NODE_NAME1} src/main.cpp)
-### MuJoCo w/o rendering
-target_link_libraries(${NODE_NAME1} ${MUJOCO_DIR}/bin/libmujoco200nogl.so
-				    pthread
-				    ${PROJECT_NAME}
-				    ${SNOPT_DIR}/lib/libsnopt7_cpp.so
-				    yaml-cpp
-)
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	target_link_libraries(${NODE_NAME1}
+						  ${PROJECT_NAME}
+						  ${MUJOCO_DIR}/bin/libmujoco200nogl.so
+						  ${SNOPT_DIR}/lib/libsnopt7_cpp.so
+						  pthread
+						  yaml-cpp
+	)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	target_link_libraries(${NODE_NAME1}
+						  ${PROJECT_NAME}
+						  ${MUJOCO_DIR}/bin/libmujoco200nogl.dylib
+						  ${SNOPT_DIR}/lib/libsnopt7_cpp.dylib
+						  pthread
+						  yaml-cpp
+	)
+endif()
+
 # playlog: shows the motion generated in MuJoCo
 add_executable(${NODE_NAME2} src/mj_playlog.cpp)
-### MuJoCo w/ rendering
-target_link_libraries(${NODE_NAME2} ${MUJOCO_DIR}/bin/libmujoco200.so
-				    ${MUJOCO_DIR}/bin/libglew.so
-				    ${MUJOCO_DIR}/bin/libglfw.so.3
-				    GL
-				    yaml-cpp
-)
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	target_link_libraries(${NODE_NAME2}
+						  ${MUJOCO_DIR}/bin/libmujoco200.so
+						  ${MUJOCO_DIR}/bin/libglew.so
+						  ${MUJOCO_DIR}/bin/libglfw.so.3
+						  GL
+						  pthread
+						  yaml-cpp
+	)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	target_link_libraries(${NODE_NAME2}
+						  ${MUJOCO_DIR}/bin/libmujoco200.dylib
+						  ${MUJOCO_DIR}/bin/libglfw.3.dylib
+						  pthread
+						  yaml-cpp
+	)
+endif()
