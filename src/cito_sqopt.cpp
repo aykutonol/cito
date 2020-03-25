@@ -124,8 +124,8 @@ void CitoSQOPT::setCObj(const eigMm X, const eigMd U,
     }
     // constant objective term
     ObjAdd = 0.5*(ru[0]*deltaPos.head(2).squaredNorm() +
-                  ru[1]*deltaPos.tail(4).squaredNorm());// +
-                  ru[3]*U.bottomRows(cp.nPair).sum();
+                  ru[1]*deltaPos.tail(4).squaredNorm());
+                  // + ru[3]*U.bottomRows(cp.nPair).sum();
 }
 
 // solveCvx: solves the convex subproblem
