@@ -170,8 +170,9 @@ int main(int argc, char const *argv[]) {
     const char* mjKeyPath = std::getenv("MJ_KEY");
     mj_activate(mjKeyPath);
     // Load model
-    mjModel* m;
-    m = mj_loadXML("/home/aykut/Development/cito_ws/src/cito/model/ur3e_contact.xml", NULL, NULL, 0);
+    std::string mjModelPathStr = paths::workspaceDir + "/src/cito/model/ur3e.xml";
+    const char *mjModelPath = mjModelPathStr.c_str();
+    mjModel* m = mj_loadXML(mjModelPath, NULL, NULL, 0);
     if( !m )
         mju_error("Could not load model");
     // Create data
@@ -181,7 +182,7 @@ int main(int argc, char const *argv[]) {
     deriv = (mjtNum*) mju_malloc(3*sizeof(mjtNum)*m->nv*m->nv);
     /// Initialize Pinocchio
     pinocchio::Model model;
-    pinocchio::urdf::buildModel("/home/aykut/Development/cito_ws/src/cito/model/ur3e.urdf", model);
+    pinocchio::urdf::buildModel(paths::workspaceDir+"/src/cito/model/ur3e.urdf", model);
     pinocchio::Data data(model);
     /// Initialize CITO objects
     CitoParams  cp(m);
