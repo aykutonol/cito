@@ -25,11 +25,10 @@ include_directories(
  ${EIGEN3_INCLUDE_DIR}
  ${MUJOCO_DIR}/include
  ${SNOPT_DIR}/include
- ${pinocchio_INCLUDE_DIRS}
 )
 
 add_library(${PROJECT_NAME}
-     src/cito_params.cpp
+    src/cito_params.cpp
     src/cito_control.cpp
     src/cito_numdiff.cpp
     src/cito_deriv.cpp
@@ -122,11 +121,11 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     )
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_link_libraries(${NODE_NAME3}
-                            ${PROJECT_NAME}
-                            ${MUJOCO_DIR}/bin/libmujoco200nogl.dylib
-                            ${SNOPT_DIR}/lib/libsnopt7_cpp.dylib
-                            pthread
-                            yaml-cpp
+                          ${PROJECT_NAME}
+                          ${MUJOCO_DIR}/bin/libmujoco200nogl.dylib
+                          ${SNOPT_DIR}/lib/libsnopt7_cpp.dylib
+                          pthread
+                          yaml-cpp
     )
 endif()
 
@@ -163,10 +162,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     )
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_link_libraries(${NODE_NAME5}
-                            ${PROJECT_NAME}
-                            ${MUJOCO_DIR}/bin/libmujoco200nogl.dylib
-                            ${SNOPT_DIR}/lib/libsnopt7_cpp.dylib
-                            pthread
-                            yaml-cpp
+                          ${PROJECT_NAME}
+                          ${MUJOCO_DIR}/bin/libmujoco200nogl.dylib
+                          ${SNOPT_DIR}/lib/libsnopt7_cpp.dylib
+                          pthread
+                          yaml-cpp
     )
 endif()
