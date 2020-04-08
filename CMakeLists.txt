@@ -14,6 +14,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     set(CMAKE_MACOSX_RPATH FALSE)
     link_directories("/usr/local/lib")
 endif()
+set(CMAKE_BUILD_TYPE "Release")
 
 set(MUJOCO_DIR    "$ENV{MJ_HOME}")
 set(SNOPT_DIR     "$ENV{SN_HOME}")
