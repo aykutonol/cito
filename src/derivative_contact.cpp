@@ -137,6 +137,8 @@ void printConfig(mjModel* m, mjData* d)
     mju_printMat(d->ctrl, 1, m->nu);
     std::cout << "qacc: ";
     mju_printMat(d->qacc, 1, m->nv);
+    std::cout << "qcst: ";
+    mju_printMat(d->qfrc_constraint, 1, m->nv);
 }
 
 void copyData(const mjModel* m, const mjData* dmain, mjData* d)
@@ -161,23 +163,27 @@ bool printPert  = false;
 bool printTraj  = false;
 bool printTime  = false;
 
-/// Number of samples
-int nSample = 5;
-
 int main(int argc, char const *argv[]) {
+    /// Parse command line arguments
+    int nSample = 50, fext_flag=2;
+    if(argc>1)
+    {
+        nSample = atoi(argv[1]);
+        if(argc>2)
+        {
+            fext_flag = atoi(argv[2]);
+        }
+    }
     /// Initialize MuJoCo
     // Activate MuJoCo
     const char* mjKeyPath = std::getenv("MJ_KEY");
     mj_activate(mjKeyPath);
     // Load model
-    std::string mjModelPathStr = paths::workspaceDir + "/src/cito/model/ur3e.xml";
+    std::string mjModelPathStr = paths::workspaceDir + "/src/cito/model/ur3e_contact.xml";
     const char *mjModelPath = mjModelPathStr.c_str();
     mjModel* m = mj_loadXML(mjModelPath, NULL, NULL, 0);
     if( !m )
         mju_error("Could not load model");
-    // Create data
-    mjData* d = mj_makeData(m);
-    mjData* dTemp = mj_makeData(m);
     // Allocate derivatives
     deriv = (mjtNum*) mju_malloc(3*sizeof(mjtNum)*m->nv*m->nv);
     /// Initialize Pinocchio
@@ -194,10 +200,10 @@ int main(int argc, char const *argv[]) {
     x.resize(cp.n); u.resize(cp.m);
     x.setZero();    u.setZero();
     // state and control matrices for Pinocchio
-    eigVd q, v, tau;
-    q.resize(model.nq); v.resize(model.nv); tau.resize(model.nv);
-    q.setZero();        v.setZero();        tau.setZero();
-    std::vector<pinocchio::ForceTpl<double>> fext(6);
+    eigVd q, v, tau, qcon;
+    q.resize(model.nq); v.resize(model.nv); tau.resize(model.nv); qcon.resize(model.nv);
+    q.setZero();        v.setZero();        tau.setZero();        qcon.setZero();
+    PINOCCHIO_ALIGNED_STD_VECTOR(pinocchio::Force) fext((size_t)model.njoints, pinocchio::Force::Zero());
     // time multiplier
     double tM = cp.dt*cp.ndpc;
     // derivative matrices
@@ -214,11 +220,12 @@ int main(int argc, char const *argv[]) {
     // predictions
     eigVm xNewNominal(cp.n), xNewPerturbed(cp.n), xNewHW(cp.n), xNewW(cp.n), xNewP(cp.n);
     // computation time and error vectors
-    eigVd tHW(nSample), tW(nSample), tP(nSample), eHW(nSample), eW(nSample), eP(nSample);
-    tHW.setZero(); tW.setZero(); tP.setZero(); eHW.setZero(); eW.setZero(); eP.setZero();
+    eigVd tHW(nSample), tW(nSample), tP(nSample), eHW(nSample), eW(nSample), eP(nSample), fCon(nSample);
+    tHW.setZero(); tW.setZero(); tP.setZero(); eHW.setZero(); eW.setZero(); eP.setZero(); fCon.setZero();
 
     /// Set random seed
-    std::srand(std::time(0));
+    // std::srand(std::time(0));
+    std::srand(0);
 
     /// Test loop
     for( int k=0; k<nSample; k++ )
@@ -229,21 +236,34 @@ int main(int argc, char const *argv[]) {
         {
             // qRand = Eigen::VectorXd::Zero(m->nq);
             vRand = Eigen::VectorXd::Zero(m->nv);
-            uRand = Eigen::VectorXd::Zero(m->nu);
+            // uRand = Eigen::VectorXd::Zero(m->nu);
         }
         else
         {
             // qRand = Eigen::VectorXd::Random(m->nq)*2;
             vRand = Eigen::VectorXd::Random(m->nv)*1;
-            uRand = Eigen::VectorXd::Random(m->nu)*1;
+            // uRand = Eigen::VectorXd::Random(m->nu)*1;
         }
+        // Create MuJoCo data
+        mjData* d = mj_makeData(m);
+        mjData* dTemp = mj_makeData(m);
         // Set the joint positions to the preset configuration in the model
         mju_copy(d->qpos, m->key_qpos, m->nq);
         // Copy random variables to MuJoCo data
         // mju_copy(d->qpos, qRand.data(), m->nq);
         mju_copy(d->qvel, vRand.data(), m->nv);
-        mju_copy(d->ctrl, uRand.data(), m->nu);
-        mj_forward(m, d);
+        // mju_copy(d->ctrl, uRand.data(), m->nu);
+        mju_copy(d->ctrl, d->qfrc_bias, m->nu);
+
+        // mj_forward(m, d);
+        // Take warm-up steps to ensure making contacts
+        int n_warmup = 5;
+        for(int i=0; i<n_warmup; i++)
+        {
+            mj_step(m, d);
+        }
+
+
         if( printMInit )
         {
             printConfig(m, d);
@@ -252,11 +272,28 @@ int main(int argc, char const *argv[]) {
         mju_copy(q.data(), d->qpos, m->nq);
         mju_copy(v.data(), d->qvel, m->nv);
         mju_copy(tau.data(), d->ctrl, m->nu);
-        // for(int i=0; i<model.nv; i++)
-        // {
-        //     fext[i].linear(). = 0.0;
-        //     fext[i].angular() = d->qfrc_constraint[i];
-        // }
+        mju_copy(qcon.data(), d->qfrc_constraint, m->nv);
+        fCon[k] = qcon.norm();
+        if(fext_flag>0)
+        {
+            pinocchio::Force::Vector3 tau_contact = pinocchio::Force::Vector3::Zero();
+            for(int i=1; i<model.njoints; i++)
+            {
+                // std::cout << "MuJoCo joint axis: " << m->jnt_axis[(i-1)*3] << m->jnt_axis[(i-1)*3+1] << m->jnt_axis[(i-1)*3+2] << "\n";
+                // std::cout << model.joints[i] << "\n";
+                for(int j=0; j<3; j++)
+                {
+                    if(fext_flag==1)
+                        tau_contact[j] =  m->jnt_axis[(i-1)*3+j]*d->qfrc_constraint[i-1];
+                    else if(fext_flag==2)
+                        tau_contact[j] =  -m->jnt_axis[(i-1)*3+j]*d->qfrc_constraint[i-1];
+                }
+                fext[i].angular(tau_contact);
+                // std::cout << "tau_contact: " << tau_contact.transpose() << "\n";
+                std::cout << fext[i] << "\n";
+            }
+        }
+
         if( printPInit )
         {
             std::cout<< "Pinocchio state and control before perturbation:\n";
@@ -266,8 +303,16 @@ int main(int argc, char const *argv[]) {
         }
 
         /// Generate random perturbation
-        dx = Eigen::VectorXd::Random(cp.n)*1e-1;
-        du = Eigen::VectorXd::Random(cp.m)*1e-1;
+        if(k==0)
+        {
+            dx = Eigen::VectorXd::Ones(cp.n)*1e-1;
+            du = Eigen::VectorXd::Ones(cp.m)*1e-1;
+        }
+        else
+        {
+            dx = Eigen::VectorXd::Random(cp.n)*1e-1;
+            du = Eigen::VectorXd::Random(cp.m)*1e-1;
+        }
 
         /// Calculate derivatives with MuJoCo hardWorker
         auto tHWStart = std::chrono::system_clock::now();
@@ -299,8 +344,10 @@ int main(int argc, char const *argv[]) {
 
         /// Calculate derivatives with Pinocchio
         auto tPinStart = std::chrono::system_clock::now();
-        pinocchio::computeABADerivatives(model, data, q, v, tau);
-        // pinocchio::computeABADerivatives(model, data, q, v, tau, fext);
+        if(fext_flag==0)
+            pinocchio::computeABADerivatives(model, data, q, v, tau);
+        else
+            pinocchio::computeABADerivatives(model, data, q, v, tau, fext);
         auto tPinEnd = std::chrono::system_clock::now();
         tP(k) = std::chrono::duration<double>(tPinEnd-tPinStart).count();
         if( printTime )
@@ -418,6 +465,9 @@ int main(int argc, char const *argv[]) {
             std::cout << "  norm(error): " << eP(k) << "\n";
             std::cout << "  comp. time: " << tP(k) << " s\n";
         }
+        // Delete data
+        mj_deleteData(d);
+        mj_deleteData(dTemp);
     }
     std::cout << "\n================================================================================\n\n";
     std::cout << "INFO: Test done.\n\nTest summary:\n";
@@ -425,13 +475,13 @@ int main(int argc, char const *argv[]) {
     {
         if( k%10 == 0 )
         {
-            printf("%-12s%-36s%-36s\n",
-                   "Sample","Prediction Error","Computation Time [s]");
-            printf("%-12s%-12s%-12s%-12s%-12s%-12s%-12s\n",
-                   "#","hardWorker","worker","Pinocchio","hardWorker","worker","Pinocchio");
+            printf("%-12s%-12s%-36s%-36s\n",
+                   "Sample","Contact","Prediction Error","Computation Time [s]");
+            printf("%-12s%-12s%-12s%-12s%-12s%-12s%-12s%-12s\n",
+                   "#","force","hardWorker","worker","Pinocchio","hardWorker","worker","Pinocchio");
         }
-        printf("%-12d%-12.6g%-12.6g%-12.6g%-12.6g%-12.6g%-12.6g\n",
-               k+1,eHW(k),eW(k),eP(k),tHW(k),tW(k),tP(k));
+        printf("%-12d%-12.6g%-12.6g%-12.6g%-12.6g%-12.6g%-12.6g%-12.6g\n",
+               k+1,fCon(k),eHW(k),eW(k),eP(k),tHW(k),tW(k),tP(k));
     }
 
     printf("\nStatistics for %d samples:\n",nSample);
@@ -451,12 +501,8 @@ int main(int argc, char const *argv[]) {
            "Max. time:",tHW.maxCoeff(),tW.maxCoeff(),tP.maxCoeff());
 
 
-
-
     // Shut down MuJoCo
     mju_free(deriv);
-    mj_deleteData(d);
-    mj_deleteData(dTemp);
     mj_deleteModel(m);
     mj_deactivate();
     return 0;
