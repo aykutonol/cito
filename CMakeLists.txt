@@ -68,6 +68,7 @@ set(NODE_NAME2 playlog)
 set(NODE_NAME3 tosc)
 set(NODE_NAME4 deriv)
 set(NODE_NAME5 contact)
+set(NODE_NAME6 mj_vs_pin)
 
 # Create executables
 # main: runs SCVX w/ numerical differentiation in MuJoCo
@@ -150,7 +151,6 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     )
 endif()
 
-
 # contact: compares Pinocchio and MuJoCo derivatives w/ contact
 add_executable(${NODE_NAME5} src/derivative_contact.cpp)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
@@ -163,6 +163,26 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     )
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_link_libraries(${NODE_NAME5}
+                          ${PROJECT_NAME}
+                          ${MUJOCO_DIR}/bin/libmujoco200nogl.dylib
+                          ${SNOPT_DIR}/lib/libsnopt7_cpp.dylib
+                          pthread
+                          yaml-cpp
+    )
+endif()
+
+# mj_vs_pin: compares Pinocchio and MuJoCo physics
+add_executable(${NODE_NAME6} src/mujoco_vs_pinocchio.cpp)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    target_link_libraries(${NODE_NAME6}
+                          ${PROJECT_NAME}
+                          ${MUJOCO_DIR}/bin/libmujoco200nogl.so
+                          ${SNOPT_DIR}/lib/libsnopt7_cpp.so
+                          pthread
+                          yaml-cpp
+    )
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    target_link_libraries(${NODE_NAME6}
                           ${PROJECT_NAME}
                           ${MUJOCO_DIR}/bin/libmujoco200nogl.dylib
                           ${SNOPT_DIR}/lib/libsnopt7_cpp.dylib
