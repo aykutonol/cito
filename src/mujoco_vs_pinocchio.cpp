@@ -6,21 +6,6 @@
 #include "pinocchio/algorithm/aba-derivatives.hpp"
 #include "pinocchio/algorithm/compute-all-terms.hpp"
 
-void printConfig(mjModel* m, mjData* d)
-{
-    std::cout << "\ntime: " << d->time << "\n";
-    std::cout << "qpos: ";
-    mju_printMat(d->qpos, 1, m->nq);
-    std::cout << "qvel: ";
-    mju_printMat(d->qvel, 1, m->nv);
-    std::cout << "ctrl: ";
-    mju_printMat(d->ctrl, 1, m->nu);
-    std::cout << "qacc: ";
-    mju_printMat(d->qacc, 1, m->nv);
-    std::cout << "qcst: ";
-    mju_printMat(d->qfrc_constraint, 1, m->nv);
-}
-
 int main(int argc, char const *argv[]) {
     // MuJoCo
     /// Activate MuJoCo
