@@ -135,6 +135,8 @@ void printConfig(mjModel* m, mjData* d)
     mju_printMat(d->qvel, 1, m->nv);
     std::cout << "ctrl: ";
     mju_printMat(d->ctrl, 1, m->nu);
+    std::cout << "qfrc: ";
+    mju_printMat(d->qfrc_applied, 1, m->nv);
     std::cout << "qacc: ";
     mju_printMat(d->qacc, 1, m->nv);
     std::cout << "qcst: ";
@@ -249,13 +251,14 @@ int main(int argc, char const *argv[]) {
         mjData* dTemp = mj_makeData(m);
         // Set the joint positions to the preset configuration in the model
         mju_copy(d->qpos, m->key_qpos, m->nq);
+        mj_forward(m, d);
         // Copy random variables to MuJoCo data
         // mju_copy(d->qpos, qRand.data(), m->nq);
         mju_copy(d->qvel, vRand.data(), m->nv);
         // mju_copy(d->ctrl, uRand.data(), m->nu);
-        mju_copy(d->ctrl, d->qfrc_bias, m->nu);
-
-        // mj_forward(m, d);
+        // mju_copy(d->ctrl, d->qfrc_bias, m->nu);
+        mju_copy(d->qfrc_applied, d->qfrc_bias, m->nv);
+        
         // Take warm-up steps to ensure making contacts
         int n_warmup = 5;
         for(int i=0; i<n_warmup; i++)
@@ -271,7 +274,8 @@ int main(int argc, char const *argv[]) {
         // Copy MuJoCo data to Pinocchio variables
         mju_copy(q.data(), d->qpos, m->nq);
         mju_copy(v.data(), d->qvel, m->nv);
-        mju_copy(tau.data(), d->ctrl, m->nu);
+        // mju_copy(tau.data(), d->ctrl, m->nu);
+        mju_copy(tau.data(), d->qfrc_applied, m->nv);
         mju_copy(qcon.data(), d->qfrc_constraint, m->nv);
         fCon[k] = qcon.norm();
         if(fext_flag>0)
