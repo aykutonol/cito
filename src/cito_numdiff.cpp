@@ -153,3 +153,121 @@ void CitoNumDiff::linDyn(const mjData* dMain, const eigVd uMain, mjtNum* Fxd, mj
     mju_copy(Fud, deriv+cp.n*cp.n, cp.n*cp.m);
     mju_free(deriv);
 }
+
+// worker: performs fast finite-difference computation
+void CitoNumDiff::worker(const mjData* dMain, mjtNum* deriv)
+{
+    // create data
+    mjData* d;
+    d = mj_makeData(m);
+    // allocate stack space for result at center
+    mjMARKSTACK
+    mjtNum* center = mj_stackAlloc(d, m->nv);
+    mjtNum* warmstart = mj_stackAlloc(d, m->nv);
+
+    // copy state and control from dMain to d
+    d->time = dMain->time;
+    mju_copy(d->qpos, dMain->qpos, m->nq);
+    mju_copy(d->qvel, dMain->qvel, m->nv);
+    mju_copy(d->qacc, dMain->qacc, m->nv);
+    mju_copy(d->qacc_warmstart, dMain->qacc_warmstart, m->nv);
+    mju_copy(d->qfrc_applied, dMain->qfrc_applied, m->nv);
+    mju_copy(d->xfrc_applied, dMain->xfrc_applied, 6*m->nbody);
+    mju_copy(d->ctrl, dMain->ctrl, m->nu);
+
+    // run full computation at center point (usually faster than copying dMain)
+    mj_forward(m, d);
+    // extra solver iterations to improve warmstart (qacc) at center point
+    for( int rep=1; rep<this->nwarmup; rep++ )
+        mj_forwardSkip(m, d, mjSTAGE_VEL, 1);
+
+    // select output from forward or inverse dynamics
+    mjtNum* output = d->qacc;
+
+    // save output for center point and warmstart (needed in forward only)
+    mju_copy(center, output, m->nv);
+    mju_copy(warmstart, d->qacc_warmstart, m->nv);
+
+    // select target vector and original vector for force or acceleration derivative
+    mjtNum* target = d->qfrc_applied;
+    const mjtNum* original = dMain->qfrc_applied;
+
+    // finite-difference over force or acceleration: skip = mjSTAGE_VEL
+    for( int i=0; i<m->nv; i++ )
+    {
+        // perturb selected target
+        target[i] += eps;
+
+        // evaluate dynamics, with center warmstart
+        mju_copy(d->qacc_warmstart, warmstart, m->nv);
+        mj_forwardSkip(m, d, mjSTAGE_VEL, 1);
+
+        // undo perturbation
+        target[i] = original[i];
+
+        // compute column i of derivative 2
+        for( int j=0; j<m->nv; j++ )
+            deriv[2*m->nv*m->nv + i + j*m->nv] = (output[j] - center[j])/eps;
+    }
+
+    // finite-difference over velocity: skip = mjSTAGE_POS
+    for( int i=0; i<m->nv; i++ )
+    {
+        // perturb velocity
+        d->qvel[i] += eps;
+
+        // evaluate dynamics, with center warmstart
+        mju_copy(d->qacc_warmstart, warmstart, m->nv);
+        mj_forwardSkip(m, d, mjSTAGE_POS, 1);
+
+        // undo perturbation
+        d->qvel[i] = dMain->qvel[i];
+
+        // compute column i of derivative 1
+        for( int j=0; j<m->nv; j++ )
+            deriv[m->nv*m->nv + i + j*m->nv] = (output[j] - center[j])/eps;
+    }
+
+    // finite-difference over position: skip = mjSTAGE_NONE
+    for( int i=0; i<m->nv; i++ )
+    {
+        // get joint id for this dof
+        int jid = m->dof_jntid[i];
+
+        // get quaternion address and dof position within quaternion (-1: not in quaternion)
+        int quatadr = -1, dofpos = 0;
+        if( m->jnt_type[jid]==mjJNT_BALL )
+        {
+            quatadr = m->jnt_qposadr[jid];
+            dofpos = i - m->jnt_dofadr[jid];
+        }
+        else if( m->jnt_type[jid]==mjJNT_FREE && i>=m->jnt_dofadr[jid]+3 )
+        {
+            quatadr = m->jnt_qposadr[jid] + 3;
+            dofpos = i - m->jnt_dofadr[jid] - 3;
+        }
+
+        // apply quaternion or simple perturbation
+        if( quatadr>=0 )
+        {
+            mjtNum angvel[3] = {0,0,0};
+            angvel[dofpos] = eps;
+            mju_quatIntegrate(d->qpos+quatadr, angvel, 1);
+        }
+        else
+            d->qpos[m->jnt_qposadr[jid] + i - m->jnt_dofadr[jid]] += eps;
+
+        // evaluate dynamics, with center warmstart
+        mju_copy(d->qacc_warmstart, warmstart, m->nv);
+        mj_forwardSkip(m, d, mjSTAGE_NONE, 1);
+
+        // undo perturbation
+        mju_copy(d->qpos, dMain->qpos, m->nq);
+
+        // compute column i of derivative 0
+        for( int j=0; j<m->nv; j++ )
+            deriv[i + j*m->nv] = (output[j] - center[j])/eps;
+    }
+    // delete data
+    mj_deleteData(d);
+}

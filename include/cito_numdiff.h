@@ -22,6 +22,8 @@ public:
     ~CitoNumDiff() {}
     /// This function calculates derivatives of the state and control trajectories
     void linDyn(const mjData* dMain, const eigVd uMain, mjtNum* Fxd, mjtNum* Fud, double compensateBias);
+    // This function performs fast finite-difference computation
+    void worker(const mjData* dMain, mjtNum* deriv);
 
 private:
     /// This function sets xNew to the integration of data given a control input
@@ -32,6 +34,8 @@ private:
     const mjModel* m;
     /// Perturbation for central differences
     double eps = 1e-6;
+    /// Number of warm-up iterations for the worker function
+    int nwarmup = 3;
     /// Variables for differentiation
     eigVm xNewTemp, xNewP, xNewN;
     eigVd uTemp;
