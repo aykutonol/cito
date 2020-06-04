@@ -20,7 +20,7 @@ void showConfig(mjModel* m, mjData* d)
 
 void copyData(const mjModel* m, const mjData* dmain, mjData* d)
 {
-    // copy state and control from dmain to thread-specific d
+    // Copy state and control from dmain to thread-specific d
     d->time = dmain->time;
     mju_copy(d->qpos, dmain->qpos, m->nq);
     mju_copy(d->qvel, dmain->qvel, m->nv);
@@ -31,7 +31,7 @@ void copyData(const mjModel* m, const mjData* dmain, mjData* d)
     mju_copy(d->ctrl, dmain->ctrl, m->nu);
 }
 
-/// Flags
+// Flags
 bool showDeriv = false;
 bool showMInit = false;
 bool showPInit = true;
@@ -41,64 +41,73 @@ bool showTraj  = false;
 bool showTime  = false;
 bool readYAML  = false;
 
-/// Number of samples
+// Compensate bias term
+double compensateBias = 0.0;
+
+// Number of samples
 int nSample = 50;
 
 int main(int argc, char const *argv[]) {
+    // Get the number of samples from the command, if set
+    if(argc>1)
+    {
+        nSample = atoi(argv[1]);
+    }
     // Get workspace directory path
     const std::string workspaceDir = std::getenv("CITO_WS");
-    /// Initialize MuJoCo
-    // Activate MuJoCo
+
+    // Initialize MuJoCo
     const char* mjKeyPath = std::getenv("MJ_KEY");
     mj_activate(mjKeyPath);
-    // Load model
+    /// Load model
     std::string mjModelPathStr = paths::workspaceDir + "/src/cito/model/ur3e.xml";
     const char *mjModelPath = mjModelPathStr.c_str();
     mjModel* m = mj_loadXML(mjModelPath, NULL, NULL, 0);
     if( !m )
         mju_error("Could not load model");
-    // Create data
+    /// Create data
     mjData* d = mj_makeData(m);
     mjData* dTemp = mj_makeData(m);
-    // Allocate memory for derivatives
+    /// Allocate memory for derivatives
     mjtNum* deriv = 0;
     deriv = (mjtNum*) mju_malloc(3*sizeof(mjtNum)*m->nv*m->nv);
-    /// Initialize Pinocchio
-    pinocchio::Model model;
-    pinocchio::urdf::buildModel(paths::workspaceDir+"/src/cito/model/ur3e.urdf", model);
-    pinocchio::Data data(model);
+
     /// Initialize CITO objects
     CitoParams  cp(m);
     CitoNumDiff nd(m);
     CitoControl cc(m);
-    /// Initialize variables
-    // state and control vectors for MuJoCo
+    
+    // Initialize Pinocchio
+    pinocchio::Model model;
+    pinocchio::urdf::buildModel(paths::workspaceDir+"/src/cito/model/ur3e.urdf", model);
+    pinocchio::Data data(model);
+
+    // Initialize derivative calculation variables
+    /// State and control vectors for MuJoCo
     eigVm x, u;
     x.resize(cp.n); u.resize(cp.m);
     x.setZero();    u.setZero();
-    // state and control matrices for Pinocchio
+    /// State and control vectors for Pinocchio
     eigVd q, v, tau;
     q.resize(model.nq); v.resize(model.nv); tau.resize(model.nv);
     q.setZero();        v.setZero();        tau.setZero();
-    // time multiplier
-    double tM = cp.dt*cp.ndpc;
-    // derivative matrices
+    /// Derivative matrices
     eigMd da_dq, da_dv, da_df;
     da_dq.resize(m->nv, m->nv); da_dv.resize(m->nv, m->nv); da_df.resize(m->nv, m->nu);
     eigMd FxHW, FuHW, FxW, FuW, FxP, FuP;
     FxHW.resize(cp.n, cp.n);    FxW.resize(cp.n, cp.n);     FxP.resize(cp.n, cp.n);
     FuHW.resize(cp.n, cp.m);    FuW.resize(cp.n, cp.m);     FuP.resize(cp.n, cp.m);
-    // random configurations
+    /// Random configuration, velocity, and control vectors
     eigVd qRand, vRand, uRand;
-    // perturbations
+    /// Perturbations
     eigVm dx(cp.n), du(m->nu);
     dx.setZero();       du.setZero();
-    // predictions
+    /// Predictions
     eigVm xNewNominal(cp.n), xNewPerturbed(cp.n), xNewHW(cp.n), xNewW(cp.n), xNewP(cp.n);
-    // computation time and error vectors
+    /// Computation time and error vectors
     eigVd tHW(nSample), tW(nSample), tP(nSample), eHW(nSample), eW(nSample), eP(nSample);
     tHW.setZero(); tW.setZero(); tP.setZero(); eHW.setZero(); eW.setZero(); eP.setZero();
-    /// Perturbation
+    /// Parse perturbation from file
     if( readYAML )
     {
         YAML::Node perturb = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/perturbation.yaml");
@@ -110,10 +119,11 @@ int main(int argc, char const *argv[]) {
         du = Eigen::Map<Eigen::VectorXd>(duInput.data(), duInput.size());
     }
 
-    /// Set random seed
-    std::srand(std::time(0));
+    // Set random seed
+    // std::srand(std::time(0));
+    std::srand(0);
 
-    /// Test loop
+    // Test loop
     for( int k=0; k<nSample; k++ )
     {
         std::cout << "\n================================================================================\nSample no: " << k+1 << "\n";
@@ -130,16 +140,18 @@ int main(int argc, char const *argv[]) {
             vRand = Eigen::VectorXd::Random(m->nv)*1;
             uRand = Eigen::VectorXd::Random(m->nu)*1;
         }
-        // copy random variables to MuJoCo data
+        // Copy random variables to MuJoCo data
         mju_copy(d->qpos, qRand.data(), m->nq);
         mju_copy(d->qvel, vRand.data(), m->nv);
         mju_copy(d->ctrl, uRand.data(), m->nu);
+        // Evaluate forward dynamics
         mj_forward(m, d);
+        // Show random configuration, if opted
         if( showMInit )
         {
             showConfig(m, d);
         }
-        // copy MuJoCo data to Pinocchio variables
+        // Copy MuJoCo data to Pinocchio variables
         mju_copy(q.data(), d->qpos, m->nq);
         mju_copy(v.data(), d->qvel, m->nv);
         mju_copy(tau.data(), d->ctrl, m->nu);
@@ -151,58 +163,58 @@ int main(int argc, char const *argv[]) {
             std::cout << "  tau = " << tau.transpose() << "\n\n";
         }
 
-        /// Generate random perturbation
+        // Generate random perturbation
         if( !readYAML )
         {
             dx = Eigen::VectorXd::Random(cp.n)*1e-1;
             du = Eigen::VectorXd::Random(cp.m)*1e-1;
         }
 
-        /// Calculate derivatives with MuJoCo hardWorker
+        // Calculate derivatives with MuJoCo hardWorker
         auto tHWStart = std::chrono::system_clock::now();
-        nd.linDyn(d, u, FxHW.data(), FuHW.data(), 0);
+        nd.linDyn(d, u, FxHW.data(), FuHW.data(), compensateBias);
         auto tHWEnd = std::chrono::system_clock::now();
         tHW(k) = std::chrono::duration<double>(tHWEnd-tHWStart).count();
         if( showTime )
             std::cout << "\nINFO: MuJoCo hardWorker took " << tHW(k) << " s\n\n";
 
-        /// Calculate derivatives with MuJoCo worker
+        // Calculate derivatives with MuJoCo worker
         auto tMjStart = std::chrono::system_clock::now();
         nd.worker(d, deriv);
         auto tMjEnd = std::chrono::system_clock::now();
         tW(k) = std::chrono::duration<double>(tMjEnd-tMjStart).count();
         if( showTime )
             std::cout << "\nINFO: MuJoCo worker took " << tW(k) << " s\n\n";
-        // get derivatives of acceleration
+        // Get derivatives of acceleration
         mju_copy(da_dq.data(), deriv, m->nv*m->nv);
         mju_copy(da_dv.data(), deriv+m->nv*m->nv, m->nv*m->nv);
         mju_copy(da_df.data(), deriv+2*m->nv*m->nv, m->nv*m->nu);
-        // build derivative matrices
+        // Build derivative matrices
         FxW.setZero();
         FxW.topLeftCorner(m->nv, m->nv)     = Eigen::MatrixXd::Identity(m->nv, m->nv);
-        FxW.topRightCorner(m->nv, m->nv)    = tM*Eigen::MatrixXd::Identity(m->nv, m->nv);
-        FxW.bottomLeftCorner(m->nv, m->nv)  = tM*da_dq;
-        FxW.bottomRightCorner(m->nv, m->nv) = Eigen::MatrixXd::Identity(m->nv, m->nv) + tM*da_dv;
+        FxW.topRightCorner(m->nv, m->nv)    = cp.tc*Eigen::MatrixXd::Identity(m->nv, m->nv);
+        FxW.bottomLeftCorner(m->nv, m->nv)  = cp.tc*da_dq;
+        FxW.bottomRightCorner(m->nv, m->nv) = Eigen::MatrixXd::Identity(m->nv, m->nv) + cp.tc*da_dv;
         FuW.setZero();
-        FuW.bottomRows(m->nv) = tM*da_df;
+        FuW.bottomRows(m->nv) = cp.tc*da_df;
 
-        /// Calculate derivatives with Pinocchio
+        // Calculate derivatives with Pinocchio
         auto tPinStart = std::chrono::system_clock::now();
         pinocchio::computeABADerivatives(model, data, q, v, tau);
         auto tPinEnd = std::chrono::system_clock::now();
         tP(k) = std::chrono::duration<double>(tPinEnd-tPinStart).count();
         if( showTime )
             std::cout << "\nINFO: Pinocchio took " << tP(k) << " s\n\n";
-        // build derivative matrices
+        // Build derivative matrices
         FxP.setZero();
         FxP.topLeftCorner(m->nv, m->nv)     = Eigen::MatrixXd::Identity(m->nv, m->nv);
-        FxP.topRightCorner(m->nv, m->nv)    = tM*Eigen::MatrixXd::Identity(m->nv, m->nv);
-        FxP.bottomLeftCorner(m->nv, m->nv)  = tM*data.ddq_dq;
-        FxP.bottomRightCorner(m->nv, m->nv) = Eigen::MatrixXd::Identity(m->nv, m->nv) + tM*data.ddq_dv;
+        FxP.topRightCorner(m->nv, m->nv)    = cp.tc*Eigen::MatrixXd::Identity(m->nv, m->nv);
+        FxP.bottomLeftCorner(m->nv, m->nv)  = cp.tc*data.ddq_dq;
+        FxP.bottomRightCorner(m->nv, m->nv) = Eigen::MatrixXd::Identity(m->nv, m->nv) + cp.tc*data.ddq_dv;
         FuP.setZero();
-        FuP.bottomRows(m->nv) = tM*data.Minv;
+        FuP.bottomRows(m->nv) = cp.tc*data.Minv;
 
-        /// Show derivative matrices
+        // Show derivative matrices
         if( showDeriv )
         {
             std::cout << "FxHW:\n" << FxHW << "\n\n";
@@ -222,20 +234,18 @@ int main(int argc, char const *argv[]) {
             std::cout << "Nominal trajectory:";
             showConfig(m, dNominal);
         }
-        for( int j=0; j<cp.ndpc; j++ )
-        {
-            mj_step(m, dNominal);
-        }
+
+        cc.takeStep(dNominal, u, false, compensateBias);
+
         if( showTraj )
         { showConfig(m, dNominal); }
         xNewNominal = cc.getState(dNominal);
         mj_deleteData(dNominal);
 
-        /// Perturbation
-        // get current state and control
+        // Perturbation
+        /// Get current state and control
         x = cc.getState(d);
-        mju_copy(u.data(), d->ctrl, m->nu);
-        // show perturbation
+        /// Show perturbation
         if( showPert )
         {
             std::cout << "Perturbation:\n";
@@ -245,11 +255,11 @@ int main(int argc, char const *argv[]) {
             std::cout << "  u: " << u.transpose() << "\n  du: " << du.transpose() << "\n";
             std::cout << "  unew: " << (u+du).transpose() << "\n";
         }
-        // apply perturbation
+        /// Apply perturbation
         x += dx;
         u += du;
 
-        /// Perturbed trajectory
+        // Perturbed trajectory
         mjData* dPerturbed = mj_makeData(m);
         copyData(m, d, dPerturbed);
         mju_copy(dPerturbed->ctrl, u.data(), m->nu);
@@ -261,16 +271,15 @@ int main(int argc, char const *argv[]) {
             std::cout << "Perturbed trajectory:";
             showConfig(m, dPerturbed);
         }
-        for( int j=0; j<cp.ndpc; j++ )
-        {
-            mj_step(m, dPerturbed);
-        }
+        
+        cc.takeStep(dPerturbed, u, false, compensateBias);
+
         if( showTraj )
         { showConfig(m, dPerturbed); }
         xNewPerturbed = cc.getState(dPerturbed);
         mj_deleteData(dPerturbed);
 
-        /// Predictions
+        // Predictions
         xNewHW.setZero();   xNewW.setZero();   xNewP.setZero();
         xNewHW = xNewNominal + FxHW*dx + FuHW*du;
         xNewW  = xNewNominal + FxW*dx + FuW*du;
