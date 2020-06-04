@@ -144,6 +144,8 @@ int main(int argc, char const *argv[]) {
         mju_copy(d->qpos, qRand.data(), m->nq);
         mju_copy(d->qvel, vRand.data(), m->nv);
         mju_copy(d->ctrl, uRand.data(), m->nu);
+        // Update control vector
+        u = uRand;
         // Evaluate forward dynamics
         mj_forward(m, d);
         // Show random configuration, if opted
