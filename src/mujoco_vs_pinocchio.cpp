@@ -8,6 +8,19 @@
 
 const int pos_off=7, vel_off=6, ndof=7;
 
+void copyData(const mjModel* m, const mjData* dmain, mjData* d)
+{
+    // copy state and control from dmain to thread-specific d
+    d->time = dmain->time;
+    mju_copy(d->qpos, dmain->qpos, m->nq);
+    mju_copy(d->qvel, dmain->qvel, m->nv);
+    mju_copy(d->qacc, dmain->qacc, m->nv);
+    mju_copy(d->qacc_warmstart, dmain->qacc_warmstart, m->nv);
+    mju_copy(d->qfrc_applied, dmain->qfrc_applied, m->nv);
+    mju_copy(d->xfrc_applied, dmain->xfrc_applied, 6*m->nbody);
+    mju_copy(d->ctrl, dmain->ctrl, m->nu);
+}
+
 int main(int argc, char const *argv[]) {
     // MuJoCo
     /// Activate MuJoCo
@@ -95,9 +108,9 @@ int main(int argc, char const *argv[]) {
     /// Set the configuration identical to MuJoCo
     Eigen::VectorXd q(model.nq), v(model.nv), tau(model.nv), tau_w_contact(model.nv);
     mju_copy(q.data(), d->qpos+pos_off, model.nq);
-    mju_copy(v.data(), d->qvel+vel_off, model.nq);
-    mju_copy(tau.data(), d->ctrl, model.nq);
-    // mju_copy(tau.data(), d->qfrc_applied+vel_off, model.nq);
+    mju_copy(v.data(), d->qvel+vel_off, model.nv);
+    mju_copy(tau.data(), d->ctrl, model.nv);
+    // mju_copy(tau.data(), d->qfrc_applied+vel_off, model.nv);
     
     std::cout << "qacc after forward dynamics evaluation: ";
     mju_printMat(d->qacc, 1, m->nv);
@@ -278,6 +291,109 @@ int main(int argc, char const *argv[]) {
     std::cout << "MuJoCo:    " << mj_qacc_unc.transpose() << "\n";
     std::cout << "Discrepancy:\n" << (mj_qacc_unc-data.ddq).cwiseAbs().transpose() << "\n";
     std::cout << "Max discrepancy: " << ((mj_qacc_unc-data.ddq).cwiseAbs()).maxCoeff() << "\n";
+
+    // Derivative comparison
+    /// MuJoCo
+    CitoParams cp(m);
+    CitoNumDiff nd(m);
+    eigVm u;
+    u.resize(cp.m);
+    mju_copy(u.data(), d->ctrl, m->nu);
+    eigMd FxHW, FuHW;
+    FxHW.resize(cp.n, cp.n); FuHW.resize(cp.n, cp.m);
+    nd.linDyn(d, u, FxHW.data(), FuHW.data(), 0);
+    /// Pinocchio w/ fext
+    pinocchio::computeABADerivatives(model, data, q, v, tau, fext);
+    double tM = cp.tc;
+    int npin = 2*model.nv;
+    eigMd FxP, FuP, FxPf, FuPf;
+    FxPf.resize(npin, npin);  FuPf.resize(npin, model.nv);
+    FxP.resize(npin, npin);  FuP.resize(npin, model.nv);
+    FxPf.setZero();
+    FxPf.bottomLeftCorner(model.nv, model.nv)  = tM*data.ddq_dq;
+    FxPf.bottomRightCorner(model.nv, model.nv) = Eigen::MatrixXd::Identity(model.nv, model.nv) + tM*data.ddq_dv;
+    FuPf.setZero();
+    FuPf.bottomRows(model.nv) = tM*data.Minv;
+
+    // Print results
+    std::cout << "\ntM*ddq_dq:\nMuJoCo:\n" << FxHW.block(m->nv+vel_off,vel_off,model.nv,model.nv) << 
+                 "\nPinocchio:\n" << FxPf.bottomLeftCorner(model.nv, model.nv) <<
+                 "\n\nI+tM*ddq_dv:\nMuJoCo:\n" << FxHW.block(m->nv+vel_off,m->nv+vel_off,model.nv,model.nv) <<
+                 "\nPinocchio:\n" << FxPf.bottomRightCorner(model.nv, model.nv) <<
+                 "\n\ntM*Minv:\nMuJoCo:\n" << FuHW.bottomRows(model.nv) <<
+                 "\n\nPinocchio:\n" << tM*data.Minv  <<"\n";
+
+    /// Pinocchio w/o fext
+    pinocchio::computeABADerivatives(model, data, q, v, tau);
+    FxP.setZero();
+    FxP.bottomLeftCorner(model.nv, model.nv)  = tM*data.ddq_dq;
+    FxP.bottomRightCorner(model.nv, model.nv) = Eigen::MatrixXd::Identity(model.nv, model.nv) + tM*data.ddq_dv;
+    FuP.setZero();
+    FuP.bottomRows(model.nv) = tM*data.Minv;
+    std::cout << "\n\nPinocchio w/o fext:\ntM*ddq_dq:\nPinocchio:\n" << 
+                FxPf.bottomLeftCorner(model.nv, model.nv) -
+                FxP.bottomLeftCorner(model.nv, model.nv) <<
+                "\n\nI+tM*ddq_dv:\nPinocchio:\n" <<
+                FxPf.bottomRightCorner(model.nv, model.nv) - 
+                FxP.bottomRightCorner(model.nv, model.nv) <<
+                "\n\ntM*Minv:\ninocchio:\n" << 
+                FuPf.bottomRows(model.nv) -
+                FuP.bottomRows(model.nv) <<"\n";
+
+    // Prediction accuracy comparison
+    /// Set random seed
+    std::srand(std::time(0));
+    /// Generate random perturbation
+    eigVd qp(model.nv), vp(model.nv), up(model.nv), xpM(cp.n), xpP(npin);
+    qp = Eigen::VectorXd::Random(model.nv)*1e-1;
+    vp = Eigen::VectorXd::Random(model.nv)*1e-1;
+    up = Eigen::VectorXd::Random(model.nv)*1e-1;
+    xpM.setZero();
+    xpM.segment(vel_off, model.nv) = qp;
+    xpM.segment(m->nv+vel_off, model.nv) = vp;
+    xpP.head(model.nv) = qp;
+    xpP.tail(model.nv) = vp;
+    /// Perturb states and controls
+    q += qp;
+    v += vp;
+    tau += tau;
+    mjData* dPerturbed = mj_makeData(m);
+    copyData(m, d, dPerturbed);
+    mju_copy(dPerturbed->qpos+pos_off, q.data(), model.nq);
+    mju_copy(dPerturbed->qvel+vel_off, v.data(), model.nv);
+    mju_copy(dPerturbed->ctrl, tau.data(), model.nv);
+    // Take step
+    CitoControl cc(m);
+    eigVd xNext(cp.n), xNextP(npin), xNextPert(cp.n),
+          xNextPredM(cp.n), xNextPredPf(npin), xNextPredP(npin);
+    // cc.takeStep(d, u, 0, 1);
+    for( int j=0; j<cp.ndpc; j++ )
+    {
+        mj_step(m, d);
+    }
+    xNext = cc.getState(d);
+    xNextP.head(model.nv) = xNext.segment(vel_off, model.nv);
+    xNextP.tail(model.nv) = xNext.tail(model.nv);
+    // cc.takeStep(dPerturbed, u, 0, 1);
+    for( int j=0; j<cp.ndpc; j++ )
+    {
+        mj_step(m, dPerturbed);
+    }
+    xNextPert = cc.getState(dPerturbed);
+    xNextPredM  = xNext + FxHW*xpM + FuHW*up;
+    xNextPredPf = xNextP + FxPf*xpP + FuPf*up;
+    xNextPredP  = xNextP + FxP*xpP + FuP*up;
+
+    std::cout << "\n\nNominal:\npos: " << xNext.segment(vel_off, model.nv).transpose() << 
+                 "\nvel: " << xNext.segment(m->nv+vel_off, model.nv).transpose() <<
+                 "\nPerturbed:\npos: " << xNextPredM.segment(vel_off, model.nv).transpose() << 
+                 "\nvel: " << xNextPert.segment(m->nv+vel_off, model.nv).transpose() <<
+                 "\nMuJoCo:\npos: " << xNextPert.segment(vel_off, model.nv).transpose() << 
+                 "\nvel: " << xNextPredM.segment(m->nv+vel_off, model.nv).transpose() <<
+                 "\nPinocchio w/ fext:\npos: " << xNextPredPf.head(model.nv).transpose() << 
+                 "\nvel: " << xNextPredPf.tail(model.nv).transpose() <<
+                 "\nPinocchio w/o fext:\npos: " << xNextPredP.head(model.nv).transpose() << 
+                 "\nvel: " << xNextPredP.tail(model.nv).transpose() << "\n";
 
     // Shut down
     mj_deleteModel(m);
