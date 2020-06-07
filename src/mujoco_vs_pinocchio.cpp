@@ -7,6 +7,7 @@
 #include "pinocchio/algorithm/compute-all-terms.hpp"
 
 const int pos_off=7, vel_off=6, ndof=7;
+int pos_pert=1, vel_pert=1, acc_pert=1;
 
 void copyData(const mjModel* m, const mjData* dmain, mjData* d)
 {
@@ -22,6 +23,13 @@ void copyData(const mjModel* m, const mjData* dmain, mjData* d)
 }
 
 int main(int argc, char const *argv[]) {
+    // Get the perturbation flags, if set
+    if(argc>1)
+    {
+        pos_pert = atoi(argv[1]);
+        vel_pert = atoi(argv[2]);
+        acc_pert = atoi(argv[3]);
+    }
     // MuJoCo
     /// Activate MuJoCo
     const char* mjKeyPath = std::getenv("MJ_KEY");
@@ -129,7 +137,6 @@ int main(int argc, char const *argv[]) {
     std::cout << "qfrc_act: ";
     mju_printMat(d->qfrc_actuator, 1, m->nv);
 
-    
     // Create position and force vectors
     Eigen::VectorXd pos_con(3), dir_con(3), pos_jnt(3), pos_bdy(3),
                     vec_j2c(3), vec_b2j(3), vec_b2c(3),
@@ -208,7 +215,6 @@ int main(int argc, char const *argv[]) {
     mj_mulJacTVec(m, d, qefc.data(), d->efc_force);
     std::cout << "qefc: " << qefc.transpose() << "\n\n";
 
-
     // Represent the contact wrench in the body frame at the contact point
     Eigen::VectorXd f_con_b(3), h_con_b_at_j(6), vec_b_j2c(3);
     mju_rotVecMatT(f_con_b.data(), f_con_w.head(3).data(), d->xmat+9*mj_name2id(m, mjOBJ_BODY, "right_l6"));
@@ -261,9 +267,10 @@ int main(int argc, char const *argv[]) {
     Eigen::VectorXd mj_bias(ndof);
     mju_copy(mj_bias.data(), d->qfrc_bias+vel_off, ndof);
     /// Acceleration
-    Eigen::VectorXd mj_qacc(ndof), mj_qacc_unc(ndof);;
+    Eigen::VectorXd mj_qacc(ndof), mj_qacc_unc(ndof), pn_a(ndof), pn_a_unc(ndof);
     mju_copy(mj_qacc.data(), d->qacc+vel_off, ndof);
     mju_copy(mj_qacc_unc.data(), d->qacc_unc+vel_off, ndof);
+    pn_a = data.ddq;
 
     // Compare mass matrices
     std::cout << "\nMass matrices:\n";
@@ -287,113 +294,152 @@ int main(int argc, char const *argv[]) {
 
     // Unconstrained accelerations
     pinocchio::aba(model, data, q, v, tau);
+    pn_a_unc = data.ddq;
     std::cout << "\nUnconstrained\nPinocchio: " << data.ddq.transpose() << "\n";
     std::cout << "MuJoCo:    " << mj_qacc_unc.transpose() << "\n";
     std::cout << "Discrepancy:\n" << (mj_qacc_unc-data.ddq).cwiseAbs().transpose() << "\n";
     std::cout << "Max discrepancy: " << ((mj_qacc_unc-data.ddq).cwiseAbs()).maxCoeff() << "\n";
 
     // Derivative comparison
-    /// MuJoCo
+    /// Create CITO class objects for MuJoCo calculations
     CitoParams cp(m);
     CitoNumDiff nd(m);
-    eigVm u;
-    u.resize(cp.m);
-    mju_copy(u.data(), d->ctrl, m->nu);
-    eigMd FxHW, FuHW;
-    FxHW.resize(cp.n, cp.n); FuHW.resize(cp.n, cp.m);
-    nd.linDyn(d, u, FxHW.data(), FuHW.data(), 0);
-    /// Pinocchio w/ fext
+    /// Initialize derivative matrices
+    eigMd dqacc_dqpos, dqacc_dqvel, dqacc_dctrl,
+          mj_da_dq, mj_da_dv, mj_da_du,
+          pn_da_dq, pn_da_dv, pn_da_du,
+          pn_da_dq_wo_fext, pn_da_dv_wo_fext, pn_da_du_wo_fext;
+    dqacc_dqpos.resize(m->nv, m->nv);    dqacc_dqvel.resize(m->nv, m->nv);    dqacc_dctrl.resize(m->nv, m->nu); 
+    mj_da_dq.resize(model.nv, model.nv); mj_da_dv.resize(model.nv, model.nv); mj_da_du.resize(model.nv, model.nv);
+    pn_da_dq.resize(model.nv, model.nv); pn_da_dv.resize(model.nv, model.nv); pn_da_du.resize(model.nv, model.nv); 
+    pn_da_dq_wo_fext.resize(model.nv, model.nv);
+    pn_da_dv_wo_fext.resize(model.nv, model.nv);
+    pn_da_du_wo_fext.resize(model.nv, model.nv); 
+    
+    // MuJoCo
+    mjtNum* deriv = 0;
+    deriv = (mjtNum*) mju_malloc(3*sizeof(mjtNum)*m->nv*m->nv);
+    nd.worker(d, deriv);
+    mju_copy(dqacc_dqpos.data(), deriv, m->nv*m->nv);
+    mju_copy(dqacc_dqvel.data(), deriv+m->nv*m->nv, m->nv*m->nv);
+    mju_copy(dqacc_dctrl.data(), deriv+2*m->nv*m->nv, m->nv*m->nu);
+    mju_free(deriv);
+    mj_da_dq = dqacc_dqpos.bottomRightCorner(model.nv, model.nv);
+    mj_da_dv = dqacc_dqvel.bottomRightCorner(model.nv, model.nv);
+    mj_da_du = dqacc_dctrl.bottomRows(model.nv);
+
+    // Pinocchio w/ fext
     pinocchio::computeABADerivatives(model, data, q, v, tau, fext);
-    double tM = cp.tc;
-    int npin = 2*model.nv;
-    eigMd FxP, FuP, FxPf, FuPf;
-    FxPf.resize(npin, npin);  FuPf.resize(npin, model.nv);
-    FxP.resize(npin, npin);  FuP.resize(npin, model.nv);
-    FxPf.setZero();
-    FxPf.bottomLeftCorner(model.nv, model.nv)  = tM*data.ddq_dq;
-    FxPf.bottomRightCorner(model.nv, model.nv) = Eigen::MatrixXd::Identity(model.nv, model.nv) + tM*data.ddq_dv;
-    FuPf.setZero();
-    FuPf.bottomRows(model.nv) = tM*data.Minv;
+    pn_da_dq = data.ddq_dq;
+    pn_da_dv = data.ddq_dv;
+    pn_da_du = data.Minv;
 
-    // Print results
-    std::cout << "\ntM*ddq_dq:\nMuJoCo:\n" << FxHW.block(m->nv+vel_off,vel_off,model.nv,model.nv) << 
-                 "\nPinocchio:\n" << FxPf.bottomLeftCorner(model.nv, model.nv) <<
-                 "\n\nI+tM*ddq_dv:\nMuJoCo:\n" << FxHW.block(m->nv+vel_off,m->nv+vel_off,model.nv,model.nv) <<
-                 "\nPinocchio:\n" << FxPf.bottomRightCorner(model.nv, model.nv) <<
-                 "\n\ntM*Minv:\nMuJoCo:\n" << FuHW.bottomRows(model.nv) <<
-                 "\n\nPinocchio:\n" << tM*data.Minv  <<"\n";
-
-    /// Pinocchio w/o fext
+    // Pinocchio w/o fext
     pinocchio::computeABADerivatives(model, data, q, v, tau);
-    FxP.setZero();
-    FxP.bottomLeftCorner(model.nv, model.nv)  = tM*data.ddq_dq;
-    FxP.bottomRightCorner(model.nv, model.nv) = Eigen::MatrixXd::Identity(model.nv, model.nv) + tM*data.ddq_dv;
-    FuP.setZero();
-    FuP.bottomRows(model.nv) = tM*data.Minv;
-    std::cout << "\n\nPinocchio w/o fext:\ntM*ddq_dq:\nPinocchio:\n" << 
-                FxPf.bottomLeftCorner(model.nv, model.nv) -
-                FxP.bottomLeftCorner(model.nv, model.nv) <<
-                "\n\nI+tM*ddq_dv:\nPinocchio:\n" <<
-                FxPf.bottomRightCorner(model.nv, model.nv) - 
-                FxP.bottomRightCorner(model.nv, model.nv) <<
-                "\n\ntM*Minv:\ninocchio:\n" << 
-                FuPf.bottomRows(model.nv) -
-                FuP.bottomRows(model.nv) <<"\n";
+    pn_da_dq_wo_fext = data.ddq_dq;
+    pn_da_dv_wo_fext = data.ddq_dv;
+    pn_da_du_wo_fext = data.Minv;
 
+    // Print derivative matrices
+    std::cout << "\nda_dq:\nMuJoCo:\n" << mj_da_dq << "\nPinocchio w/ fext:\n" << pn_da_dq <<
+                 "\nPinocchio w/o fext:\n" << pn_da_dq_wo_fext <<
+                 "\nda_dv:\nMuJoCo:\n" << mj_da_dv << "\nPinocchio w/ fext:\n" << pn_da_dv <<
+                 "\nPinocchio w/o fext:\n" << pn_da_dv_wo_fext <<
+                 "\nda_du:\nMuJoCo:\n" << mj_da_du << "\nPinocchio w/ fext:\n" << pn_da_du <<
+                 "\nPinocchio w/o fext:\n" << pn_da_du_wo_fext << "\n";
+
+    
     // Prediction accuracy comparison
     /// Set random seed
     std::srand(std::time(0));
     /// Generate random perturbation
-    eigVd qp(model.nv), vp(model.nv), up(model.nv), xpM(cp.n), xpP(npin);
-    qp = Eigen::VectorXd::Random(model.nv)*1e-1;
-    vp = Eigen::VectorXd::Random(model.nv)*1e-1;
-    up = Eigen::VectorXd::Random(model.nv)*1e-1;
-    xpM.setZero();
-    xpM.segment(vel_off, model.nv) = qp;
-    xpM.segment(m->nv+vel_off, model.nv) = vp;
-    xpP.head(model.nv) = qp;
-    xpP.tail(model.nv) = vp;
+    eigVd dq(ndof), dv(ndof), du(ndof);
+    dq.setZero(); dv.setZero(); du.setZero();
+    if(pos_pert)
+        dq = Eigen::VectorXd::Random(ndof)*5e-2;
+    if(vel_pert)
+        dv = Eigen::VectorXd::Random(ndof)*5e-2;
+    if(acc_pert)
+        du = Eigen::VectorXd::Random(ndof)*5e-2;
+    std::cout << "Perturbations:\n\tdq: " << dq.transpose() << "\n\tdv: " << 
+                 dv.transpose() << "\n\tdu: " << du.transpose() << "\n";
     /// Perturb states and controls
-    q += qp;
-    v += vp;
-    tau += tau;
+    q += dq;
+    v += dv;
+    tau += du;
     mjData* dPerturbed = mj_makeData(m);
     copyData(m, d, dPerturbed);
-    mju_copy(dPerturbed->qpos+pos_off, q.data(), model.nq);
-    mju_copy(dPerturbed->qvel+vel_off, v.data(), model.nv);
-    mju_copy(dPerturbed->ctrl, tau.data(), model.nv);
-    // Take step
-    CitoControl cc(m);
-    eigVd xNext(cp.n), xNextP(npin), xNextPert(cp.n),
-          xNextPredM(cp.n), xNextPredPf(npin), xNextPredP(npin);
-    // cc.takeStep(d, u, 0, 1);
-    for( int j=0; j<cp.ndpc; j++ )
-    {
-        mj_step(m, d);
-    }
-    xNext = cc.getState(d);
-    xNextP.head(model.nv) = xNext.segment(vel_off, model.nv);
-    xNextP.tail(model.nv) = xNext.tail(model.nv);
-    // cc.takeStep(dPerturbed, u, 0, 1);
-    for( int j=0; j<cp.ndpc; j++ )
-    {
-        mj_step(m, dPerturbed);
-    }
-    xNextPert = cc.getState(dPerturbed);
-    xNextPredM  = xNext + FxHW*xpM + FuHW*up;
-    xNextPredPf = xNextP + FxPf*xpP + FuPf*up;
-    xNextPredP  = xNextP + FxP*xpP + FuP*up;
+    mju_copy(dPerturbed->qpos+pos_off, q.data(), ndof);
+    mju_copy(dPerturbed->qvel+vel_off, v.data(), ndof);
+    mju_copy(dPerturbed->ctrl, tau.data(), ndof);
+    
+    // Calculate actual perturbed accelerations using MuJoCo
+    Eigen::VectorXd mj_qacc_pert(ndof), mj_qacc_unc_pert(ndof), pn_a_pert(ndof), pn_a_unc_pert(ndof);
+    mj_forward(m, dPerturbed);
+    mju_copy(mj_qacc_pert.data(), dPerturbed->qacc+vel_off, ndof);
+    mju_copy(mj_qacc_unc_pert.data(), dPerturbed->qacc_unc+vel_off, ndof);
 
-    std::cout << "\n\nNominal:\npos: " << xNext.segment(vel_off, model.nv).transpose() << 
-                 "\nvel: " << xNext.segment(m->nv+vel_off, model.nv).transpose() <<
-                 "\nPerturbed:\npos: " << xNextPredM.segment(vel_off, model.nv).transpose() << 
-                 "\nvel: " << xNextPert.segment(m->nv+vel_off, model.nv).transpose() <<
-                 "\nMuJoCo:\npos: " << xNextPert.segment(vel_off, model.nv).transpose() << 
-                 "\nvel: " << xNextPredM.segment(m->nv+vel_off, model.nv).transpose() <<
-                 "\nPinocchio w/ fext:\npos: " << xNextPredPf.head(model.nv).transpose() << 
-                 "\nvel: " << xNextPredPf.tail(model.nv).transpose() <<
-                 "\nPinocchio w/o fext:\npos: " << xNextPredP.head(model.nv).transpose() << 
-                 "\nvel: " << xNextPredP.tail(model.nv).transpose() << "\n";
+    // Update fext for Pinocchio forward kinematics calculation
+    std::cout << "\nConstraints after perturbation:\n";
+    for(int i=0; i<dPerturbed->nefc; i++)
+    {
+        std::cout << "\tConstraint " << i << ", type: " << dPerturbed->efc_type[i] <<
+                    ", dist: " << dPerturbed->contact[i].dist <<
+                    ", geom1: " << mj_id2name(m, mjOBJ_GEOM, dPerturbed->contact[i].geom1) <<
+                    ", geom2: " << mj_id2name(m, mjOBJ_GEOM, dPerturbed->contact[i].geom2) <<
+                    "\n\tefc_force: " << dPerturbed->efc_force[i] <<
+                    ", efc_state: " << dPerturbed->efc_state[i] <<
+                    ", efc_id: " << dPerturbed->efc_id[i] << "\n";
+    }
+    /// Get positions of contact, joint, and body frames
+    for(int j=0; j<3; j++)
+    {
+        pos_con(j) = dPerturbed->contact[0].pos[j];
+        pos_jnt(j) = dPerturbed->xanchor[mj_name2id(m, mjOBJ_JOINT, "right_j6")*3+j];
+    }
+    /// Calculate vector from the joint anchor to the contact point
+    vec_j2c = pos_con - pos_jnt;
+    /// Get the contact wrench in the contact frame
+    mj_contactForce(m, dPerturbed, 0, h_con.data());
+    std::cout << "\nhcon: " << h_con.transpose() << "\n";
+    /// Represent the contact wrench in the world frame
+    mju_rotVecMatT(f_con_w.data(), h_con.head(3).data(), dPerturbed->contact[0].frame);
+    /// Represent the contact wrench in the body frame at the contact point
+    mju_rotVecMatT(f_con_b.data(), f_con_w.head(3).data(), dPerturbed->xmat+9*mj_name2id(m, mjOBJ_BODY, "right_l6"));
+    mju_rotVecMatT(vec_b_j2c.data(), vec_j2c.data(), dPerturbed->xmat+9*mj_name2id(m, mjOBJ_BODY, "right_l6"));
+    h_con_b_at_j.head(3) = f_con_b;
+    h_con_b_at_j(3) = -vec_b_j2c[2]*f_con_b[1] + vec_b_j2c[1]*f_con_b[2];
+    h_con_b_at_j(4) =  vec_b_j2c[2]*f_con_b[0] - vec_b_j2c[0]*f_con_b[2];
+    h_con_b_at_j(5) = -vec_b_j2c[1]*f_con_b[0] + vec_b_j2c[0]*f_con_b[1];
+    /// Set joint forces due to contacts
+    contact_force_ref = h_con_b_at_j;
+    fext[con_jnt_id] = pinocchio::ForceRef<pinocchio::Force::Vector6>(contact_force_ref);
+
+    // Calculate actual perturbed accelerations using Pinocchio
+    pinocchio::aba(model, data, q, v, tau, fext);
+    pn_a_pert = data.ddq;
+    pinocchio::aba(model, data, q, v, tau);
+    pn_a_unc_pert = data.ddq;
+
+    // Calculate predicted accelerations
+    Eigen::VectorXd mj_a_pred(ndof), pn_a_pred(ndof), pn_a_pred_wo_fext(ndof);
+    mj_a_pred = mj_qacc + mj_da_dq*dq + mj_da_dv*dv + mj_da_du*du;
+    pn_a_pred = mj_qacc + pn_da_dq*dq + pn_da_dv*dv + pn_da_du*du;
+    pn_a_pred_wo_fext = mj_qacc + pn_da_dq_wo_fext*dq + pn_da_dv_wo_fext*dv + pn_da_du_wo_fext*du;
+
+    /// Print predicted accelerations
+    std::cout << "\n\nActual accelerations after perturbation:" <<
+                 "\nMuJoCo:             " << mj_qacc_pert.transpose() <<
+                 "\nPinocchio:          " << pn_a_pert.transpose() <<
+                 "\nPinocchio w/o fext: " << pn_a_unc_pert.transpose() <<
+                 "\nPredicted accelerations:" <<
+                 "\nMuJoCo:             " << mj_a_pred.transpose() <<
+                 "\nPinocchio:          " << pn_a_pred.transpose() <<
+                 "\nPinocchio w/o fext: " << pn_a_pred_wo_fext.transpose() <<
+                 "\nDiscrepancies w.r.t. MuJoCo's perturbed acceleration:" <<
+                 "\nMuJoCo:             " << ((mj_qacc_pert-mj_a_pred).cwiseAbs()).transpose() <<
+                 "\nPinocchio:          " << ((mj_qacc_pert-pn_a_pred).cwiseAbs()).transpose() <<
+                 "\nPinocchio w/o fext: " << ((mj_qacc_pert-pn_a_pred_wo_fext).cwiseAbs()).transpose() << "\n";
 
     // Shut down
     mj_deleteModel(m);
