@@ -394,14 +394,8 @@ int main(int argc, char const *argv[]) {
                     ", efc_state: " << dPerturbed->efc_state[i] <<
                     ", efc_id: " << dPerturbed->efc_id[i] << "\n";
     }
-    /// Get positions of contact, joint, and body frames
-    for(int j=0; j<3; j++)
-    {
-        pos_con(j) = dPerturbed->contact[0].pos[j];
-        pos_jnt(j) = dPerturbed->xanchor[mj_name2id(m, mjOBJ_JOINT, "right_j6")*3+j];
-    }
     /// Calculate vector from the joint anchor to the contact point
-    vec_j2c = pos_con - pos_jnt;
+    mju_sub3(vec_j2c.data(), dPerturbed->contact[0].pos, d->xanchor+3*mj_name2id(m, mjOBJ_JOINT, "right_j6"));
     /// Get the contact wrench in the contact frame
     mj_contactForce(m, dPerturbed, 0, h_con.data());
     std::cout << "\nhcon: " << h_con.transpose() << "\n";
