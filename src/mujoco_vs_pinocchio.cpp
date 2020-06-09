@@ -7,7 +7,7 @@
 #include "pinocchio/algorithm/compute-all-terms.hpp"
 
 const int pos_off=7, vel_off=6, ndof=7;
-int pos_pert=1, vel_pert=1, acc_pert=1;
+int pos_pert=1, vel_pert=0, acc_pert=0;
 
 void copyData(const mjModel* m, const mjData* dmain, mjData* d)
 {
@@ -247,7 +247,7 @@ int main(int argc, char const *argv[]) {
     /// Pinocchio
     pinocchio::computeAllTerms(model, data, q, v);
     pinocchio::aba(model, data, q, v, tau, fext);
-    // tau_w_contact = tau + qefc.tail(model.nv);
+    tau_w_contact = tau + qefc.tail(model.nv);
     // pinocchio::aba(model, data, q, v, tau_w_contact);
     // std::cout << "tau w/ contact forces: " << tau_w_contact.transpose() << "\n";
     
@@ -335,7 +335,7 @@ int main(int argc, char const *argv[]) {
     pn_da_du = data.Minv;
 
     // Pinocchio w/o fext
-    pinocchio::computeABADerivatives(model, data, q, v, tau);
+    pinocchio::computeABADerivatives(model, data, q, v, tau_w_contact);
     pn_da_dq_wo_fext = data.ddq_dq;
     pn_da_dv_wo_fext = data.ddq_dv;
     pn_da_du_wo_fext = data.Minv;
@@ -378,6 +378,9 @@ int main(int argc, char const *argv[]) {
     mj_forward(m, dPerturbed);
     mju_copy(mj_qacc_pert.data(), dPerturbed->qacc+vel_off, ndof);
     mju_copy(mj_qacc_unc_pert.data(), dPerturbed->qacc_unc+vel_off, ndof);
+    /// Get constraint forces in joint space
+    mj_mulJacTVec(m, dPerturbed, qefc.data(), dPerturbed->efc_force);
+    tau_w_contact = tau + qefc.tail(ndof);
 
     // Update fext for Pinocchio forward kinematics calculation
     std::cout << "\nConstraints after perturbation:\n";
@@ -418,7 +421,7 @@ int main(int argc, char const *argv[]) {
     // Calculate actual perturbed accelerations using Pinocchio
     pinocchio::aba(model, data, q, v, tau, fext);
     pn_a_pert = data.ddq;
-    pinocchio::aba(model, data, q, v, tau);
+    pinocchio::aba(model, data, q, v, tau_w_contact);
     pn_a_unc_pert = data.ddq;
 
     // Calculate predicted accelerations
