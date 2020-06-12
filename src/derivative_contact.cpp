@@ -5,126 +5,10 @@
 #include "pinocchio/parsers/urdf.hpp"
 #include "pinocchio/algorithm/aba-derivatives.hpp"
 
-mjtNum* deriv = 0;          // dynamics derivatives (6*nv*nv):
-int nwarmup = 3;            // center point repetitions to improve warmstart
-double eps = 1e-6;          // finite-difference epsilon
+int ndof=6, pos_off=0, vel_off=0;
 
-// worker function for parallel finite-difference computation of derivatives
-void worker(const mjModel* m, const mjData* dmain, mjData* d)
-{
-    int nv = m->nv;
-
-    // allocate stack space for result at center
-    mjMARKSTACK
-    mjtNum* center = mj_stackAlloc(d, nv);
-    mjtNum* warmstart = mj_stackAlloc(d, nv);
-
-    // copy state and control from dmain to d
-    d->time = dmain->time;
-    mju_copy(d->qpos, dmain->qpos, m->nq);
-    mju_copy(d->qvel, dmain->qvel, m->nv);
-    mju_copy(d->qacc, dmain->qacc, m->nv);
-    mju_copy(d->qacc_warmstart, dmain->qacc_warmstart, m->nv);
-    mju_copy(d->qfrc_applied, dmain->qfrc_applied, m->nv);
-    mju_copy(d->xfrc_applied, dmain->xfrc_applied, 6*m->nbody);
-    mju_copy(d->ctrl, dmain->ctrl, m->nu);
-
-    // run full computation at center point (usually faster than copying dmain)
-    mj_forward(m, d);
-    // extra solver iterations to improve warmstart (qacc) at center point
-    for( int rep=1; rep<nwarmup; rep++ )
-        mj_forwardSkip(m, d, mjSTAGE_VEL, 1);
-
-    // select output from forward or inverse dynamics
-    mjtNum* output = d->qacc;
-
-    // save output for center point and warmstart (needed in forward only)
-    mju_copy(center, output, nv);
-    mju_copy(warmstart, d->qacc_warmstart, nv);
-
-    // select target vector and original vector for force or acceleration derivative
-    mjtNum* target = d->qfrc_applied;
-    const mjtNum* original = dmain->qfrc_applied;
-
-    // finite-difference over force or acceleration: skip = mjSTAGE_VEL
-    for( int i=0; i<nv; i++ )
-    {
-        // perturb selected target
-        target[i] += eps;
-
-        // evaluate dynamics, with center warmstart
-        mju_copy(d->qacc_warmstart, warmstart, m->nv);
-        mj_forwardSkip(m, d, mjSTAGE_VEL, 1);
-
-        // undo perturbation
-        target[i] = original[i];
-
-        // compute column i of derivative 2
-        for( int j=0; j<nv; j++ )
-            deriv[2*nv*nv + i + j*nv] = (output[j] - center[j])/eps;
-    }
-
-    // finite-difference over velocity: skip = mjSTAGE_POS
-    for( int i=0; i<nv; i++ )
-    {
-        // perturb velocity
-        d->qvel[i] += eps;
-
-        // evaluate dynamics, with center warmstart
-        mju_copy(d->qacc_warmstart, warmstart, m->nv);
-        mj_forwardSkip(m, d, mjSTAGE_POS, 1);
-
-        // undo perturbation
-        d->qvel[i] = dmain->qvel[i];
-
-        // compute column i of derivative 1
-        for( int j=0; j<nv; j++ )
-            deriv[nv*nv + i + j*nv] = (output[j] - center[j])/eps;
-    }
-
-    // finite-difference over position: skip = mjSTAGE_NONE
-    for( int i=0; i<nv; i++ )
-    {
-        // get joint id for this dof
-        int jid = m->dof_jntid[i];
-
-        // get quaternion address and dof position within quaternion (-1: not in quaternion)
-        int quatadr = -1, dofpos = 0;
-        if( m->jnt_type[jid]==mjJNT_BALL )
-        {
-            quatadr = m->jnt_qposadr[jid];
-            dofpos = i - m->jnt_dofadr[jid];
-        }
-        else if( m->jnt_type[jid]==mjJNT_FREE && i>=m->jnt_dofadr[jid]+3 )
-        {
-            quatadr = m->jnt_qposadr[jid] + 3;
-            dofpos = i - m->jnt_dofadr[jid] - 3;
-        }
-
-        // apply quaternion or simple perturbation
-        if( quatadr>=0 )
-        {
-            mjtNum angvel[3] = {0,0,0};
-            angvel[dofpos] = eps;
-            mju_quatIntegrate(d->qpos+quatadr, angvel, 1);
-        }
-        else
-            d->qpos[m->jnt_qposadr[jid] + i - m->jnt_dofadr[jid]] += eps;
-
-        // evaluate dynamics, with center warmstart
-        mju_copy(d->qacc_warmstart, warmstart, m->nv);
-        mj_forwardSkip(m, d, mjSTAGE_NONE, 1);
-
-        // undo perturbation
-        mju_copy(d->qpos, dmain->qpos, m->nq);
-
-        // compute column i of derivative 0
-        for( int j=0; j<nv; j++ )
-            deriv[i + j*nv] = (output[j] - center[j])/eps;
-    }
-
-    mjFREESTACK
-}
+// Compensate bias term
+double compensateBias = 1.0;
 
 void printConfig(mjModel* m, mjData* d)
 {
@@ -187,6 +71,7 @@ int main(int argc, char const *argv[]) {
     if( !m )
         mju_error("Could not load model");
     // Allocate derivatives
+    mjtNum* deriv = 0;
     deriv = (mjtNum*) mju_malloc(3*sizeof(mjtNum)*m->nv*m->nv);
     /// Initialize Pinocchio
     pinocchio::Model model;
@@ -206,11 +91,9 @@ int main(int argc, char const *argv[]) {
     q.resize(model.nq); v.resize(model.nv); tau.resize(model.nv); qcon.resize(model.nv);
     q.setZero();        v.setZero();        tau.setZero();        qcon.setZero();
     PINOCCHIO_ALIGNED_STD_VECTOR(pinocchio::Force) fext((size_t)model.njoints, pinocchio::Force::Zero());
-    // time multiplier
-    double tM = cp.dt*cp.ndpc;
     // derivative matrices
-    eigMd da_dq, da_dv, da_df;
-    da_dq.resize(m->nv, m->nv); da_dv.resize(m->nv, m->nv); da_df.resize(m->nv, m->nu);
+    eigMd da_dq, da_dv, da_du;
+    da_dq.resize(m->nv, m->nv); da_dv.resize(m->nv, m->nv); da_du.resize(m->nv, m->nu);
     eigMd FxHW, FuHW, FxW, FuW, FxP, FuP;
     FxHW.resize(cp.n, cp.n);    FxW.resize(cp.n, cp.n);     FxP.resize(cp.n, cp.n);
     FuHW.resize(cp.n, cp.m);    FuW.resize(cp.n, cp.m);     FuP.resize(cp.n, cp.m);
@@ -265,17 +148,19 @@ int main(int argc, char const *argv[]) {
         {
             mj_step(m, d);
         }
-
+        // get initial state & control
+        x = cc.getState(d);
+        mju_copy(u.data(), d->qfrc_applied, m->nv);
 
         if( printMInit )
         {
             printConfig(m, d);
         }
+
         // Copy MuJoCo data to Pinocchio variables
-        mju_copy(q.data(), d->qpos, m->nq);
-        mju_copy(v.data(), d->qvel, m->nv);
-        // mju_copy(tau.data(), d->ctrl, m->nu);
-        mju_copy(tau.data(), d->qfrc_applied, m->nv);
+        mju_copy(q.data(), d->qpos+pos_off, model.nq);
+        mju_copy(v.data(), d->qvel+vel_off, model.nv);
+        mju_copy(tau.data(), d->qfrc_applied+vel_off, model.nv);
         mju_copy(qcon.data(), d->qfrc_constraint, m->nv);
         fCon[k] = qcon.norm();
         if(fext_flag>0)
@@ -306,21 +191,9 @@ int main(int argc, char const *argv[]) {
             std::cout << "  tau = " << tau.transpose() << "\n\n";
         }
 
-        /// Generate random perturbation
-        if(k==0)
-        {
-            dx = Eigen::VectorXd::Ones(cp.n)*1e-1;
-            du = Eigen::VectorXd::Ones(cp.m)*1e-1;
-        }
-        else
-        {
-            dx = Eigen::VectorXd::Random(cp.n)*1e-1;
-            du = Eigen::VectorXd::Random(cp.m)*1e-1;
-        }
-
         /// Calculate derivatives with MuJoCo hardWorker
         auto tHWStart = std::chrono::system_clock::now();
-        nd.linDyn(d, u, FxHW.data(), FuHW.data(), 0);
+        nd.linDyn(d, u, FxHW.data(), FuHW.data(), compensateBias);
         auto tHWEnd = std::chrono::system_clock::now();
         tHW(k) = std::chrono::duration<double>(tHWEnd-tHWStart).count();
         if( printTime )
@@ -328,7 +201,7 @@ int main(int argc, char const *argv[]) {
 
         /// Calculate derivatives with MuJoCo worker
         auto tMjStart = std::chrono::system_clock::now();
-        worker(m, d, dTemp);
+        nd.worker(d, deriv);
         auto tMjEnd = std::chrono::system_clock::now();
         tW(k) = std::chrono::duration<double>(tMjEnd-tMjStart).count();
         if( printTime )
@@ -336,22 +209,24 @@ int main(int argc, char const *argv[]) {
         // get derivatives of acceleration
         mju_copy(da_dq.data(), deriv, m->nv*m->nv);
         mju_copy(da_dv.data(), deriv+m->nv*m->nv, m->nv*m->nv);
-        mju_copy(da_df.data(), deriv+2*m->nv*m->nv, m->nv*m->nu);
+        mju_copy(da_du.data(), deriv+2*m->nv*m->nv, m->nv*m->nu);
         // build derivative matrices
         FxW.setZero();
         FxW.topLeftCorner(m->nv, m->nv)     = Eigen::MatrixXd::Identity(m->nv, m->nv);
-        FxW.topRightCorner(m->nv, m->nv)    = tM*Eigen::MatrixXd::Identity(m->nv, m->nv);
-        FxW.bottomLeftCorner(m->nv, m->nv)  = tM*da_dq;
-        FxW.bottomRightCorner(m->nv, m->nv) = Eigen::MatrixXd::Identity(m->nv, m->nv) + tM*da_dv;
+        FxW.topRightCorner(m->nv, m->nv)    = cp.tc*Eigen::MatrixXd::Identity(m->nv, m->nv);
+        FxW.bottomLeftCorner(m->nv, m->nv)  = cp.tc*da_dq;
+        FxW.bottomRightCorner(m->nv, m->nv) = Eigen::MatrixXd::Identity(m->nv, m->nv) + cp.tc*da_dv;
         FuW.setZero();
-        FuW.bottomRows(m->nv) = tM*da_df;
+        FuW.bottomRows(m->nv) = cp.tc*da_du;
 
         /// Calculate derivatives with Pinocchio
         auto tPinStart = std::chrono::system_clock::now();
         if(fext_flag==0)
             pinocchio::computeABADerivatives(model, data, q, v, tau);
-        else
+        else if(fext_flag==1 || fext_flag==2)
             pinocchio::computeABADerivatives(model, data, q, v, tau, fext);
+        else if(fext_flag==3)
+            pinocchio::computeABADerivatives(model, data, q, v, tau+qcon);
         auto tPinEnd = std::chrono::system_clock::now();
         tP(k) = std::chrono::duration<double>(tPinEnd-tPinStart).count();
         if( printTime )
@@ -359,11 +234,11 @@ int main(int argc, char const *argv[]) {
         // build derivative matrices
         FxP.setZero();
         FxP.topLeftCorner(m->nv, m->nv)     = Eigen::MatrixXd::Identity(m->nv, m->nv);
-        FxP.topRightCorner(m->nv, m->nv)    = tM*Eigen::MatrixXd::Identity(m->nv, m->nv);
-        FxP.bottomLeftCorner(m->nv, m->nv)  = tM*data.ddq_dq;
-        FxP.bottomRightCorner(m->nv, m->nv) = Eigen::MatrixXd::Identity(m->nv, m->nv) + tM*data.ddq_dv;
+        FxP.topRightCorner(m->nv, m->nv)    = cp.tc*Eigen::MatrixXd::Identity(m->nv, m->nv);
+        FxP.bottomLeftCorner(m->nv, m->nv)  = cp.tc*data.ddq_dq;
+        FxP.bottomRightCorner(m->nv, m->nv) = Eigen::MatrixXd::Identity(m->nv, m->nv) + cp.tc*data.ddq_dv;
         FuP.setZero();
-        FuP.bottomRows(m->nv) = tM*data.Minv;
+        FuP.bottomRows(m->nv) = cp.tc*data.Minv;
 
         /// Print derivative matrices
         if( printDeriv )
@@ -385,19 +260,24 @@ int main(int argc, char const *argv[]) {
             std::cout << "Nominal trajectory:";
             printConfig(m, dNominal);
         }
-        for( int j=0; j<cp.ndpc; j++ )
-        {
-            mj_step(m, dNominal);
-        }
+        cc.takeStep(dNominal, u, false, compensateBias);
         if( printTraj )
         { printConfig(m, dNominal); }
         xNewNominal = cc.getState(dNominal);
         mj_deleteData(dNominal);
 
         /// Perturbation
-        // get current state and control
-        x = cc.getState(d);
-        mju_copy(u.data(), d->ctrl, m->nu);
+        // generate random perturbation
+        if(k==0)
+        {
+            dx = Eigen::VectorXd::Ones(cp.n)*1e-2;
+            du = Eigen::VectorXd::Ones(cp.m)*1e-2;
+        }
+        else
+        {
+            dx = Eigen::VectorXd::Random(cp.n)*1e-2;
+            du = Eigen::VectorXd::Random(cp.m)*1e-2;
+        }
         // print perturbation
         if( printPert )
         {
@@ -415,7 +295,8 @@ int main(int argc, char const *argv[]) {
         /// Perturbed trajectory
         mjData* dPerturbed = mj_makeData(m);
         copyData(m, d, dPerturbed);
-        mju_copy(dPerturbed->ctrl, u.data(), m->nu);
+        // mju_copy(dPerturbed->ctrl, u.data(), m->nu);
+        mju_copy(dPerturbed->qfrc_applied, u.data(), m->nv);
         mju_copy(dPerturbed->qpos, x.head(m->nv).data(), m->nv);
         mju_copy(dPerturbed->qvel, x.tail(m->nv).data(), m->nv);
         mj_forward(m, dPerturbed);
@@ -424,10 +305,7 @@ int main(int argc, char const *argv[]) {
             std::cout << "Perturbed trajectory:";
             printConfig(m, dPerturbed);
         }
-        for( int j=0; j<cp.ndpc; j++ )
-        {
-            mj_step(m, dPerturbed);
-        }
+        cc.takeStep(dPerturbed, u, false, compensateBias);
         if( printTraj )
         { printConfig(m, dPerturbed); }
         xNewPerturbed = cc.getState(dPerturbed);
