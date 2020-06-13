@@ -42,9 +42,9 @@ void copyData(const mjModel* m, const mjData* dmain, mjData* d)
 
 /// Flags
 bool printDeriv = false;
-bool printMInit = true;
-bool printPInit = true;
-bool printPred  = true;
+bool printMInit = false;
+bool printPInit = false;
+bool printPred  = false;
 bool printPert  = false;
 bool printTraj  = false;
 bool printTime  = false;
@@ -163,6 +163,42 @@ int main(int argc, char const *argv[]) {
         mju_copy(tau.data(), d->qfrc_applied+vel_off, model.nv);
         mju_copy(qcon.data(), d->qfrc_constraint, m->nv);
         fCon[k] = qcon.norm();
+
+        // Constraints
+        std::cout << "\n\nConstraints:\n";
+        for(int i=0; i<d->nefc; i++)
+        {
+            std::cout << "\tConstraint " << i << ", type: " << d->efc_type[i] <<
+                         ", force: " << d->efc_force[i] <<
+                         ", state: " << d->efc_state[i] <<
+                         ", id: " << d->efc_id[i] << "\n";
+        }
+        // Contacts
+        eigVd hcon(6); hcon.setZero();
+        std::cout << "\nContacts:\n";
+        for(int i=0; i<d->ncon; i++)
+        {
+            mj_contactForce(m, d, i, hcon.data());
+            int geom1_id=d->contact[i].geom1, geom2_id=d->contact[i].geom2;
+            std::cout << "\tContact " << i << ", pos: " << d->contact[i].pos[0] << ", " <<
+                         d->contact[i].pos[1] << ", " << d->contact[i].pos[2] << ", " <<
+                         "dist: " << d->contact[i].dist << ", dim: " << d->contact[i].dim <<
+                         "\n\t\tgeom1: " << mj_id2name(m, mjOBJ_GEOM, geom1_id) <<
+                         ", geom2: " << mj_id2name(m, mjOBJ_GEOM, geom2_id) <<
+                         ", hcon: " << hcon.head(3).transpose() << "\n";
+            std::cout << "\t\tgeom1 body: " << mj_id2name(m, mjOBJ_BODY, m->geom_bodyid[geom1_id]) <<
+                         ", jntnum: " << m->body_jntnum[m->geom_bodyid[geom1_id]] << 
+                         ", jntadr: " << m->body_jntadr[m->geom_bodyid[geom1_id]] <<
+                         ", dofnum: " << m->body_dofnum[m->geom_bodyid[geom1_id]] << 
+                         ", dofadr: " << m->body_dofadr[m->geom_bodyid[geom1_id]] <<
+                         "\n\t\tgeom2 body: " << mj_id2name(m, mjOBJ_BODY, m->geom_bodyid[geom2_id]) << 
+                         ", jntnum: " << m->body_jntnum[m->geom_bodyid[geom2_id]] << 
+                         ", jntadr: " << m->body_jntadr[m->geom_bodyid[geom2_id]] <<
+                         ", dofnum: " << m->body_dofnum[m->geom_bodyid[geom2_id]] << 
+                         ", dofadr: " << m->body_dofadr[m->geom_bodyid[geom2_id]] <<"\n";
+        }
+
+        // Set external force in joint space
         if(fext_flag>0)
         {
             pinocchio::Force::Vector3 tau_contact = pinocchio::Force::Vector3::Zero();
@@ -179,7 +215,7 @@ int main(int argc, char const *argv[]) {
                 }
                 fext[i].angular(tau_contact);
                 // std::cout << "tau_contact: " << tau_contact.transpose() << "\n";
-                std::cout << fext[i] << "\n";
+                // std::cout << fext[i] << "\n";
             }
         }
 
@@ -270,8 +306,8 @@ int main(int argc, char const *argv[]) {
         // generate random perturbation
         if(k==0)
         {
-            dx = Eigen::VectorXd::Ones(cp.n)*1e-2;
-            du = Eigen::VectorXd::Ones(cp.m)*1e-2;
+            dx = Eigen::VectorXd::Zero(cp.n);
+            du = Eigen::VectorXd::Zero(cp.m);
         }
         else
         {
