@@ -4,8 +4,9 @@
 
 #include "pinocchio/parsers/urdf.hpp"
 #include "pinocchio/algorithm/aba-derivatives.hpp"
+#include "pinocchio/algorithm/compute-all-terms.hpp"
 
-int ndof=6, pos_off=0, vel_off=0;
+const int ndof=6, pos_off=0, vel_off=0;
 
 // Compensate bias term
 double compensateBias = 1.0;
@@ -42,8 +43,8 @@ void copyData(const mjModel* m, const mjData* dmain, mjData* d)
 
 /// Flags
 bool printDeriv = false;
-bool printMInit = false;
-bool printPInit = false;
+bool printMInit = true;
+bool printPInit = true;
 bool printPred  = false;
 bool printPert  = false;
 bool printTraj  = false;
@@ -90,7 +91,6 @@ int main(int argc, char const *argv[]) {
     eigVd q, v, tau, qcon;
     q.resize(model.nq); v.resize(model.nv); tau.resize(model.nv); qcon.resize(model.nv);
     q.setZero();        v.setZero();        tau.setZero();        qcon.setZero();
-    PINOCCHIO_ALIGNED_STD_VECTOR(pinocchio::Force) fext((size_t)model.njoints, pinocchio::Force::Zero());
     // derivative matrices
     eigMd da_dq, da_dv, da_du;
     da_dq.resize(m->nv, m->nv); da_dv.resize(m->nv, m->nv); da_du.resize(m->nv, m->nu);
@@ -131,26 +131,27 @@ int main(int argc, char const *argv[]) {
         }
         // Create MuJoCo data
         mjData* d = mj_makeData(m);
-        mjData* dTemp = mj_makeData(m);
         // Set the joint positions to the preset configuration in the model
         mju_copy(d->qpos, m->key_qpos, m->nq);
-        mj_forward(m, d);
+        
         // Copy random variables to MuJoCo data
         // mju_copy(d->qpos, qRand.data(), m->nq);
         mju_copy(d->qvel, vRand.data(), m->nv);
         // mju_copy(d->ctrl, uRand.data(), m->nu);
-        // mju_copy(d->ctrl, d->qfrc_bias, m->nu);
-        mju_copy(d->qfrc_applied, d->qfrc_bias, m->nv);
+        mju_copy(d->ctrl, d->qfrc_bias+vel_off, m->nu);
+        // mju_copy(d->qfrc_applied, d->qfrc_bias, m->nv);
         
         // Take warm-up steps to ensure making contacts
-        int n_warmup = 5;
-        for(int i=0; i<n_warmup; i++)
-        {
-            mj_step(m, d);
-        }
+        // int n_warmup = 5;
+        // for(int i=0; i<n_warmup; i++)
+        // {
+        //     mj_step(m, d);
+        // }
+        mj_forward(m, d);
         // get initial state & control
         x = cc.getState(d);
-        mju_copy(u.data(), d->qfrc_applied, m->nv);
+        mju_copy(u.data(), d->ctrl, m->nu);
+        // mju_copy(u.data(), d->qfrc_applied, m->nv);
 
         if( printMInit )
         {
@@ -160,10 +161,19 @@ int main(int argc, char const *argv[]) {
         // Copy MuJoCo data to Pinocchio variables
         mju_copy(q.data(), d->qpos+pos_off, model.nq);
         mju_copy(v.data(), d->qvel+vel_off, model.nv);
-        mju_copy(tau.data(), d->qfrc_applied+vel_off, model.nv);
+        mju_copy(tau.data(), d->ctrl, model.nv);
+        // mju_copy(tau.data(), d->qfrc_applied+vel_off, model.nv);
+        if( printPInit )
+        {
+            std::cout<< "Pinocchio state and control before perturbation:\n";
+            std::cout << "  q   = " << q.transpose() << "\n";
+            std::cout << "  v   = " << v.transpose() << "\n";
+            std::cout << "  tau = " << tau.transpose() << "\n\n";
+        }
+
         mju_copy(qcon.data(), d->qfrc_constraint, m->nv);
         fCon[k] = qcon.norm();
-
+        
         // Constraints
         std::cout << "\n\nConstraints:\n";
         for(int i=0; i<d->nefc; i++)
@@ -199,33 +209,68 @@ int main(int argc, char const *argv[]) {
         }
 
         // Set external force in joint space
-        if(fext_flag>0)
+        PINOCCHIO_ALIGNED_STD_VECTOR(pinocchio::Force) fext((size_t)model.njoints, pinocchio::Force::Zero());
+        pinocchio::Force::Vector6 contact_force_ref;
+        pinocchio::Model::JointIndex pin_jnt_id;
+        Eigen::VectorXd vec_j2c_w(3), vec_j2c_b(3), fcon_w(3), fcon_b(3), hcon_neg(6), h_con_b_at_j(6);
+        int geom_jntadr[2], geom_bodyid[2];
+        for (int i=0; i<d->ncon; i++)
         {
-            pinocchio::Force::Vector3 tau_contact = pinocchio::Force::Vector3::Zero();
-            for(int i=1; i<model.njoints; i++)
+            // Get contact force in contact frame
+            mj_contactForce(m, d, i, hcon.data());
+            hcon_neg = -hcon;
+            // Get joint and body ids from the MuJoCo model
+            geom_jntadr[0] = m->body_jntadr[m->geom_bodyid[d->contact[i].geom1]];
+            geom_jntadr[1] = m->body_jntadr[m->geom_bodyid[d->contact[i].geom2]];
+            geom_bodyid[0] = m->geom_bodyid[m->geom_bodyid[d->contact[i].geom1]];
+            geom_bodyid[1] = m->geom_bodyid[m->geom_bodyid[d->contact[i].geom2]];;
+            // For each body involved in the contact, set the external force
+            for(int j=0; j<2; j++)
             {
-                // std::cout << "MuJoCo joint axis: " << m->jnt_axis[(i-1)*3] << m->jnt_axis[(i-1)*3+1] << m->jnt_axis[(i-1)*3+2] << "\n";
-                // std::cout << model.joints[i] << "\n";
-                for(int j=0; j<3; j++)
+                if(geom_jntadr[j] != -1)
                 {
-                    if(fext_flag==1)
-                        tau_contact[j] =  m->jnt_axis[(i-1)*3+j]*d->qfrc_constraint[i-1];
-                    else if(fext_flag==2)
-                        tau_contact[j] =  -m->jnt_axis[(i-1)*3+j]*d->qfrc_constraint[i-1];
+                    // Get the joint id from the Pinocchio model
+                    pin_jnt_id = model.getJointId(mj_id2name(m, mjOBJ_JOINT, geom_jntadr[j]));
+                    std::cout << "pin_jnt_id: " << pin_jnt_id << "\n";
+                    // Calculate vector from the joint anchor to the contact point
+                    mju_sub3(vec_j2c_w.data(), d->contact[i].pos, d->xanchor+3*geom_jntadr[j]);
+                    // Represent the contact wrench in the world frame
+                    if(j==0)
+                    {
+                        mju_rotVecMatT(fcon_w.data(), hcon_neg.head(3).data(), d->contact[i].frame);
+                    }
+                    else
+                    {
+                        mju_rotVecMatT(fcon_w.data(), hcon.head(3).data(), d->contact[i].frame);
+                    }
+                    // Represent the contact wrench in the body frame at the contact point
+                    mju_rotVecMatT(fcon_b.data(), fcon_w.head(3).data(), d->xmat+9*geom_bodyid[j]);
+                    mju_rotVecMatT(vec_j2c_b.data(), vec_j2c_w.data(), d->xmat+9*geom_bodyid[j]);
+                    h_con_b_at_j.head(3) = fcon_b;
+                    h_con_b_at_j[3] = -vec_j2c_b[2]*fcon_b[1] + vec_j2c_b[1]*fcon_b[2];
+                    h_con_b_at_j[4] =  vec_j2c_b[2]*fcon_b[0] - vec_j2c_b[0]*fcon_b[2];
+                    h_con_b_at_j[5] = -vec_j2c_b[1]*fcon_b[0] + vec_j2c_b[0]*fcon_b[1];
+                    // Set joint forces due to the contact
+                    contact_force_ref = h_con_b_at_j;
+                    fext[pin_jnt_id] = pinocchio::ForceRef<pinocchio::Force::Vector6>(contact_force_ref);
                 }
-                fext[i].angular(tau_contact);
-                // std::cout << "tau_contact: " << tau_contact.transpose() << "\n";
-                // std::cout << fext[i] << "\n";
             }
         }
+        // Print external forces in joint frame
+        std::cout << "fext:\n";
+        for(int i=0; i<model.njoints; i++)
+            std::cout << fext[i] << "\n";
+        // Compare accelerations
+        Eigen::VectorXd mj_a(m->nv), pin_a(model.nv);
+        mju_copy(mj_a.data(), d->qacc, m->nv);
+        pinocchio::aba(model, data, q, v, tau, fext);
+        pin_a = data.ddq;
+        pinocchio::aba(model, data, q, v, tau+qcon);
+        std::cout << "Accelerations:\n" <<
+                     "\tMuJoCo:             " << mj_a.transpose() <<
+                     "\n\tPinocchio w/o fext: " << data.ddq.transpose() <<
+                     "\n\tPinocchio w/ fext:  " << pin_a.transpose() << "\n\n";
 
-        if( printPInit )
-        {
-            std::cout<< "Pinocchio state and control before perturbation:\n";
-            std::cout << "  q   = " << q.transpose() << "\n";
-            std::cout << "  v   = " << v.transpose() << "\n";
-            std::cout << "  tau = " << tau.transpose() << "\n\n";
-        }
 
         /// Calculate derivatives with MuJoCo hardWorker
         auto tHWStart = std::chrono::system_clock::now();
@@ -331,8 +376,8 @@ int main(int argc, char const *argv[]) {
         /// Perturbed trajectory
         mjData* dPerturbed = mj_makeData(m);
         copyData(m, d, dPerturbed);
-        // mju_copy(dPerturbed->ctrl, u.data(), m->nu);
-        mju_copy(dPerturbed->qfrc_applied, u.data(), m->nv);
+        mju_copy(dPerturbed->ctrl, u.data(), m->nu);
+        // mju_copy(dPerturbed->qfrc_applied, u.data(), m->nv);
         mju_copy(dPerturbed->qpos, x.head(m->nv).data(), m->nv);
         mju_copy(dPerturbed->qvel, x.tail(m->nv).data(), m->nv);
         mj_forward(m, dPerturbed);
@@ -385,7 +430,6 @@ int main(int argc, char const *argv[]) {
         }
         // Delete data
         mj_deleteData(d);
-        mj_deleteData(dTemp);
     }
     std::cout << "\n================================================================================\n\n";
     std::cout << "INFO: Test done.\n\nTest summary:\n";
