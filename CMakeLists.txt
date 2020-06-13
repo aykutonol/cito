@@ -69,6 +69,7 @@ set(NODE_NAME3 tosc)
 set(NODE_NAME4 deriv)
 set(NODE_NAME5 contact)
 set(NODE_NAME6 mj_vs_pin)
+set(NODE_NAME7 models)
 
 # Create executables
 # main: runs SCVX w/ numerical differentiation in MuJoCo
@@ -183,6 +184,26 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     )
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_link_libraries(${NODE_NAME6}
+                          ${PROJECT_NAME}
+                          ${MUJOCO_DIR}/bin/libmujoco200nogl.dylib
+                          ${SNOPT_DIR}/lib/libsnopt7_cpp.dylib
+                          pthread
+                          yaml-cpp
+    )
+endif()
+
+# mj_vs_pin_model: compares Pinocchio and MuJoCo models
+add_executable(${NODE_NAME7} src/model_comparison.cpp)
+if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+    target_link_libraries(${NODE_NAME7}
+                          ${PROJECT_NAME}
+                          ${MUJOCO_DIR}/bin/libmujoco200nogl.so
+                          ${SNOPT_DIR}/lib/libsnopt7_cpp.so
+                          pthread
+                          yaml-cpp
+    )
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    target_link_libraries(${NODE_NAME7}
                           ${PROJECT_NAME}
                           ${MUJOCO_DIR}/bin/libmujoco200nogl.dylib
                           ${SNOPT_DIR}/lib/libsnopt7_cpp.dylib
