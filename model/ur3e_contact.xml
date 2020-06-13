@@ -24,37 +24,30 @@
         </body>
         <!-- Robot -->
         <body name="base" pos="0 0 0">
-            <geom type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="base" />
             <geom type="mesh" rgba="0.7 0.7 0.7 1" mesh="base" />
             <body name="shoulder_link" pos="0 0 0.152">
                 <inertial pos="0 0 0" mass="2" diaginertia="0.00809316 0.00809316 0.005625" />
-                <joint name="shoulder_pan_joint" pos="0 0 0" axis="0 0 1" limited="false" range="-3.14159 3.14159" />
-                <geom type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="shoulder" />
-                <geom type="mesh" rgba="0.7 0.7 0.7 1" mesh="shoulder" />
+                <joint name="shoulder_pan_joint" pos="0 0 0" axis="0 0 1" limited="true" range="-3.14159 3.14159" />
+                <geom name="shoulder" type="mesh" rgba="0.7 0.7 0.7 1" mesh="shoulder" />
                 <body name="upper_arm_link" pos="0 0.12 0" quat="0.707107 0 0.707107 0">
                     <inertial pos="0 0 0.122" mass="3.42" diaginertia="0.0217771 0.0217771 0.00961875" />
-                    <joint name="shoulder_lift_joint" pos="0 0 0" axis="0 1 0" limited="false" range="-3.14159 3.14159" />
-                    <geom type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="upperarm" />
+                    <joint name="shoulder_lift_joint" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14159 3.14159" />
                     <geom name="upperarm" type="mesh" rgba="0.7 0.7 0.7 1" mesh="upperarm" />
                     <body name="forearm_link" pos="0 -0.093 0.244">
                         <inertial pos="0 0 0.1065" mass="1.26" diaginertia="0.00653562 0.00653562 0.00354375" />
-                        <joint name="elbow_joint" pos="0 0 0" axis="0 1 0" limited="false" range="-3.14159 3.14159" />
-                        <geom type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="forearm" />
+                        <joint name="elbow_joint" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14159 3.14159" />
                         <geom name="forearm" type="mesh" rgba="0.7 0.7 0.7 1" mesh="forearm" />
                         <body name="wrist_1_link" pos="0 0 0.213" quat="0.707107 0 0.707107 0">
                             <inertial pos="0 0 0" quat="0.5 0.5 -0.5 0.5" mass="0.8" diaginertia="0.00225 0.002085 0.002085" />
-                            <joint name="wrist_1_joint" pos="0 0 0" axis="0 1 0" limited="false" range="-3.14159 3.14159" />
-                            <geom type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="wrist1" />
+                            <joint name="wrist_1_joint" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14159 3.14159" />
                             <geom name="wrist1" type="mesh" rgba="0.7 0.7 0.7 1" mesh="wrist1" />
                             <body name="wrist_2_link" pos="0 0.104 0">
                                 <inertial pos="0 0 0" quat="0.5 0.5 -0.5 0.5" mass="0.8" diaginertia="0.00225 0.002085 0.002085" />
-                                <joint name="wrist_2_joint" pos="0 0 0" axis="0 0 1" limited="false" range="-3.14159 3.14159" />
-                                <geom type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="wrist2" />
+                                <joint name="wrist_2_joint" pos="0 0 0" axis="0 0 1" limited="true" range="-3.14159 3.14159" />
                                 <geom name="wrist2" type="mesh" rgba="0.7 0.7 0.7 1" mesh="wrist2" />
                                 <body name="wrist_3_link" pos="0 0 0.085">
                                     <inertial pos="0 0.000233618 0" quat="0.5 0.5 -0.5 0.5" mass="0.351" diaginertia="0.000991097 0.000918909 0.000912204" />
-                                    <joint name="wrist_3_joint" pos="0 0 0" axis="0 1 0" limited="false" range="-3.14159 3.14159" />
-                                    <geom type="mesh" contype="0" conaffinity="0" group="1" rgba="0.7 0.7 0.7 1" mesh="wrist3" />
+                                    <joint name="wrist_3_joint" pos="0 0 0" axis="0 1 0" limited="true" range="-3.14159 3.14159" />
                                     <geom name="wrist3" type="mesh" rgba="0.7 0.7 0.7 1" mesh="wrist3" />
                                     <geom size="0.005 0.005 0.005" pos="0 0.082 0" quat="0.707107 0 0 0.707107" type="box" />
                                 </body>
@@ -76,11 +69,11 @@
     </actuator>
     <!-- Contacts -->
     <contact>
-        <pair geom1='wrist3' geom2='table'  />
-        <pair geom1='wrist2' geom2='table'  />
-        <pair geom1='wrist1' geom2='table'  />
-        <pair geom1='forearm' geom2='table'  />
-        <pair geom1='upperarm' geom2='table'  />
+        <pair geom1='wrist3'    geom2='table'  />
+        <pair geom1='wrist2'    geom2='table'  />
+        <pair geom1='wrist1'    geom2='table'  />
+        <pair geom1='forearm'   geom2='table'  />
+        <pair geom1='upperarm'  geom2='table'  />
     </contact>
     <!-- Key frames -->
     <keyframe>

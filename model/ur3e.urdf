@@ -7,6 +7,9 @@
   <!--
   Author: Felix Messmer
   -->
+  <!-- <mujoco>
+      <compiler meshdir="./mesh/ur3e/collision/" balanceinertia="false"/>
+  </mujoco> -->
   <!-- measured from model -->
   <link name="base_link">
     <visual>
