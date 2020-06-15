@@ -20,16 +20,15 @@ int main(int argc, char const *argv[]) {
     const char* mjKeyPath = std::getenv("MJ_KEY");
     mj_activate(mjKeyPath);
     // Load model
-    std::string mjModelPathStr = workspaceDir + "/src/cito/model/ur3e.xml";
+    std::string mjModelPathStr = workspaceDir + "/src/cito/model/sawyer_contact.xml";
     const char *mjModelPath = mjModelPathStr.c_str();
     mjModel* m = mj_loadXML(mjModelPath, NULL, NULL, 0);
     if( !m )
         mju_error("Could not load model");
 
-
     // Initialize Pinocchio
     pinocchio::Model model;
-    pinocchio::urdf::buildModel(workspaceDir+"/src/cito/model/ur3e.urdf", model);
+    pinocchio::urdf::buildModel(workspaceDir+"/src/cito/model/sawyer.urdf", model);
     pinocchio::Data data(model);
 
     // Offsets between the models assuming the MuJoCo model may have more DOF
@@ -37,7 +36,7 @@ int main(int argc, char const *argv[]) {
 
     // Initialize state and control vectors
     Eigen::VectorXd q(model.nq), v(model.nv), tau(model.nv), qcon(model.nv);
-    q.setZero();        v.setZero();        tau.setZero();        qcon.setZero();
+    q.setZero(); v.setZero(); tau.setZero(); qcon.setZero();
     // Random configurations
     Eigen::VectorXd qRand(m->nq), vRand(m->nv), uRand(m->nu);
     qRand.setZero(); vRand.setZero(); uRand.setZero();
@@ -70,6 +69,10 @@ int main(int argc, char const *argv[]) {
         pinocchio::computeAllTerms(model, data, q, v);
         pinocchio::aba(model, data, q, v, tau);
 
+        // Contact force in joint space
+        mju_copy(qcon.data(), d->qfrc_constraint+vel_off, ndof);
+        std::cout << "qcon: " << qcon.transpose() << "\n";
+
         // Mass matrix
         mjtNum* denseM = mj_stackAlloc(d, m->nv*m->nv);
         mj_fullM(m, denseM, d->qM);
@@ -87,28 +90,35 @@ int main(int argc, char const *argv[]) {
         mju_copy(mj_bias.data(), d->qfrc_bias+vel_off, ndof);
 
         // Acceleration
-        Eigen::VectorXd mj_qacc(ndof), mj_qacc_unc(ndof), pn_a(ndof), pn_a_unc(ndof);
+        Eigen::VectorXd mj_qacc(ndof), mj_qacc_unc(ndof);
         mju_copy(mj_qacc.data(), d->qacc+vel_off, ndof);
         mju_copy(mj_qacc_unc.data(), d->qacc_unc+vel_off, ndof);
-        pn_a = data.ddq;
         
         // Compare mass matrices
-        std::cout << "\nMass matrices:\n";
-        std::cout << "Pinocchio:\n" << data.M << "\n";
-        std::cout << "MuJoCo:\n" << M << "\n";
-        std::cout << "Discrepancy:\n" << (M-data.M).cwiseAbs() << "\n";
-        std::cout << "Max discrepancy: " << ((M-data.M).cwiseAbs()).maxCoeff() << "\n";
+        std::cout << "\nMass matrices:\nPinocchio:\n" << data.M <<
+                     "\nMuJoCo:\n" << M <<
+                     "\nDiscrepancy:\n" << (M-data.M).cwiseAbs() <<
+                     "\nMax discrepancy: " << ((M-data.M).cwiseAbs()).maxCoeff() << "\n";
         // Compare bias terms
-        std::cout << "\nBias terms:\n";
-        std::cout << "Pinocchio: " << data.nle.transpose() << "\n";
-        std::cout << "MuJoCo:    " << mj_bias.transpose() << "\n";
-        std::cout << "Discrepancy:\n" << (mj_bias-data.nle).cwiseAbs().transpose() << "\n";
-        std::cout << "Max discrepancy: " << ((mj_bias-data.nle).cwiseAbs()).maxCoeff() << "\n";
-        // Compare accelerations
-        std::cout << "\nUnconstrained\nPinocchio: " << data.ddq.transpose() << "\n";
-        std::cout << "MuJoCo:    " << mj_qacc_unc.transpose() << "\n";
-        std::cout << "Discrepancy:\n" << (mj_qacc_unc-data.ddq).cwiseAbs().transpose() << "\n";
-        std::cout << "Max discrepancy: " << ((mj_qacc_unc-data.ddq).cwiseAbs()).maxCoeff() << "\n";
+        std::cout << "\nBias terms:  " <<
+                     "\nPinocchio:   " << data.nle.transpose() <<
+                     "\nMuJoCo:      " << mj_bias.transpose() <<
+                     "\nDiscrepancy: " << (mj_bias-data.nle).cwiseAbs().transpose() <<
+                     "\nMax discrepancy: " << ((mj_bias-data.nle).cwiseAbs()).maxCoeff() << "\n";
+        // Compare unconstrained accelerations
+        std::cout << "\nUnconstrained accelerations:" <<
+                     "\nPinocchio:   " << data.ddq.transpose() <<
+                     "\nMuJoCo:      " << mj_qacc_unc.transpose() <<
+                     "\nDiscrepancy: " << (mj_qacc_unc-data.ddq).cwiseAbs().transpose() <<
+                     "\nMax discrepancy: " << ((mj_qacc_unc-data.ddq).cwiseAbs()).maxCoeff() << "\n";
+
+        // Evaluate and compare constrained accelerations
+        pinocchio::aba(model, data, q, v, tau+qcon);
+        std::cout << "\n Constrained accelerations:" <<
+                     "\nPinocchio:   " << data.ddq.transpose() <<
+                     "\nMuJoCo:      " << mj_qacc.transpose() <<
+                     "\nDiscrepancy: " << (mj_qacc-data.ddq).cwiseAbs().transpose() <<
+                     "\nMax discrepancy: " << ((mj_qacc-data.ddq).cwiseAbs()).maxCoeff() << "\n";
 
         // Delete data
         mj_deleteData(d);
