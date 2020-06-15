@@ -86,12 +86,11 @@ int main(int argc, char const *argv[]) {
     CitoNumDiff nd(m);
     CitoControl cc(m);
 
-    // Initialize state and control vectors
-    // MuJoCo
+    // MuJoCo state and control vectors
     eigVm x, u;
     x.resize(cp.n); u.resize(cp.m);
     x.setZero();    u.setZero();
-    // Pinocchio
+    // Pinocchio state and control vectors
     eigVd q, v, tau, qcon;
     q.resize(model.nq); v.resize(model.nv); tau.resize(model.nv); qcon.resize(model.nv);
     q.setZero();        v.setZero();        tau.setZero();        qcon.setZero();
@@ -106,7 +105,7 @@ int main(int argc, char const *argv[]) {
     eigVd qRand, vRand, uRand;
     // Perturbations
     eigVm dx(cp.n), du(m->nu);
-    dx.setZero();       du.setZero();
+    dx.setZero(); du.setZero();
     // Predictions
     eigVm xNewNominal(cp.n), xNewPerturbed(cp.n), xNewHW(cp.n), xNewW(cp.n), xNewP(cp.n);
     // Computation time and error vectors
@@ -225,10 +224,10 @@ int main(int argc, char const *argv[]) {
             mj_contactForce(m, d, i, hcon.data());
             hcon_neg = -hcon;
             // Get joint and body ids from the MuJoCo model
-            geom_jntadr[0] = m->body_jntadr[m->geom_bodyid[d->contact[i].geom1]];
-            geom_jntadr[1] = m->body_jntadr[m->geom_bodyid[d->contact[i].geom2]];
-            geom_bodyid[0] = m->geom_bodyid[m->geom_bodyid[d->contact[i].geom1]];
-            geom_bodyid[1] = m->geom_bodyid[m->geom_bodyid[d->contact[i].geom2]];;
+            geom_bodyid[0] = m->geom_bodyid[d->contact[i].geom1];
+            geom_bodyid[1] = m->geom_bodyid[d->contact[i].geom2];
+            geom_jntadr[0] = m->body_jntadr[geom_bodyid[0]];
+            geom_jntadr[1] = m->body_jntadr[geom_bodyid[1]];
             // For each body involved in the contact, set the external force
             for(int j=0; j<2; j++)
             {
