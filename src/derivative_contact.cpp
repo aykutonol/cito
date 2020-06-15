@@ -6,8 +6,6 @@
 #include "pinocchio/algorithm/aba-derivatives.hpp"
 #include "pinocchio/algorithm/compute-all-terms.hpp"
 
-const int ndof=6, pos_off=0, vel_off=0;
-
 // Compensate bias term
 double compensateBias = 1.0;
 
@@ -79,33 +77,39 @@ int main(int argc, char const *argv[]) {
     pinocchio::Model model;
     pinocchio::urdf::buildModel(paths::workspaceDir+"/src/cito/model/sawyer.urdf", model);
     pinocchio::Data data(model);
+
+    // Offsets between the models assuming the MuJoCo model may have more DOF
+    const int ndof=model.nv, pos_off=m->nq-model.nq, vel_off=m->nv-model.nv;
+
     // Initialize CITO objects
     CitoParams  cp(m);
     CitoNumDiff nd(m);
     CitoControl cc(m);
-    // Initialize variables
-    // state and control vectors for MuJoCo
+
+    // Initialize state and control vectors
+    // MuJoCo
     eigVm x, u;
     x.resize(cp.n); u.resize(cp.m);
     x.setZero();    u.setZero();
-    // state and control matrices for Pinocchio
+    // Pinocchio
     eigVd q, v, tau, qcon;
     q.resize(model.nq); v.resize(model.nv); tau.resize(model.nv); qcon.resize(model.nv);
     q.setZero();        v.setZero();        tau.setZero();        qcon.setZero();
-    // derivative matrices
+
+    // Derivative matrices
     eigMd da_dq, da_dv, da_du;
     da_dq.resize(m->nv, m->nv); da_dv.resize(m->nv, m->nv); da_du.resize(m->nv, m->nu);
     eigMd FxHW, FuHW, FxW, FuW, FxP, FuP;
     FxHW.resize(cp.n, cp.n);    FxW.resize(cp.n, cp.n);     FxP.resize(cp.n, cp.n);
     FuHW.resize(cp.n, cp.m);    FuW.resize(cp.n, cp.m);     FuP.resize(cp.n, cp.m);
-    // random configurations
+    // Random configurations
     eigVd qRand, vRand, uRand;
-    // perturbations
+    // Perturbations
     eigVm dx(cp.n), du(m->nu);
     dx.setZero();       du.setZero();
-    // predictions
+    // Predictions
     eigVm xNewNominal(cp.n), xNewPerturbed(cp.n), xNewHW(cp.n), xNewW(cp.n), xNewP(cp.n);
-    // computation time and error vectors
+    // Computation time and error vectors
     eigVd tHW(nSample), tW(nSample), tP(nSample), eHW(nSample), eW(nSample), eP(nSample), fCon(nSample);
     tHW.setZero(); tW.setZero(); tP.setZero(); eHW.setZero(); eW.setZero(); eP.setZero(); fCon.setZero();
 
