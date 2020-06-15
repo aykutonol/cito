@@ -42,7 +42,7 @@ bool showTime  = false;
 bool readYAML  = false;
 
 // Compensate bias term
-double compensateBias = 0.0;
+double compensateBias = 1.0;
 
 // Number of samples
 int nSample = 50;
