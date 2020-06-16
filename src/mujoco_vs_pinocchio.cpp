@@ -22,6 +22,61 @@ void copyData(const mjModel* m, const mjData* dmain, mjData* d)
     mju_copy(d->ctrl, dmain->ctrl, m->nu);
 }
 
+PINOCCHIO_ALIGNED_STD_VECTOR(pinocchio::Force) getExternalForce(const mjModel* m, const mjData* d, const pinocchio::Model& model)
+{
+    PINOCCHIO_ALIGNED_STD_VECTOR(pinocchio::Force) fext((size_t)model.njoints, pinocchio::Force::Zero());
+    pinocchio::Force::Vector6 contact_force_ref;
+    pinocchio::Model::JointIndex pin_jnt_id;
+    Eigen::VectorXd vec_j2c_w(3), vec_j2c_b(3), fcon_w(3), fcon_b(3), hcon(6), hcon_neg(6), h_con_b_at_j(6);
+    int geom_jntadr[2], geom_bodyid[2];
+    for (int i=0; i<d->ncon; i++)
+    {
+        // Get contact force in contact frame
+        mj_contactForce(m, d, i, hcon.data());
+        hcon_neg = -hcon;
+        // Get joint and body ids from the MuJoCo model
+        geom_bodyid[0] = m->geom_bodyid[d->contact[i].geom1];
+        geom_bodyid[1] = m->geom_bodyid[d->contact[i].geom2];
+        geom_jntadr[0] = m->body_jntadr[geom_bodyid[0]];
+        geom_jntadr[1] = m->body_jntadr[geom_bodyid[1]];
+        // For each body involved in the contact, set the external force
+        for(int j=0; j<2; j++)
+        {
+            if(geom_jntadr[j] != -1)
+            {
+                // Get the joint id from the Pinocchio model
+                pin_jnt_id = model.getJointId(mj_id2name(m, mjOBJ_JOINT, geom_jntadr[j]));
+                // Continue if the joint exists in the Pinocchio model
+                if(pin_jnt_id < model.njoints)
+                {
+                    // Calculate vector from the joint anchor to the contact point
+                    mju_sub3(vec_j2c_w.data(), d->contact[i].pos, d->xanchor+3*geom_jntadr[j]);
+                    // Represent the contact wrench in the world frame
+                    if(j==0)
+                    {
+                        mju_rotVecMatT(fcon_w.data(), hcon_neg.head(3).data(), d->contact[i].frame);
+                    }
+                    else
+                    {
+                        mju_rotVecMatT(fcon_w.data(), hcon.head(3).data(), d->contact[i].frame);
+                    }
+                    // Represent the contact wrench in the body frame at the contact point
+                    mju_rotVecMatT(fcon_b.data(), fcon_w.head(3).data(), d->xmat+9*geom_bodyid[j]);
+                    mju_rotVecMatT(vec_j2c_b.data(), vec_j2c_w.data(), d->xmat+9*geom_bodyid[j]);
+                    h_con_b_at_j.head(3) = fcon_b;
+                    h_con_b_at_j[3] = -vec_j2c_b[2]*fcon_b[1] + vec_j2c_b[1]*fcon_b[2];
+                    h_con_b_at_j[4] =  vec_j2c_b[2]*fcon_b[0] - vec_j2c_b[0]*fcon_b[2];
+                    h_con_b_at_j[5] = -vec_j2c_b[1]*fcon_b[0] + vec_j2c_b[0]*fcon_b[1];
+                    // Set joint forces due to the contact
+                    contact_force_ref = h_con_b_at_j;
+                    fext[pin_jnt_id] += pinocchio::ForceRef<pinocchio::Force::Vector6>(contact_force_ref);
+                }
+            }
+        }
+    }
+    return fext;
+}
+
 int main(int argc, char const *argv[]) {
     // Get the perturbation flags, if set
     if(argc>1)
@@ -119,52 +174,8 @@ int main(int argc, char const *argv[]) {
     mju_printMat(d->qfrc_actuator, 1, m->nv);
 
     // Get contact forces from MuJoCo and set fext
-    PINOCCHIO_ALIGNED_STD_VECTOR(pinocchio::Force) fext((size_t)model.njoints, pinocchio::Force::Zero());
-    pinocchio::Force::Vector6 contact_force_ref;
-    pinocchio::Model::JointIndex pin_jnt_id;
-    Eigen::VectorXd vec_j2c_w(3), vec_j2c_b(3), fcon_w(3), fcon_b(3), hcon(6), hcon_neg(6), h_con_b_at_j(6);
-    int geom_jntadr[2], geom_bodyid[2];
-    for (int i=0; i<d->ncon; i++)
-    {
-        // Get contact force in contact frame
-        mj_contactForce(m, d, i, hcon.data());
-        hcon_neg = -hcon;
-        // Get joint and body ids from the MuJoCo model
-        geom_bodyid[0] = m->geom_bodyid[d->contact[i].geom1];
-        geom_bodyid[1] = m->geom_bodyid[d->contact[i].geom2];
-        geom_jntadr[0] = m->body_jntadr[geom_bodyid[0]];
-        geom_jntadr[1] = m->body_jntadr[geom_bodyid[1]];
-        // For each body involved in the contact, set the external force
-        for(int j=0; j<2; j++)
-        {
-            if(geom_jntadr[j] != -1)
-            {
-                // Get the joint id from the Pinocchio model
-                pin_jnt_id = model.getJointId(mj_id2name(m, mjOBJ_JOINT, geom_jntadr[j]));
-                // Calculate vector from the joint anchor to the contact point
-                mju_sub3(vec_j2c_w.data(), d->contact[i].pos, d->xanchor+3*geom_jntadr[j]);
-                // Represent the contact wrench in the world frame
-                if(j==0)
-                {
-                    mju_rotVecMatT(fcon_w.data(), hcon_neg.head(3).data(), d->contact[i].frame);
-                }
-                else
-                {
-                    mju_rotVecMatT(fcon_w.data(), hcon.head(3).data(), d->contact[i].frame);
-                }
-                // Represent the contact wrench in the body frame at the contact point
-                mju_rotVecMatT(fcon_b.data(), fcon_w.head(3).data(), d->xmat+9*geom_bodyid[j]);
-                mju_rotVecMatT(vec_j2c_b.data(), vec_j2c_w.data(), d->xmat+9*geom_bodyid[j]);
-                h_con_b_at_j.head(3) = fcon_b;
-                h_con_b_at_j[3] = -vec_j2c_b[2]*fcon_b[1] + vec_j2c_b[1]*fcon_b[2];
-                h_con_b_at_j[4] =  vec_j2c_b[2]*fcon_b[0] - vec_j2c_b[0]*fcon_b[2];
-                h_con_b_at_j[5] = -vec_j2c_b[1]*fcon_b[0] + vec_j2c_b[0]*fcon_b[1];
-                // Set joint forces due to the contact
-                contact_force_ref = h_con_b_at_j;
-                fext[pin_jnt_id] = pinocchio::ForceRef<pinocchio::Force::Vector6>(contact_force_ref);
-            }
-        }
-    }
+    PINOCCHIO_ALIGNED_STD_VECTOR(pinocchio::Force) fext;
+    fext = getExternalForce(m, d, model);
 
     // Evaluate forward dynamics
     // MuJoCo
@@ -222,7 +233,7 @@ int main(int argc, char const *argv[]) {
     // Unconstrained accelerations
     pinocchio::aba(model, data, q, v, tau);
     pn_a_unc = data.ddq;
-    std::cout << "\nUnconstrained\nPinocchio: " << data.ddq.transpose() << "\n";
+    std::cout << "\nUnconstrained accelerations:\nPinocchio: " << data.ddq.transpose() << "\n";
     std::cout << "MuJoCo:    " << mj_qacc_unc.transpose() << "\n";
     std::cout << "Discrepancy:\n" << (mj_qacc_unc-data.ddq).cwiseAbs().transpose() << "\n";
     std::cout << "Max discrepancy: " << ((mj_qacc_unc-data.ddq).cwiseAbs()).maxCoeff() << "\n";
@@ -275,7 +286,6 @@ int main(int argc, char const *argv[]) {
                  "\nda_du:\nMuJoCo:\n" << mj_da_du << "\nPinocchio w/ fext:\n" << pn_da_du <<
                  "\nPinocchio w/o fext:\n" << pn_da_du_wo_fext << "\n";
 
-    
     // Prediction accuracy comparison
     /// Set random seed
     std::srand(std::time(0));
@@ -288,7 +298,7 @@ int main(int argc, char const *argv[]) {
         dv = Eigen::VectorXd::Random(ndof)*5e-2;
     if(acc_pert)
         du = Eigen::VectorXd::Random(ndof)*5e-2;
-    std::cout << "Perturbations:\n\tdq: " << dq.transpose() << "\n\tdv: " << 
+    std::cout << "\nPerturbations:\n\tdq: " << dq.transpose() << "\n\tdv: " << 
                  dv.transpose() << "\n\tdu: " << du.transpose() << "\n";
     /// Perturb states and controls
     q += dq;
@@ -299,7 +309,7 @@ int main(int argc, char const *argv[]) {
     mju_copy(dPerturbed->qpos+pos_off, q.data(), ndof);
     mju_copy(dPerturbed->qvel+vel_off, v.data(), ndof);
     mju_copy(dPerturbed->ctrl, tau.data(), ndof);
-    
+
     // Calculate actual perturbed accelerations using MuJoCo
     Eigen::VectorXd mj_qacc_pert(ndof), mj_qacc_unc_pert(ndof), pn_a_pert(ndof), pn_a_unc_pert(ndof);
     mj_forward(m, dPerturbed);
@@ -310,50 +320,7 @@ int main(int argc, char const *argv[]) {
     tau_w_contact = tau + qcon;
 
     // Update fext for Pinocchio forward dynamics calculation
-    for(int i=0; i<model.njoints; i++)
-        fext[i].setZero();
-    // Get contact forces from MuJoCo and update fext
-    for(int i=0; i<dPerturbed->ncon; i++)
-    {
-        // Get contact force in contact frame
-        mj_contactForce(m, dPerturbed, i, hcon.data());
-        hcon_neg = -hcon;
-        // Get joint and body ids from the MuJoCo model
-        geom_bodyid[0] = m->geom_bodyid[dPerturbed->contact[i].geom1];
-        geom_bodyid[1] = m->geom_bodyid[dPerturbed->contact[i].geom2];
-        geom_jntadr[0] = m->body_jntadr[geom_bodyid[0]];
-        geom_jntadr[1] = m->body_jntadr[geom_bodyid[1]];
-        // For each body involved in the contact, set the external force
-        for(int j=0; j<2; j++)
-        {
-            if(geom_jntadr[j] != -1)
-            {
-                // Get the joint id from the Pinocchio model
-                pin_jnt_id = model.getJointId(mj_id2name(m, mjOBJ_JOINT, geom_jntadr[j]));
-                // Calculate vector from the joint anchor to the contact point
-                mju_sub3(vec_j2c_w.data(), dPerturbed->contact[i].pos, dPerturbed->xanchor+3*geom_jntadr[j]);
-                // Represent the contact wrench in the world frame
-                if(j==0)
-                {
-                    mju_rotVecMatT(fcon_w.data(), hcon_neg.head(3).data(), dPerturbed->contact[i].frame);
-                }
-                else
-                {
-                    mju_rotVecMatT(fcon_w.data(), hcon.head(3).data(), dPerturbed->contact[i].frame);
-                }
-                // Represent the contact wrench in the body frame at the contact point
-                mju_rotVecMatT(fcon_b.data(), fcon_w.head(3).data(), dPerturbed->xmat+9*geom_bodyid[j]);
-                mju_rotVecMatT(vec_j2c_b.data(), vec_j2c_w.data(), dPerturbed->xmat+9*geom_bodyid[j]);
-                h_con_b_at_j.head(3) = fcon_b;
-                h_con_b_at_j[3] = -vec_j2c_b[2]*fcon_b[1] + vec_j2c_b[1]*fcon_b[2];
-                h_con_b_at_j[4] =  vec_j2c_b[2]*fcon_b[0] - vec_j2c_b[0]*fcon_b[2];
-                h_con_b_at_j[5] = -vec_j2c_b[1]*fcon_b[0] + vec_j2c_b[0]*fcon_b[1];
-                // Set joint forces due to the contact
-                contact_force_ref = h_con_b_at_j;
-                fext[pin_jnt_id] = pinocchio::ForceRef<pinocchio::Force::Vector6>(contact_force_ref);
-            }
-        }
-    }
+    fext = getExternalForce(m, dPerturbed, model);
 
     // Calculate actual perturbed accelerations using Pinocchio
     pinocchio::aba(model, data, q, v, tau, fext);
