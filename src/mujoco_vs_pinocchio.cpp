@@ -7,7 +7,7 @@
 #include "pinocchio/algorithm/compute-all-terms.hpp"
 
 // Perturbation flags
-int pos_pert=1, vel_pert=0, acc_pert=0;
+int pos_pert=1, vel_pert=0, tau_pert=0;
 
 void copyData(const mjModel* m, const mjData* dmain, mjData* d)
 {
@@ -83,23 +83,23 @@ int main(int argc, char const *argv[]) {
     {
         pos_pert = atoi(argv[1]);
         vel_pert = atoi(argv[2]);
-        acc_pert = atoi(argv[3]);
+        tau_pert = atoi(argv[3]);
     }
     // MuJoCo
-    /// Activate MuJoCo
+    // Activate MuJoCo
     const char* mjKeyPath = std::getenv("MJ_KEY");
     mj_activate(mjKeyPath);
-    /// Load model
+    // Load model
     std::string mjModelPathStr = paths::workspaceDir + "/src/cito/model/sawyer_push.xml";
     const char *mjModelPath = mjModelPathStr.c_str();
     mjModel* m = mj_loadXML(mjModelPath, NULL, NULL, 0);
     if( !m )
         mju_error("Could not load model");
-    /// Create data
+    // Create data
     mjData* d = mj_makeData(m);
     
     // Set to a contact instant for Sawyer box pushing model
-    /// Position (from t=0.070 s)
+    // Position (from t=0.070 s)
     d->qpos[0] = 1.10264;
     d->qpos[1] = -0.000452574;
     d->qpos[2] = 0.0660566;
@@ -114,7 +114,7 @@ int main(int argc, char const *argv[]) {
     d->qpos[11] = -0.4296;
     d->qpos[12] = -0.4659;
     d->qpos[13] = 0.2362;
-    /// Velocity  (from t=0.070 s)
+    // Velocity  (from t=0.070 s)
     d->qvel[0] = 0.528398;
     d->qvel[1] = -0.0905147;
     d->qvel[2] = 0.325857;
@@ -128,7 +128,7 @@ int main(int argc, char const *argv[]) {
     d->qvel[10] = -0.3477;
     d->qvel[11] = 7.0372;
     d->qvel[12] = 6.8713;
-    /// Control (from t=0.075 s)
+    // Control (from t=0.075 s)
     d->ctrl[0] = -2.04539;
     d->ctrl[1] = -26.0581;
     d->ctrl[2] = -4.33632;
@@ -137,11 +137,11 @@ int main(int argc, char const *argv[]) {
     d->ctrl[5] = -2.80625;
     d->ctrl[6] = -0.100421;
 
-    /// Evaluate the forward dynamics, but do not integrate
+    // Evaluate the forward dynamics, but do not integrate
     mj_forward(m, d);
 
     // Pinocchio
-    /// Create model & data
+    // Create model & data
     pinocchio::Model model;
     pinocchio::urdf::buildModel(paths::workspaceDir+"/src/cito/model/sawyer.urdf", model);
     pinocchio::Data data(model);
@@ -149,7 +149,7 @@ int main(int argc, char const *argv[]) {
     // Offsets between the models assuming the MuJoCo model may have more DOF
     const int ndof=model.nv, pos_off=m->nq-model.nq, vel_off=m->nv-model.nv;
 
-    /// Set the configuration identical to MuJoCo
+    // Set the configuration identical to MuJoCo
     Eigen::VectorXd q(model.nq), v(model.nv), tau(model.nv), tau_w_contact(model.nv);
     mju_copy(q.data(), d->qpos+pos_off, model.nq);
     mju_copy(v.data(), d->qvel+vel_off, model.nv);
@@ -180,7 +180,7 @@ int main(int argc, char const *argv[]) {
     // Evaluate forward dynamics
     // MuJoCo
     mj_forward(m, d);
-    /// Pinocchio
+    // Pinocchio
     pinocchio::computeAllTerms(model, data, q, v);
     pinocchio::aba(model, data, q, v, tau, fext);
 
@@ -190,7 +190,7 @@ int main(int argc, char const *argv[]) {
     tau_w_contact = tau + qcon;
     
     // MuJoCo data
-    /// Mass matrix
+    // Mass matrix
     mjtNum* denseM = mj_stackAlloc(d, m->nv*m->nv);
     mj_fullM(m, denseM, d->qM);
     Eigen::MatrixXd fullM(m->nv, m->nv), M(ndof, ndof);
@@ -201,10 +201,10 @@ int main(int argc, char const *argv[]) {
             fullM(i,j) = denseM[i*m->nv + j];
     }
     M = fullM.block(vel_off,vel_off, ndof, ndof);
-    /// Bias term
+    // Bias term
     Eigen::VectorXd mj_bias(ndof);
     mju_copy(mj_bias.data(), d->qfrc_bias+vel_off, ndof);
-    /// Acceleration
+    // Acceleration
     Eigen::VectorXd mj_qacc(ndof), mj_qacc_unc(ndof), pn_a(ndof), pn_a_unc(ndof);
     mju_copy(mj_qacc.data(), d->qacc+vel_off, ndof);
     mju_copy(mj_qacc_unc.data(), d->qacc_unc+vel_off, ndof);
@@ -239,10 +239,10 @@ int main(int argc, char const *argv[]) {
     std::cout << "Max discrepancy: " << ((mj_qacc_unc-data.ddq).cwiseAbs()).maxCoeff() << "\n";
 
     // Derivative comparison
-    /// Create CITO class objects for MuJoCo calculations
+    // Create CITO class objects for MuJoCo calculations
     CitoParams cp(m);
     CitoNumDiff nd(m);
-    /// Initialize derivative matrices
+    // Initialize derivative matrices
     eigMd dqacc_dqpos, dqacc_dqvel, dqacc_dctrl,
           mj_da_dq, mj_da_dv, mj_da_du,
           pn_da_dq, pn_da_dv, pn_da_du,
@@ -287,20 +287,20 @@ int main(int argc, char const *argv[]) {
                  "\nPinocchio w/o fext:\n" << pn_da_du_wo_fext << "\n";
 
     // Prediction accuracy comparison
-    /// Set random seed
+    // Set random seed
     std::srand(std::time(0));
-    /// Generate random perturbation
+    // Generate random perturbation
     eigVd dq(ndof), dv(ndof), du(ndof);
     dq.setZero(); dv.setZero(); du.setZero();
     if(pos_pert)
         dq = Eigen::VectorXd::Random(ndof)*5e-2;
     if(vel_pert)
         dv = Eigen::VectorXd::Random(ndof)*5e-2;
-    if(acc_pert)
+    if(tau_pert)
         du = Eigen::VectorXd::Random(ndof)*5e-2;
     std::cout << "\nPerturbations:\n\tdq: " << dq.transpose() << "\n\tdv: " << 
                  dv.transpose() << "\n\tdu: " << du.transpose() << "\n";
-    /// Perturb states and controls
+    // Perturb states and controls
     q += dq;
     v += dv;
     tau += du;
@@ -315,7 +315,7 @@ int main(int argc, char const *argv[]) {
     mj_forward(m, dPerturbed);
     mju_copy(mj_qacc_pert.data(), dPerturbed->qacc+vel_off, ndof);
     mju_copy(mj_qacc_unc_pert.data(), dPerturbed->qacc_unc+vel_off, ndof);
-    /// Get constraint forces in joint space
+    // Get constraint forces in joint space
     mju_copy(qcon.data(), dPerturbed->qfrc_constraint+vel_off, ndof);
     tau_w_contact = tau + qcon;
 
@@ -334,7 +334,7 @@ int main(int argc, char const *argv[]) {
     pn_a_pred = mj_qacc + pn_da_dq*dq + pn_da_dv*dv + pn_da_du*du;
     pn_a_pred_wo_fext = mj_qacc + pn_da_dq_wo_fext*dq + pn_da_dv_wo_fext*dv + pn_da_du_wo_fext*du;
 
-    /// Print predicted accelerations
+    // Print predicted accelerations
     std::cout << "\n\nActual accelerations after perturbation:" <<
                  "\nMuJoCo:             " << mj_qacc_pert.transpose() <<
                  "\nPinocchio:          " << pn_a_pert.transpose() <<
