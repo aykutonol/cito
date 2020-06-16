@@ -307,7 +307,7 @@ int main(int argc, char const *argv[]) {
     pn_da_du = data.Minv;
 
     // Pinocchio w/o fext
-    pinocchio::computeABADerivatives(model, data, q, v, tau_w_contact);
+    pinocchio::computeABADerivatives(model, data, q, v, tau);
     pn_da_dq_wo_fext = data.ddq_dq;
     pn_da_dv_wo_fext = data.ddq_dv;
     pn_da_du_wo_fext = data.Minv;
@@ -375,7 +375,7 @@ int main(int argc, char const *argv[]) {
     std::cout << "\n\nActual accelerations after perturbation:" <<
                  "\nMuJoCo:             " << mj_qacc_pert.transpose() <<
                  "\nPinocchio:          " << pn_a_pert.transpose() <<
-                 "\nPinocchio w/o fext: " << pn_a_unc_pert.transpose() <<
+                 "\nPinocchio w/ qcon:  " << pn_a_unc_pert.transpose() <<
                  "\nPredicted accelerations:" <<
                  "\nMuJoCo:             " << mj_a_pred.transpose() <<
                  "\nPinocchio:          " << pn_a_pred.transpose() <<
