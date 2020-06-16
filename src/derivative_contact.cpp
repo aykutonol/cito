@@ -126,7 +126,6 @@ int main(int argc, char const *argv[]) {
         {
             qRand = Eigen::VectorXd::Random(m->nq)*2;
             vRand = Eigen::VectorXd::Random(m->nv)*1;
-            // uRand = Eigen::VectorXd::Random(m->nu)*1;
         }
         // Create MuJoCo data
         mjData* d = mj_makeData(m);
@@ -139,17 +138,10 @@ int main(int argc, char const *argv[]) {
         mju_copy(d->qvel, vRand.data(), m->nv);
 
         mj_forward(m, d);
-
-        // mju_copy(d->ctrl, uRand.data(), m->nu);
+        
         mju_copy(d->ctrl, d->qfrc_bias+vel_off, m->nu);
         // mju_copy(d->qfrc_applied, d->qfrc_bias, m->nv);
         
-        // Take warm-up steps to ensure making contacts
-        // int n_warmup = 5;
-        // for(int i=0; i<n_warmup; i++)
-        // {
-        //     mj_step(m, d);
-        // }
         // get initial state & control
         x = cc.getState(d);
         mju_copy(u.data(), d->ctrl, m->nu);
