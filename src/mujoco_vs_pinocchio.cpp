@@ -9,6 +9,9 @@
 // Perturbation flags
 int pos_pert=1, vel_pert=0, tau_pert=0;
 
+// Print flags
+bool print_derivatives = false;
+
 void copyData(const mjModel* m, const mjData* dmain, mjData* d)
 {
     // copy state and control from dmain to thread-specific d
@@ -310,12 +313,13 @@ int main(int argc, char const *argv[]) {
     pn_da_du_wo_fext = data.Minv;
 
     // Print derivative matrices
-    std::cout << "\nda_dq:\nMuJoCo:\n" << mj_da_dq << "\nPinocchio w/ fext:\n" << pn_da_dq <<
-                 "\nPinocchio w/o fext:\n" << pn_da_dq_wo_fext <<
-                 "\nda_dv:\nMuJoCo:\n" << mj_da_dv << "\nPinocchio w/ fext:\n" << pn_da_dv <<
-                 "\nPinocchio w/o fext:\n" << pn_da_dv_wo_fext <<
-                 "\nda_du:\nMuJoCo:\n" << mj_da_du << "\nPinocchio w/ fext:\n" << pn_da_du <<
-                 "\nPinocchio w/o fext:\n" << pn_da_du_wo_fext << "\n";
+    if(print_derivatives)
+        std::cout << "\nda_dq:\nMuJoCo:\n" << mj_da_dq << "\nPinocchio w/ fext:\n" << pn_da_dq <<
+                    "\nPinocchio w/o fext:\n" << pn_da_dq_wo_fext <<
+                    "\nda_dv:\nMuJoCo:\n" << mj_da_dv << "\nPinocchio w/ fext:\n" << pn_da_dv <<
+                    "\nPinocchio w/o fext:\n" << pn_da_dv_wo_fext <<
+                    "\nda_du:\nMuJoCo:\n" << mj_da_du << "\nPinocchio w/ fext:\n" << pn_da_du <<
+                    "\nPinocchio w/o fext:\n" << pn_da_du_wo_fext << "\n";
 
     // Prediction accuracy comparison
     // Set random seed
