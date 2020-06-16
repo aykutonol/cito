@@ -77,6 +77,35 @@ PINOCCHIO_ALIGNED_STD_VECTOR(pinocchio::Force) getExternalForce(const mjModel* m
     return fext;
 }
 
+void printContactInfo(const mjModel* m, const mjData* d)
+{
+    Eigen::VectorXd hcon(6);
+    std::cout << "\nContacts:\n";
+    for(int i=0; i<d->ncon; i++)
+    {
+        mj_contactForce(m, d, i, hcon.data());
+        int geom1_id=d->contact[i].geom1, geom2_id=d->contact[i].geom2;
+        std::cout << "\tContact " << i << ", pos: " << d->contact[i].pos[0] << ", " <<
+                        d->contact[i].pos[1] << ", " << d->contact[i].pos[2] << ", " <<
+                        "dist: " << d->contact[i].dist << ", dim: " << d->contact[i].dim <<
+                        "\n\t\tgeom1: " << mj_id2name(m, mjOBJ_GEOM, geom1_id) <<
+                        ", geom2: " << mj_id2name(m, mjOBJ_GEOM, geom2_id) <<
+                        ", hcon: " << hcon.head(3).transpose() << "\n";
+        std::cout << "\t\tgeom1 body: " << mj_id2name(m, mjOBJ_BODY, m->geom_bodyid[geom1_id]) <<
+                        ", jntnum: " << m->body_jntnum[m->geom_bodyid[geom1_id]] << 
+                        ", jntadr: " << m->body_jntadr[m->geom_bodyid[geom1_id]] <<
+                        ", dofnum: " << m->body_dofnum[m->geom_bodyid[geom1_id]] << 
+                        ", dofadr: " << m->body_dofadr[m->geom_bodyid[geom1_id]] <<
+                        "\n\t\tgeom2 body: " << mj_id2name(m, mjOBJ_BODY, m->geom_bodyid[geom2_id]) << 
+                        ", jntnum: " << m->body_jntnum[m->geom_bodyid[geom2_id]] << 
+                        ", jntadr: " << m->body_jntadr[m->geom_bodyid[geom2_id]] <<
+                        ", dofnum: " << m->body_dofnum[m->geom_bodyid[geom2_id]] << 
+                        ", dofadr: " << m->body_dofadr[m->geom_bodyid[geom2_id]] <<"\n";
+    }
+    if(d->ncon==0)
+        std::cout << "\tNo contact\n";
+}
+
 int main(int argc, char const *argv[]) {
     // Get the perturbation flags, if set
     if(argc>1)
@@ -173,6 +202,8 @@ int main(int argc, char const *argv[]) {
     std::cout << "qfrc_act: ";
     mju_printMat(d->qfrc_actuator, 1, m->nv);
 
+    // Print contact info
+    printContactInfo(m, d);
     // Get contact forces from MuJoCo and set fext
     PINOCCHIO_ALIGNED_STD_VECTOR(pinocchio::Force) fext;
     fext = getExternalForce(m, d, model);
@@ -319,7 +350,9 @@ int main(int argc, char const *argv[]) {
     mju_copy(qcon.data(), dPerturbed->qfrc_constraint+vel_off, ndof);
     tau_w_contact = tau + qcon;
 
-    // Update fext for Pinocchio forward dynamics calculation
+    // Print updated contact info
+    printContactInfo(m, dPerturbed);
+    // Update fext for Pinocchio computations
     fext = getExternalForce(m, dPerturbed, model);
 
     // Calculate actual perturbed accelerations using Pinocchio
