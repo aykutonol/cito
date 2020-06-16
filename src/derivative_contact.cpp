@@ -41,8 +41,8 @@ void copyData(const mjModel* m, const mjData* dmain, mjData* d)
 
 // Flags
 bool printDeriv = false;
-bool printMInit = true;
-bool printPInit = true;
+bool printMInit = false;
+bool printPInit = false;
 bool printPred  = false;
 bool printPert  = false;
 bool printTraj  = false;
@@ -50,7 +50,7 @@ bool printTime  = false;
 
 int main(int argc, char const *argv[]) {
     // Parse command line arguments
-    int nSample = 50, fext_flag=2;
+    int nSample = 50, fext_flag=1;
     if(argc>1)
     {
         nSample = atoi(argv[1]);
@@ -102,7 +102,8 @@ int main(int argc, char const *argv[]) {
     FxHW.resize(cp.n, cp.n);    FxW.resize(cp.n, cp.n);     FxP.resize(cp.n, cp.n);
     FuHW.resize(cp.n, cp.m);    FuW.resize(cp.n, cp.m);     FuP.resize(cp.n, cp.m);
     // Random configurations
-    eigVd qRand, vRand, uRand;
+    eigVd qRand(model.nq), vRand(model.nv), uRand(model.nv);
+    qRand.setZero(); vRand.setZero(); uRand.setZero();
     // Perturbations
     eigVm dx(cp.n), du(m->nu);
     dx.setZero(); du.setZero();
@@ -121,26 +122,24 @@ int main(int argc, char const *argv[]) {
     {
         std::cout << "\n====================== Sample no: " << k+1 << " ======================\n";
         // Generate random configuration
-        if( k==0 )
+        if( k>0 )
         {
-            // qRand = Eigen::VectorXd::Zero(m->nq);
-            vRand = Eigen::VectorXd::Zero(m->nv);
-            // uRand = Eigen::VectorXd::Zero(m->nu);
-        }
-        else
-        {
-            // qRand = Eigen::VectorXd::Random(m->nq)*2;
+            qRand = Eigen::VectorXd::Random(m->nq)*2;
             vRand = Eigen::VectorXd::Random(m->nv)*1;
             // uRand = Eigen::VectorXd::Random(m->nu)*1;
         }
         // Create MuJoCo data
         mjData* d = mj_makeData(m);
         // Set the joint positions to the preset configuration in the model
-        mju_copy(d->qpos, m->key_qpos, m->nq);
+        if(k==0)
+            mju_copy(d->qpos, m->key_qpos, m->nq);
         
         // Copy random variables to MuJoCo data
-        // mju_copy(d->qpos, qRand.data(), m->nq);
+        mju_copy(d->qpos, qRand.data(), m->nq);
         mju_copy(d->qvel, vRand.data(), m->nv);
+
+        mj_forward(m, d);
+
         // mju_copy(d->ctrl, uRand.data(), m->nu);
         mju_copy(d->ctrl, d->qfrc_bias+vel_off, m->nu);
         // mju_copy(d->qfrc_applied, d->qfrc_bias, m->nv);
@@ -151,7 +150,6 @@ int main(int argc, char const *argv[]) {
         // {
         //     mj_step(m, d);
         // }
-        mj_forward(m, d);
         // get initial state & control
         x = cc.getState(d);
         mju_copy(u.data(), d->ctrl, m->nu);
@@ -235,7 +233,6 @@ int main(int argc, char const *argv[]) {
                 {
                     // Get the joint id from the Pinocchio model
                     pin_jnt_id = model.getJointId(mj_id2name(m, mjOBJ_JOINT, geom_jntadr[j]));
-                    std::cout << "pin_jnt_id: " << pin_jnt_id << "\n";
                     // Calculate vector from the joint anchor to the contact point
                     mju_sub3(vec_j2c_w.data(), d->contact[i].pos, d->xanchor+3*geom_jntadr[j]);
                     // Represent the contact wrench in the world frame
@@ -275,7 +272,6 @@ int main(int argc, char const *argv[]) {
                      "\n\tPinocchio w/o fext: " << data.ddq.transpose() <<
                      "\n\tPinocchio w/ fext:  " << pin_a.transpose() << "\n\n";
 
-
         // Calculate derivatives with MuJoCo hardWorker
         auto tHWStart = std::chrono::system_clock::now();
         nd.linDyn(d, u, FxHW.data(), FuHW.data(), compensateBias);
@@ -308,9 +304,9 @@ int main(int argc, char const *argv[]) {
         auto tPinStart = std::chrono::system_clock::now();
         if(fext_flag==0)
             pinocchio::computeABADerivatives(model, data, q, v, tau);
-        else if(fext_flag==1 || fext_flag==2)
+        else if(fext_flag==1)
             pinocchio::computeABADerivatives(model, data, q, v, tau, fext);
-        else if(fext_flag==3)
+        else if(fext_flag==2)
             pinocchio::computeABADerivatives(model, data, q, v, tau+qcon);
         auto tPinEnd = std::chrono::system_clock::now();
         tP(k) = std::chrono::duration<double>(tPinEnd-tPinStart).count();
@@ -436,6 +432,12 @@ int main(int argc, char const *argv[]) {
         mj_deleteData(d);
     }
     std::cout << "\n================================================================================\n\n";
+    if(fext_flag==0)
+        std::cout << "External forces were not taken into account in Pinocchio derivatives.\n";
+    else if(fext_flag==1)
+        std::cout << "External forces were taken into account in Pinocchio derivatives.\n";
+    else if(fext_flag==2)
+        std::cout << "Joint-space contact forces were added to Pinocchio torques.\n";
     std::cout << "INFO: Test done.\n\nTest summary:\n";
     for( int k=0; k<nSample; k++ )
     {
