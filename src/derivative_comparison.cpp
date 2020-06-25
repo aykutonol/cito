@@ -98,7 +98,8 @@ int main(int argc, char const *argv[]) {
     FxHW.resize(cp.n, cp.n);    FxW.resize(cp.n, cp.n);     FxP.resize(cp.n, cp.n);
     FuHW.resize(cp.n, cp.m);    FuW.resize(cp.n, cp.m);     FuP.resize(cp.n, cp.m);
     /// Random configuration, velocity, and control vectors
-    eigVd qRand, vRand, uRand;
+    eigVd qRand(m->nq), vRand(m->nv), uRand(m->nu);
+    qRand.setZero(); vRand.setZero(); uRand.setZero();
     /// Perturbations
     eigVm dx(cp.n), du(m->nu);
     dx.setZero();       du.setZero();
@@ -128,26 +129,23 @@ int main(int argc, char const *argv[]) {
     {
         std::cout << "\n================================================================================\nSample no: " << k+1 << "\n";
         /// Generate random configuration
-        if( k==0 )
+        if(k>0)
         {
-            qRand = Eigen::VectorXd::Zero(m->nq);
-            vRand = Eigen::VectorXd::Zero(m->nv);
-            uRand = Eigen::VectorXd::Zero(m->nu);
-        }
-        else
-        {
-            qRand = Eigen::VectorXd::Random(m->nq)*2;
-            vRand = Eigen::VectorXd::Random(m->nv)*1;
-            uRand = Eigen::VectorXd::Random(m->nu)*1;
+            qRand = Eigen::VectorXd::Random(m->nq)*1;
+            vRand = Eigen::VectorXd::Random(m->nv)*1e-1;
+            uRand = Eigen::VectorXd::Random(m->nu)*1e-1;
         }
         // Copy random variables to MuJoCo data
         mju_copy(d->qpos, qRand.data(), m->nq);
         mju_copy(d->qvel, vRand.data(), m->nv);
         mju_copy(d->ctrl, uRand.data(), m->nu);
-        // Update control vector
-        u = uRand;
+
         // Evaluate forward dynamics
         mj_forward(m, d);
+        /// Get current state and control
+        x = cc.getState(d);
+        u = uRand;
+
         // Show random configuration, if opted
         if( showMInit )
         {
@@ -156,20 +154,13 @@ int main(int argc, char const *argv[]) {
         // Copy MuJoCo data to Pinocchio variables
         mju_copy(q.data(), d->qpos, m->nq);
         mju_copy(v.data(), d->qvel, m->nv);
-        mju_copy(tau.data(), d->ctrl, m->nu);
+        tau = u;
         if( showPInit )
         {
             std::cout<< "Pinocchio state and control before perturbation:\n";
             std::cout << "  q   = " << q.transpose() << "\n";
             std::cout << "  v   = " << v.transpose() << "\n";
             std::cout << "  tau = " << tau.transpose() << "\n\n";
-        }
-
-        // Generate random perturbation
-        if( !readYAML )
-        {
-            dx = Eigen::VectorXd::Random(cp.n)*1e-1;
-            du = Eigen::VectorXd::Random(cp.m)*1e-1;
         }
 
         // Calculate derivatives with MuJoCo hardWorker
@@ -245,8 +236,12 @@ int main(int argc, char const *argv[]) {
         mj_deleteData(dNominal);
 
         // Perturbation
-        /// Get current state and control
-        x = cc.getState(d);
+        // Generate random perturbation
+        if( !readYAML )
+        {
+            dx = Eigen::VectorXd::Random(cp.n)*1e-1;
+            du = Eigen::VectorXd::Random(cp.m)*1e-1;
+        }
         /// Show perturbation
         if( showPert )
         {
