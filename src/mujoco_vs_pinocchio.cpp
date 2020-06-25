@@ -10,7 +10,7 @@
 int pos_pert=1, vel_pert=0, tau_pert=0;
 
 // Print flags
-bool print_derivatives = false;
+bool print_derivatives=true;
 
 void copyData(const mjModel* m, const mjData* dmain, mjData* d)
 {
@@ -272,33 +272,33 @@ int main(int argc, char const *argv[]) {
     std::cout << "Discrepancy:\n" << (mj_qacc_unc-data.ddq).cwiseAbs().transpose() << "\n";
     std::cout << "Max discrepancy: " << ((mj_qacc_unc-data.ddq).cwiseAbs()).maxCoeff() << "\n";
 
-    // Derivative comparison
     // Create CITO class objects for MuJoCo calculations
     CitoParams cp(m);
     CitoNumDiff nd(m);
-    // Initialize derivative matrices
-    eigMd dqacc_dqpos, dqacc_dqvel, dqacc_dctrl,
-          mj_da_dq, mj_da_dv, mj_da_du,
-          pn_da_dq, pn_da_dv, pn_da_du,
+
+    // Derivative comparison
+    eigMd pn_da_dq, pn_da_dv, pn_da_du,
           pn_da_dq_wo_fext, pn_da_dv_wo_fext, pn_da_du_wo_fext;
-    dqacc_dqpos.resize(m->nv, m->nv);    dqacc_dqvel.resize(m->nv, m->nv);    dqacc_dctrl.resize(m->nv, m->nu); 
-    mj_da_dq.resize(model.nv, model.nv); mj_da_dv.resize(model.nv, model.nv); mj_da_du.resize(model.nv, model.nv);
     pn_da_dq.resize(model.nv, model.nv); pn_da_dv.resize(model.nv, model.nv); pn_da_du.resize(model.nv, model.nv); 
     pn_da_dq_wo_fext.resize(model.nv, model.nv);
     pn_da_dv_wo_fext.resize(model.nv, model.nv);
     pn_da_du_wo_fext.resize(model.nv, model.nv); 
     
     // MuJoCo
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> dqacc_dqpos, dqacc_dqvel, dqacc_dctrl,
+                                                                           mj_da_dq, mj_da_dv, mj_da_du;
+    dqacc_dqpos.resize(m->nv, m->nv);    dqacc_dqvel.resize(m->nv, m->nv);    dqacc_dctrl.resize(m->nv, m->nv);
+    mj_da_dq.resize(model.nv, model.nv); mj_da_dv.resize(model.nv, model.nv); mj_da_du.resize(model.nv, model.nv);
     mjtNum* deriv = 0;
     deriv = (mjtNum*) mju_malloc(3*sizeof(mjtNum)*m->nv*m->nv);
     nd.worker(d, deriv);
     mju_copy(dqacc_dqpos.data(), deriv, m->nv*m->nv);
     mju_copy(dqacc_dqvel.data(), deriv+m->nv*m->nv, m->nv*m->nv);
-    mju_copy(dqacc_dctrl.data(), deriv+2*m->nv*m->nv, m->nv*m->nu);
+    mju_copy(dqacc_dctrl.data(), deriv+2*m->nv*m->nv, m->nv*m->nv);
     mju_free(deriv);
     mj_da_dq = dqacc_dqpos.bottomRightCorner(model.nv, model.nv);
     mj_da_dv = dqacc_dqvel.bottomRightCorner(model.nv, model.nv);
-    mj_da_du = dqacc_dctrl.bottomRows(model.nv);
+    mj_da_du = dqacc_dctrl.bottomRightCorner(model.nv, model.nv);
 
     // Pinocchio w/ fext
     pinocchio::computeABADerivatives(model, data, q, v, tau, fext);
@@ -316,10 +316,8 @@ int main(int argc, char const *argv[]) {
     if(print_derivatives)
         std::cout << "\nda_dq:\nMuJoCo:\n" << mj_da_dq << "\nPinocchio w/ fext:\n" << pn_da_dq <<
                     "\nPinocchio w/o fext:\n" << pn_da_dq_wo_fext <<
-                    "\nda_dv:\nMuJoCo:\n" << mj_da_dv << "\nPinocchio w/ fext:\n" << pn_da_dv <<
-                    "\nPinocchio w/o fext:\n" << pn_da_dv_wo_fext <<
-                    "\nda_du:\nMuJoCo:\n" << mj_da_du << "\nPinocchio w/ fext:\n" << pn_da_du <<
-                    "\nPinocchio w/o fext:\n" << pn_da_du_wo_fext << "\n";
+                    "\nda_dv:\nMuJoCo:\n" << mj_da_dv << "\nPinocchio w/ fext:\n" << pn_da_dv << 
+                    "\nda_du:\nMuJoCo:\n" << mj_da_du << "\nPinocchio w/ fext:\n" << pn_da_du << "\n";
 
     // Prediction accuracy comparison
     // Set random seed
