@@ -72,6 +72,9 @@ int main(int argc, char const *argv[]) {
     mjtNum* deriv = 0;
     deriv = (mjtNum*) mju_malloc(3*sizeof(mjtNum)*m->nv*m->nv);
 
+    // Assert all DOF are actuated
+    assert(m->nv==m->nu);
+
     /// Initialize CITO objects
     CitoParams  cp(m);
     CitoNumDiff nd(m);
@@ -92,8 +95,8 @@ int main(int argc, char const *argv[]) {
     q.resize(model.nq); v.resize(model.nv); tau.resize(model.nv);
     q.setZero();        v.setZero();        tau.setZero();
     /// Derivative matrices
-    eigMd da_dq, da_dv, da_df;
-    da_dq.resize(m->nv, m->nv); da_dv.resize(m->nv, m->nv); da_df.resize(m->nv, m->nu);
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> da_dq, da_dv, da_df;
+    da_dq.resize(m->nv, m->nv); da_dv.resize(m->nv, m->nv); da_df.resize(m->nv, m->nv);
     eigMd FxHW, FuHW, FxW, FuW, FxP, FuP;
     FxHW.resize(cp.n, cp.n);    FxW.resize(cp.n, cp.n);     FxP.resize(cp.n, cp.n);
     FuHW.resize(cp.n, cp.m);    FuW.resize(cp.n, cp.m);     FuP.resize(cp.n, cp.m);
@@ -102,7 +105,7 @@ int main(int argc, char const *argv[]) {
     qRand.setZero(); vRand.setZero(); uRand.setZero();
     /// Perturbations
     eigVm dx(cp.n), du(m->nu);
-    dx.setZero();       du.setZero();
+    dx.setZero(); du.setZero();
     /// Predictions
     eigVm xNewNominal(cp.n), xNewPerturbed(cp.n), xNewHW(cp.n), xNewW(cp.n), xNewP(cp.n);
     /// Computation time and error vectors
@@ -181,7 +184,7 @@ int main(int argc, char const *argv[]) {
         // Get derivatives of acceleration
         mju_copy(da_dq.data(), deriv, m->nv*m->nv);
         mju_copy(da_dv.data(), deriv+m->nv*m->nv, m->nv*m->nv);
-        mju_copy(da_df.data(), deriv+2*m->nv*m->nv, m->nv*m->nu);
+        mju_copy(da_df.data(), deriv+2*m->nv*m->nv, m->nv*m->nv);
         // Build derivative matrices
         FxW.setZero();
         FxW.topLeftCorner(m->nv, m->nv)     = Eigen::MatrixXd::Identity(m->nv, m->nv);
