@@ -6,8 +6,11 @@
 #include "pinocchio/algorithm/aba-derivatives.hpp"
 #include "pinocchio/algorithm/compute-all-terms.hpp"
 
+// Perturbation flags
+int pos_pert=1, vel_pert=0, tau_pert=0;
+
 // Compensate bias term
-double compensateBias = 1.0;
+double compensateBias = 0.0;
 
 void printConfig(mjModel* m, mjData* d)
 {
@@ -43,7 +46,7 @@ void copyData(const mjModel* m, const mjData* dmain, mjData* d)
 bool printDeriv = false;
 bool printMInit = false;
 bool printPInit = false;
-bool printPred  = false;
+bool printPred  = true;
 bool printPert  = false;
 bool printTraj  = false;
 bool printTime  = false;
@@ -57,6 +60,13 @@ int main(int argc, char const *argv[]) {
         if(argc>2)
         {
             fext_flag = atoi(argv[2]);
+            // Get the perturbation flags, if set
+            if(argc>3)
+            {
+                pos_pert = atoi(argv[3]);
+                vel_pert = atoi(argv[4]);
+                tau_pert = atoi(argv[5]);
+            }
         }
     }
 
@@ -64,7 +74,7 @@ int main(int argc, char const *argv[]) {
     const char* mjKeyPath = std::getenv("MJ_KEY");
     mj_activate(mjKeyPath);
     // Load model
-    std::string mjModelPathStr = paths::workspaceDir + "/src/cito/model/sawyer_contact.xml";
+    std::string mjModelPathStr = paths::workspaceDir + "/src/cito/model/ur3e_contact.xml";
     const char *mjModelPath = mjModelPathStr.c_str();
     mjModel* m = mj_loadXML(mjModelPath, NULL, NULL, 0);
     if( !m )
@@ -75,7 +85,7 @@ int main(int argc, char const *argv[]) {
 
     // Initialize Pinocchio
     pinocchio::Model model;
-    pinocchio::urdf::buildModel(paths::workspaceDir+"/src/cito/model/sawyer.urdf", model);
+    pinocchio::urdf::buildModel(paths::workspaceDir+"/src/cito/model/ur3e.urdf", model);
     pinocchio::Data data(model);
 
     // Offsets between the models assuming the MuJoCo model may have more DOF
@@ -124,8 +134,8 @@ int main(int argc, char const *argv[]) {
         // Generate random configuration
         if( k>0 )
         {
-            qRand = Eigen::VectorXd::Random(m->nq)*2;
-            vRand = Eigen::VectorXd::Random(m->nv)*1;
+            qRand = Eigen::VectorXd::Random(m->nq)*1;
+            vRand = Eigen::VectorXd::Random(m->nv)*1e-1;
         }
         // Create MuJoCo data
         mjData* d = mj_makeData(m);
@@ -137,26 +147,27 @@ int main(int argc, char const *argv[]) {
         mju_copy(d->qpos, qRand.data(), m->nq);
         mju_copy(d->qvel, vRand.data(), m->nv);
 
-        mj_forward(m, d);
-        
+        // Run forward dynamics to calculate the bias
+        mj_forward(m, d);        
         mju_copy(d->ctrl, d->qfrc_bias+vel_off, m->nu);
-        // mju_copy(d->qfrc_applied, d->qfrc_bias, m->nv);
+
+        // Run forward dynamics for full computation
+        mj_forward(m, d);
         
         // get initial state & control
         x = cc.getState(d);
         mju_copy(u.data(), d->ctrl, m->nu);
-        // mju_copy(u.data(), d->qfrc_applied, m->nv);
-
-        if( printMInit )
-        {
-            printConfig(m, d);
-        }
 
         // Copy MuJoCo data to Pinocchio variables
         mju_copy(q.data(), d->qpos+pos_off, model.nq);
         mju_copy(v.data(), d->qvel+vel_off, model.nv);
-        mju_copy(tau.data(), d->ctrl, model.nv);
-        // mju_copy(tau.data(), d->qfrc_applied+vel_off, model.nv);
+        tau = u;
+
+        // Print initial states and controls
+        if( printMInit )
+        {
+            printConfig(m, d);
+        }
         if( printPInit )
         {
             std::cout<< "Pinocchio state and control before perturbation:\n";
@@ -165,6 +176,7 @@ int main(int argc, char const *argv[]) {
             std::cout << "  tau = " << tau.transpose() << "\n\n";
         }
 
+        // Get contact forces projected onto the joint space
         mju_copy(qcon.data(), d->qfrc_constraint, m->nv);
         fCon[k] = qcon.norm();
         
@@ -253,6 +265,7 @@ int main(int argc, char const *argv[]) {
         std::cout << "fext:\n";
         for(int i=0; i<model.njoints; i++)
             std::cout << fext[i] << "\n";
+
         // Compare accelerations
         Eigen::VectorXd mj_a(m->nv), pin_a(model.nv);
         mju_copy(mj_a.data(), d->qacc, m->nv);
@@ -340,16 +353,14 @@ int main(int argc, char const *argv[]) {
         mj_deleteData(dNominal);
 
         // Perturbation
-        // generate random perturbation
-        if(k==0)
+        if(k>0)
         {
-            dx = Eigen::VectorXd::Zero(cp.n);
-            du = Eigen::VectorXd::Zero(cp.m);
-        }
-        else
-        {
-            dx = Eigen::VectorXd::Random(cp.n)*1e-2;
-            du = Eigen::VectorXd::Random(cp.m)*1e-2;
+            if(pos_pert)
+                dx.head(m->nv) = Eigen::VectorXd::Random(m->nv)*1e-2;
+            if(vel_pert)
+                dx.tail(m->nv) = Eigen::VectorXd::Random(m->nv)*1e-2;
+            if(tau_pert)
+                du = Eigen::VectorXd::Random(m->nu)*1e-2;
         }
         // print perturbation
         if( printPert )
@@ -380,7 +391,7 @@ int main(int argc, char const *argv[]) {
         }
         cc.takeStep(dPerturbed, u, false, compensateBias);
         if( printTraj )
-        { printConfig(m, dPerturbed); }
+            printConfig(m, dPerturbed);
         xNewPerturbed = cc.getState(dPerturbed);
         mj_deleteData(dPerturbed);
 
