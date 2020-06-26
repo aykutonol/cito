@@ -12,6 +12,90 @@ int pos_pert=1, vel_pert=0, tau_pert=0;
 // Compensate bias term
 double compensateBias = 0.0;
 
+PINOCCHIO_ALIGNED_STD_VECTOR(pinocchio::Force) getExternalForce(const mjModel* m, const mjData* d, const pinocchio::Model& model)
+{
+    PINOCCHIO_ALIGNED_STD_VECTOR(pinocchio::Force) fext((size_t)model.njoints, pinocchio::Force::Zero());
+    pinocchio::Force::Vector6 contact_force_ref;
+    pinocchio::Model::JointIndex pin_jnt_id;
+    Eigen::VectorXd vec_j2c_w(3), vec_j2c_b(3), fcon_w(3), fcon_b(3), hcon(6), hcon_neg(6), h_con_b_at_j(6);
+    int geom_jntadr[2], geom_bodyid[2];
+    for (int i=0; i<d->ncon; i++)
+    {
+        // Get contact force in contact frame
+        mj_contactForce(m, d, i, hcon.data());
+        hcon_neg = -hcon;
+        // Get joint and body ids from the MuJoCo model
+        geom_bodyid[0] = m->geom_bodyid[d->contact[i].geom1];
+        geom_bodyid[1] = m->geom_bodyid[d->contact[i].geom2];
+        geom_jntadr[0] = m->body_jntadr[geom_bodyid[0]];
+        geom_jntadr[1] = m->body_jntadr[geom_bodyid[1]];
+        // For each body involved in the contact, set the external force
+        for(int j=0; j<2; j++)
+        {
+            if(geom_jntadr[j] != -1)
+            {
+                // Get the joint id from the Pinocchio model
+                pin_jnt_id = model.getJointId(mj_id2name(m, mjOBJ_JOINT, geom_jntadr[j]));
+                // Continue if the joint exists in the Pinocchio model
+                if(pin_jnt_id < model.njoints)
+                {
+                    // Calculate vector from the joint anchor to the contact point
+                    mju_sub3(vec_j2c_w.data(), d->contact[i].pos, d->xanchor+3*geom_jntadr[j]);
+                    // Represent the contact wrench in the world frame
+                    if(j==0)
+                    {
+                        mju_rotVecMatT(fcon_w.data(), hcon_neg.head(3).data(), d->contact[i].frame);
+                    }
+                    else
+                    {
+                        mju_rotVecMatT(fcon_w.data(), hcon.head(3).data(), d->contact[i].frame);
+                    }
+                    // Represent the contact wrench in the body frame at the contact point
+                    mju_rotVecMatT(fcon_b.data(), fcon_w.head(3).data(), d->xmat+9*geom_bodyid[j]);
+                    mju_rotVecMatT(vec_j2c_b.data(), vec_j2c_w.data(), d->xmat+9*geom_bodyid[j]);
+                    h_con_b_at_j.head(3) = fcon_b;
+                    h_con_b_at_j[3] = -vec_j2c_b[2]*fcon_b[1] + vec_j2c_b[1]*fcon_b[2];
+                    h_con_b_at_j[4] =  vec_j2c_b[2]*fcon_b[0] - vec_j2c_b[0]*fcon_b[2];
+                    h_con_b_at_j[5] = -vec_j2c_b[1]*fcon_b[0] + vec_j2c_b[0]*fcon_b[1];
+                    // Set joint forces due to the contact
+                    contact_force_ref = h_con_b_at_j;
+                    fext[pin_jnt_id] += pinocchio::ForceRef<pinocchio::Force::Vector6>(contact_force_ref);
+                }
+            }
+        }
+    }
+    return fext;
+}
+
+void printContactInfo(const mjModel* m, const mjData* d)
+{
+    Eigen::VectorXd hcon(6);
+    std::cout << "\nContacts:\n";
+    for(int i=0; i<d->ncon; i++)
+    {
+        mj_contactForce(m, d, i, hcon.data());
+        int geom1_id=d->contact[i].geom1, geom2_id=d->contact[i].geom2;
+        std::cout << "\tContact " << i << ", pos: " << d->contact[i].pos[0] << ", " <<
+                        d->contact[i].pos[1] << ", " << d->contact[i].pos[2] << ", " <<
+                        "dist: " << d->contact[i].dist << ", dim: " << d->contact[i].dim <<
+                        "\n\t\tgeom1: " << mj_id2name(m, mjOBJ_GEOM, geom1_id) <<
+                        ", geom2: " << mj_id2name(m, mjOBJ_GEOM, geom2_id) <<
+                        ", hcon: " << hcon.head(3).transpose() << "\n";
+        std::cout << "\t\tgeom1 body: " << mj_id2name(m, mjOBJ_BODY, m->geom_bodyid[geom1_id]) <<
+                        ", jntnum: " << m->body_jntnum[m->geom_bodyid[geom1_id]] << 
+                        ", jntadr: " << m->body_jntadr[m->geom_bodyid[geom1_id]] <<
+                        ", dofnum: " << m->body_dofnum[m->geom_bodyid[geom1_id]] << 
+                        ", dofadr: " << m->body_dofadr[m->geom_bodyid[geom1_id]] <<
+                        "\n\t\tgeom2 body: " << mj_id2name(m, mjOBJ_BODY, m->geom_bodyid[geom2_id]) << 
+                        ", jntnum: " << m->body_jntnum[m->geom_bodyid[geom2_id]] << 
+                        ", jntadr: " << m->body_jntadr[m->geom_bodyid[geom2_id]] <<
+                        ", dofnum: " << m->body_dofnum[m->geom_bodyid[geom2_id]] << 
+                        ", dofadr: " << m->body_dofadr[m->geom_bodyid[geom2_id]] <<"\n";
+    }
+    if(d->ncon==0)
+        std::cout << "\tNo contact\n";
+}
+
 void printConfig(mjModel* m, mjData* d)
 {
     std::cout << "\ntime: " << d->time << "\n";
@@ -46,6 +130,7 @@ void copyData(const mjModel* m, const mjData* dmain, mjData* d)
 bool printDeriv = false;
 bool printMInit = false;
 bool printPInit = false;
+bool printConst = false;
 bool printPred  = true;
 bool printPert  = false;
 bool printTraj  = false;
@@ -185,91 +270,12 @@ int main(int argc, char const *argv[]) {
         mju_copy(qcon.data(), d->qfrc_constraint, m->nv);
         fCon[k] = qcon.norm();
         
-        // Constraints
-        std::cout << "\n\nConstraints:\n";
-        for(int i=0; i<d->nefc; i++)
-        {
-            std::cout << "\tConstraint " << i << ", type: " << d->efc_type[i] <<
-                         ", force: " << d->efc_force[i] <<
-                         ", state: " << d->efc_state[i] <<
-                         ", id: " << d->efc_id[i] << "\n";
-        }
-        // Contacts
-        eigVd hcon(6); hcon.setZero();
-        std::cout << "\nContacts:\n";
-        for(int i=0; i<d->ncon; i++)
-        {
-            mj_contactForce(m, d, i, hcon.data());
-            int geom1_id=d->contact[i].geom1, geom2_id=d->contact[i].geom2;
-            std::cout << "\tContact " << i << ", pos: " << d->contact[i].pos[0] << ", " <<
-                         d->contact[i].pos[1] << ", " << d->contact[i].pos[2] << ", " <<
-                         "dist: " << d->contact[i].dist << ", dim: " << d->contact[i].dim <<
-                         "\n\t\tgeom1: " << mj_id2name(m, mjOBJ_GEOM, geom1_id) <<
-                         ", geom2: " << mj_id2name(m, mjOBJ_GEOM, geom2_id) <<
-                         ", hcon: " << hcon.head(3).transpose() << "\n";
-            std::cout << "\t\tgeom1 body: " << mj_id2name(m, mjOBJ_BODY, m->geom_bodyid[geom1_id]) <<
-                         ", jntnum: " << m->body_jntnum[m->geom_bodyid[geom1_id]] << 
-                         ", jntadr: " << m->body_jntadr[m->geom_bodyid[geom1_id]] <<
-                         ", dofnum: " << m->body_dofnum[m->geom_bodyid[geom1_id]] << 
-                         ", dofadr: " << m->body_dofadr[m->geom_bodyid[geom1_id]] <<
-                         "\n\t\tgeom2 body: " << mj_id2name(m, mjOBJ_BODY, m->geom_bodyid[geom2_id]) << 
-                         ", jntnum: " << m->body_jntnum[m->geom_bodyid[geom2_id]] << 
-                         ", jntadr: " << m->body_jntadr[m->geom_bodyid[geom2_id]] <<
-                         ", dofnum: " << m->body_dofnum[m->geom_bodyid[geom2_id]] << 
-                         ", dofadr: " << m->body_dofadr[m->geom_bodyid[geom2_id]] <<"\n";
-        }
-
-        // Set external force in joint space
-        PINOCCHIO_ALIGNED_STD_VECTOR(pinocchio::Force) fext((size_t)model.njoints, pinocchio::Force::Zero());
-        pinocchio::Force::Vector6 contact_force_ref;
-        pinocchio::Model::JointIndex pin_jnt_id;
-        Eigen::VectorXd vec_j2c_w(3), vec_j2c_b(3), fcon_w(3), fcon_b(3), hcon_neg(6), h_con_b_at_j(6);
-        int geom_jntadr[2], geom_bodyid[2];
-        for (int i=0; i<d->ncon; i++)
-        {
-            // Get contact force in contact frame
-            mj_contactForce(m, d, i, hcon.data());
-            hcon_neg = -hcon;
-            // Get joint and body ids from the MuJoCo model
-            geom_bodyid[0] = m->geom_bodyid[d->contact[i].geom1];
-            geom_bodyid[1] = m->geom_bodyid[d->contact[i].geom2];
-            geom_jntadr[0] = m->body_jntadr[geom_bodyid[0]];
-            geom_jntadr[1] = m->body_jntadr[geom_bodyid[1]];
-            // For each body involved in the contact, set the external force
-            for(int j=0; j<2; j++)
-            {
-                if(geom_jntadr[j] != -1)
-                {
-                    // Get the joint id from the Pinocchio model
-                    pin_jnt_id = model.getJointId(mj_id2name(m, mjOBJ_JOINT, geom_jntadr[j]));
-                    // Calculate vector from the joint anchor to the contact point
-                    mju_sub3(vec_j2c_w.data(), d->contact[i].pos, d->xanchor+3*geom_jntadr[j]);
-                    // Represent the contact wrench in the world frame
-                    if(j==0)
-                    {
-                        mju_rotVecMatT(fcon_w.data(), hcon_neg.head(3).data(), d->contact[i].frame);
-                    }
-                    else
-                    {
-                        mju_rotVecMatT(fcon_w.data(), hcon.head(3).data(), d->contact[i].frame);
-                    }
-                    // Represent the contact wrench in the body frame at the contact point
-                    mju_rotVecMatT(fcon_b.data(), fcon_w.head(3).data(), d->xmat+9*geom_bodyid[j]);
-                    mju_rotVecMatT(vec_j2c_b.data(), vec_j2c_w.data(), d->xmat+9*geom_bodyid[j]);
-                    h_con_b_at_j.head(3) = fcon_b;
-                    h_con_b_at_j[3] = -vec_j2c_b[2]*fcon_b[1] + vec_j2c_b[1]*fcon_b[2];
-                    h_con_b_at_j[4] =  vec_j2c_b[2]*fcon_b[0] - vec_j2c_b[0]*fcon_b[2];
-                    h_con_b_at_j[5] = -vec_j2c_b[1]*fcon_b[0] + vec_j2c_b[0]*fcon_b[1];
-                    // Set joint forces due to the contact
-                    contact_force_ref = h_con_b_at_j;
-                    fext[pin_jnt_id] += pinocchio::ForceRef<pinocchio::Force::Vector6>(contact_force_ref);
-                }
-            }
-        }
-        // Print external forces in joint frame
-        std::cout << "fext:\n";
-        for(int i=0; i<model.njoints; i++)
-            std::cout << fext[i] << "\n";
+        // Print contact info
+        if(printConst)
+            printContactInfo(m, d);
+        // Get contact forces from MuJoCo and set fext
+        PINOCCHIO_ALIGNED_STD_VECTOR(pinocchio::Force) fext;
+        fext = getExternalForce(m, d, model);
 
         // Compare accelerations
         Eigen::VectorXd mj_a(m->nv), pin_a(model.nv);
@@ -391,14 +397,12 @@ int main(int argc, char const *argv[]) {
         mju_copy(dPerturbed->qpos, x.head(m->nv).data(), m->nv);
         mju_copy(dPerturbed->qvel, x.tail(m->nv).data(), m->nv);
         mj_forward(m, dPerturbed);
-        if( printTraj )
-        {
-            std::cout << "Perturbed trajectory:";
-            printConfig(m, dPerturbed);
-        }
+        // Print contact info
+        if(printConst)
+            printContactInfo(m, d);
+        // Integrate w/ perturbations
         cc.takeStep(dPerturbed, u, false, compensateBias);
-        if( printTraj )
-            printConfig(m, dPerturbed);
+        // Get the perturbed state and delete data
         xNewPerturbed = cc.getState(dPerturbed);
         mj_deleteData(dPerturbed);
 
