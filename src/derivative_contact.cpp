@@ -109,8 +109,8 @@ int main(int argc, char const *argv[]) {
     q.setZero();        v.setZero();        tau.setZero();        qcon.setZero();
 
     // Derivative matrices
-    eigMd da_dq, da_dv, da_du;
-    da_dq.resize(m->nv, m->nv); da_dv.resize(m->nv, m->nv); da_du.resize(m->nv, m->nu);
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> da_dq, da_dv, da_df;
+    da_dq.resize(m->nv, m->nv); da_dv.resize(m->nv, m->nv); da_df.resize(m->nv, m->nv);
     eigMd FxHW, FuHW, FxW, FuW, FxP, FuP;
     FxHW.resize(cp.n, cp.n);    FxW.resize(cp.n, cp.n);     FxP.resize(cp.n, cp.n);
     FuHW.resize(cp.n, cp.m);    FuW.resize(cp.n, cp.m);     FuP.resize(cp.n, cp.m);
@@ -298,7 +298,7 @@ int main(int argc, char const *argv[]) {
         // get derivatives of acceleration
         mju_copy(da_dq.data(), deriv, m->nv*m->nv);
         mju_copy(da_dv.data(), deriv+m->nv*m->nv, m->nv*m->nv);
-        mju_copy(da_du.data(), deriv+2*m->nv*m->nv, m->nv*m->nu);
+        mju_copy(da_df.data(), deriv+2*m->nv*m->nv, m->nv*m->nv);
         // build derivative matrices
         FxW.setZero();
         FxW.topLeftCorner(m->nv, m->nv)     = Eigen::MatrixXd::Identity(m->nv, m->nv);
@@ -306,7 +306,7 @@ int main(int argc, char const *argv[]) {
         FxW.bottomLeftCorner(m->nv, m->nv)  = cp.tc*da_dq;
         FxW.bottomRightCorner(m->nv, m->nv) = Eigen::MatrixXd::Identity(m->nv, m->nv) + cp.tc*da_dv;
         FuW.setZero();
-        FuW.bottomRows(m->nv) = cp.tc*da_du;
+        FuW.bottomRows(m->nv) = cp.tc*da_df;
 
         // Calculate derivatives with Pinocchio
         auto tPinStart = std::chrono::system_clock::now();
