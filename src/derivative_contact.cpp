@@ -91,8 +91,10 @@ int main(int argc, char const *argv[]) {
     pinocchio::urdf::buildModel(paths::workspaceDir+"/src/cito/model/ur3e.urdf", model);
     pinocchio::Data data(model);
 
-    // Offsets between the models assuming the MuJoCo model may have more DOF
-    const int ndof=model.nv, pos_off=m->nq-model.nq, vel_off=m->nv-model.nv;
+    // Assert the models have identical DOF
+    assert(m->nq==model.nq);
+    assert(m->nv==model.nv);
+    assert(m->nu==model.nv);
 
     // Initialize CITO objects
     CitoParams  cp(m);
@@ -152,7 +154,7 @@ int main(int argc, char const *argv[]) {
 
         // Run forward dynamics to calculate the bias
         mj_forward(m, d);        
-        mju_copy(d->ctrl, d->qfrc_bias+vel_off, m->nu);
+        mju_copy(d->ctrl, d->qfrc_bias, m->nv);
 
         // Run forward dynamics for full computation
         mj_forward(m, d);
@@ -162,8 +164,8 @@ int main(int argc, char const *argv[]) {
         mju_copy(u.data(), d->ctrl, m->nu);
 
         // Copy MuJoCo data to Pinocchio variables
-        mju_copy(q.data(), d->qpos+pos_off, model.nq);
-        mju_copy(v.data(), d->qvel+vel_off, model.nv);
+        mju_copy(q.data(), d->qpos, m->nq);
+        mju_copy(v.data(), d->qvel, m->nv);
         tau = u;
 
         // Print initial states and controls
