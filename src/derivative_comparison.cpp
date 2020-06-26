@@ -85,6 +85,11 @@ int main(int argc, char const *argv[]) {
     pinocchio::urdf::buildModel(paths::workspaceDir+"/src/cito/model/ur3e.urdf", model);
     pinocchio::Data data(model);
 
+    // Assert the models have identical DOF
+    assert(m->nq==model.nq);
+    assert(m->nv==model.nv);
+    assert(m->nu==model.nv);
+
     // Initialize derivative calculation variables
     /// State and control vectors for MuJoCo
     eigVm x, u;
