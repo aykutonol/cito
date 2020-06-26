@@ -257,7 +257,7 @@ int main(int argc, char const *argv[]) {
                     h_con_b_at_j[5] = -vec_j2c_b[1]*fcon_b[0] + vec_j2c_b[0]*fcon_b[1];
                     // Set joint forces due to the contact
                     contact_force_ref = h_con_b_at_j;
-                    fext[pin_jnt_id] = pinocchio::ForceRef<pinocchio::Force::Vector6>(contact_force_ref);
+                    fext[pin_jnt_id] += pinocchio::ForceRef<pinocchio::Force::Vector6>(contact_force_ref);
                 }
             }
         }
