@@ -83,6 +83,9 @@ int main(int argc, char const *argv[]) {
     mjtNum* deriv = 0;
     deriv = (mjtNum*) mju_malloc(3*sizeof(mjtNum)*m->nv*m->nv);
 
+    // Assert all DOF are actuated
+    assert(m->nv==m->nu);
+
     // Initialize Pinocchio
     pinocchio::Model model;
     pinocchio::urdf::buildModel(paths::workspaceDir+"/src/cito/model/ur3e.urdf", model);
