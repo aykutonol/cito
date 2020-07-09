@@ -33,7 +33,7 @@ private:
     /// MuJoCo model
     const mjModel* m;
     /// Perturbation for central differences
-    double eps = 1e-6;
+    double eps = 1e-8;
     /// Number of warm-up iterations for the worker function
     int nwarmup = 3;
     /// Variables for differentiation
