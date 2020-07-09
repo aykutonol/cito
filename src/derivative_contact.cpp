@@ -225,8 +225,8 @@ int main(int argc, char const *argv[]) {
         // Generate random configuration
         if( k>0 )
         {
-            qRand = Eigen::VectorXd::Random(m->nq)*1;
-            vRand = Eigen::VectorXd::Random(m->nv)*1e-1;
+            qRand = Eigen::VectorXd::Random(m->nq)*5e-1;
+            vRand = Eigen::VectorXd::Random(m->nv)*5e-2;
         }
         // Create MuJoCo data
         mjData* d = mj_makeData(m);
@@ -368,14 +368,12 @@ int main(int argc, char const *argv[]) {
         mj_deleteData(dNominal);
 
         // Perturbation
-        if(k>0)
-        {
-            if(pos_pert)
-                dx.head(m->nv) = Eigen::VectorXd::Random(m->nv)*1e-2;
-            if(vel_pert)
-                dx.tail(m->nv) = Eigen::VectorXd::Random(m->nv)*1e-2;
-            if(tau_pert)
-                du = Eigen::VectorXd::Random(m->nu)*1e-2;
+        if(pos_pert)
+            dx.head(m->nv) = Eigen::VectorXd::Random(m->nv)*1e-2;
+        if(vel_pert)
+            dx.tail(m->nv) = Eigen::VectorXd::Random(m->nv)*1e-2;
+        if(tau_pert)
+            du = Eigen::VectorXd::Random(m->nu)*1e-2;
         // print perturbation
         if( printPert )
         {
