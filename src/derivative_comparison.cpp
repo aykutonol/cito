@@ -291,7 +291,10 @@ int main(int argc, char const *argv[]) {
             std::cout << "  dq: " << dx.head(m->nv).transpose() << "\n";
             std::cout << "  dv: " << dx.tail(m->nv).transpose() << "\n";
             std::cout << "  du: " << du.transpose() << "\n";
-            std::cout << "Actual next state:\n";
+            std::cout << "Nominal next state:\n";
+            std::cout << "  pos: " << xNewNominal.head(m->nv).transpose() << "\n";
+            std::cout << "  vel: " << xNewNominal.tail(m->nv).transpose() << "\n";
+            std::cout << "Perturbed next state:\n";
             std::cout << "  pos: " << xNewPerturbed.head(m->nv).transpose() << "\n";
             std::cout << "  vel: " << xNewPerturbed.tail(m->nv).transpose() << "\n";
             // hardWorker
