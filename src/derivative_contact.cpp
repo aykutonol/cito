@@ -212,6 +212,7 @@ int main(int argc, char const *argv[]) {
     // Computation time and error vectors
     eigVd tHW(nSample), tW(nSample), tP(nSample), eHW(nSample), eW(nSample), eP(nSample), fCon(nSample);
     tHW.setZero(); tW.setZero(); tP.setZero(); eHW.setZero(); eW.setZero(); eP.setZero(); fCon.setZero();
+    eigVd acc_err(nSample); acc_err.setZero();
 
     // Set random seed
     // std::srand(std::time(0));
@@ -287,6 +288,7 @@ int main(int argc, char const *argv[]) {
                      "\tMuJoCo:             " << mj_a.transpose() <<
                      "\n\tPinocchio w/o fext: " << data.ddq.transpose() <<
                      "\n\tPinocchio w/ fext:  " << pin_a.transpose() << "\n\n";
+        acc_err(k) = (mj_a - pin_a).norm();
 
         // Calculate derivatives with MuJoCo hardWorker
         auto tHWStart = std::chrono::system_clock::now();
@@ -374,7 +376,6 @@ int main(int argc, char const *argv[]) {
                 dx.tail(m->nv) = Eigen::VectorXd::Random(m->nv)*1e-2;
             if(tau_pert)
                 du = Eigen::VectorXd::Random(m->nu)*1e-2;
-        }
         // print perturbation
         if( printPert )
         {
@@ -420,7 +421,10 @@ int main(int argc, char const *argv[]) {
             std::cout << "  dq: " << dx.head(m->nv).transpose() << "\n";
             std::cout << "  dv: " << dx.tail(m->nv).transpose() << "\n";
             std::cout << "  du: " << du.transpose() << "\n";
-            std::cout << "Actual next state:\n";
+            std::cout << "Nominal next state:\n";
+            std::cout << "  pos: " << xNewNominal.head(m->nv).transpose() << "\n";
+            std::cout << "  vel: " << xNewNominal.tail(m->nv).transpose() << "\n";
+            std::cout << "Perturbed next state:\n";
             std::cout << "  pos: " << xNewPerturbed.head(m->nv).transpose() << "\n";
             std::cout << "  vel: " << xNewPerturbed.tail(m->nv).transpose() << "\n";
             // hardWorker
@@ -457,13 +461,13 @@ int main(int argc, char const *argv[]) {
     {
         if( k%10 == 0 )
         {
-            printf("%-12s%-12s%-36s%-36s\n",
-                   "Sample","Contact","Prediction Error","Computation Time [s]");
-            printf("%-12s%-12s%-12s%-12s%-12s%-12s%-12s%-12s\n",
-                   "#","force","hardWorker","worker","Pinocchio","hardWorker","worker","Pinocchio");
+            printf("%-10s%-10s%-14s%-36s%-36s\n",
+                   "Sample","Contact","Accel.","Prediction Error","Computation Time [s]");
+            printf("%-10s%-10s%-14s%-12s%-12s%-12s%-12s%-12s%-12s\n",
+                   "#","force","error","hardWorker","worker","Pinocchio","hardWorker","worker","Pinocchio");
         }
-        printf("%-12d%-12.6g%-12.6g%-12.6g%-12.6g%-12.6g%-12.6g%-12.6g\n",
-               k+1,fCon(k),eHW(k),eW(k),eP(k),tHW(k),tW(k),tP(k));
+        printf("%-10d%-10.6g%-14.6g%-12.6g%-12.6g%-12.6g%-12.6g%-12.6g%-12.6g\n",
+               k+1,fCon(k),acc_err(k),eHW(k),eW(k),eP(k),tHW(k),tW(k),tP(k));
     }
 
     printf("\nStatistics for %d samples:\n",nSample);
