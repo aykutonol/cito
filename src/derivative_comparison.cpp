@@ -37,7 +37,6 @@ bool showMInit = false;
 bool showPInit = true;
 bool showPred  = true;
 bool showPert  = false;
-bool showTraj  = false;
 bool showTime  = false;
 bool readYAML  = false;
 
@@ -242,16 +241,7 @@ int main(int argc, char const *argv[]) {
         mjData* dNominal = mj_makeData(m);
         copyData(m, d, dNominal);
         mj_forward(m, dNominal);
-        if( showTraj )
-        {
-            std::cout << "Nominal trajectory:";
-            showConfig(m, dNominal);
-        }
-
         cc.takeStep(dNominal, u, false, compensateBias);
-
-        if( showTraj )
-        { showConfig(m, dNominal); }
         xNewNominal = cc.getState(dNominal);
         mj_deleteData(dNominal);
 
@@ -283,16 +273,7 @@ int main(int argc, char const *argv[]) {
         mju_copy(dPerturbed->qpos, x.head(m->nv).data(), m->nv);
         mju_copy(dPerturbed->qvel, x.tail(m->nv).data(), m->nv);
         mj_forward(m, dPerturbed);
-        if( showTraj )
-        {
-            std::cout << "Perturbed trajectory:";
-            showConfig(m, dPerturbed);
-        }
-        
         cc.takeStep(dPerturbed, u, false, compensateBias);
-
-        if( showTraj )
-        { showConfig(m, dPerturbed); }
         xNewPerturbed = cc.getState(dPerturbed);
         mj_deleteData(dPerturbed);
 
