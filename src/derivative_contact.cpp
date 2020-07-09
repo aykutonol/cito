@@ -10,7 +10,7 @@
 int pos_pert=1, vel_pert=0, tau_pert=0;
 
 // Compensate bias term
-double compensateBias = 0.0;
+double compensateBias = 1.0;
 
 PINOCCHIO_ALIGNED_STD_VECTOR(pinocchio::Force) getExternalForce(const mjModel* m, const mjData* d, const pinocchio::Model& model)
 {
