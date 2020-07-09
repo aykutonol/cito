@@ -169,16 +169,15 @@ int main(int argc, char const *argv[]) {
     d->ctrl[5] = -2.80625;
     d->ctrl[6] = -0.100421;
 
-    // Evaluate the forward dynamics, but do not integrate
+    // Evaluate the forward dynamics using MuJoCo
     mj_forward(m, d);
 
-    // Pinocchio
-    // Create model & data
+    // Pinocchio model & data
     pinocchio::Model model;
     pinocchio::urdf::buildModel(paths::workspaceDir+"/src/cito/model/sawyer.urdf", model);
     pinocchio::Data data(model);
 
-    // Offsets between the models assuming the MuJoCo model may have more DOF
+    // Offsets between the models assuming the MuJoCo model may have initial unactuated DOF
     const int ndof=model.nv, pos_off=m->nq-model.nq, vel_off=m->nv-model.nv;
 
     // Set the configuration identical to MuJoCo
@@ -211,10 +210,7 @@ int main(int argc, char const *argv[]) {
     PINOCCHIO_ALIGNED_STD_VECTOR(pinocchio::Force) fext;
     fext = getExternalForce(m, d, model);
 
-    // Evaluate forward dynamics
-    // MuJoCo
-    mj_forward(m, d);
-    // Pinocchio
+    // Evaluate the forward dynamics using Pinocchio
     pinocchio::computeAllTerms(model, data, q, v);
     pinocchio::aba(model, data, q, v, tau, fext);
 
@@ -322,6 +318,7 @@ int main(int argc, char const *argv[]) {
     // Prediction accuracy comparison
     // Set random seed
     std::srand(std::time(0));
+    auto dummy_rand = rand();
     // Generate random perturbation
     eigVd dq(ndof), dv(ndof), du(ndof);
     dq.setZero(); dv.setZero(); du.setZero();
