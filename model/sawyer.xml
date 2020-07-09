@@ -54,4 +54,14 @@
             </body>
         </body>
     </worldbody>
+    <!-- Actuators -->
+    <actuator>
+        <motor name="right_j0"    joint="right_j0" ctrllimited="true" ctrlrange="-80 80" />
+        <motor name="right_j1"    joint="right_j1" ctrllimited="true" ctrlrange="-80 80" />
+        <motor name="right_j2"    joint="right_j2" ctrllimited="true" ctrlrange="-40 40" />
+        <motor name="right_j3"    joint="right_j3" ctrllimited="true" ctrlrange="-40 40" />
+        <motor name="right_j4"    joint="right_j4" ctrllimited="true" ctrlrange="-9 9" />
+        <motor name="right_j5"    joint="right_j5" ctrllimited="true" ctrlrange="-9 9" />
+        <motor name="right_j6"    joint="right_j6" ctrllimited="true" ctrlrange="-9 9" />
+    </actuator>
 </mujoco>
