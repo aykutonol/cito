@@ -60,7 +60,7 @@ int main(int argc, char const *argv[]) {
     const char* mjKeyPath = std::getenv("MJ_KEY");
     mj_activate(mjKeyPath);
     /// Load model
-    std::string mjModelPathStr = paths::workspaceDir + "/src/cito/model/ur3e.xml";
+    std::string mjModelPathStr = paths::workspaceDir + "/src/cito/model/sawyer.xml";
     const char *mjModelPath = mjModelPathStr.c_str();
     mjModel* m = mj_loadXML(mjModelPath, NULL, NULL, 0);
     if( !m )
@@ -82,7 +82,7 @@ int main(int argc, char const *argv[]) {
     
     // Initialize Pinocchio
     pinocchio::Model model;
-    pinocchio::urdf::buildModel(paths::workspaceDir+"/src/cito/model/ur3e.urdf", model);
+    pinocchio::urdf::buildModel(paths::workspaceDir+"/src/cito/model/sawyer.urdf", model);
     pinocchio::Data data(model);
 
     // Assert the models have identical DOF
