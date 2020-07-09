@@ -116,6 +116,7 @@ int main(int argc, char const *argv[]) {
     /// Computation time and error vectors
     eigVd tHW(nSample), tW(nSample), tP(nSample), eHW(nSample), eW(nSample), eP(nSample);
     tHW.setZero(); tW.setZero(); tP.setZero(); eHW.setZero(); eW.setZero(); eP.setZero();
+    eigVd acc_err(nSample); acc_err.setZero();
     /// Parse perturbation from file
     if( readYAML )
     {
@@ -170,6 +171,15 @@ int main(int argc, char const *argv[]) {
             std::cout << "  v   = " << v.transpose() << "\n";
             std::cout << "  tau = " << tau.transpose() << "\n\n";
         }
+
+        // Compare accelerations
+        Eigen::VectorXd mj_a(m->nv);
+        mju_copy(mj_a.data(), d->qacc, m->nv);
+        pinocchio::aba(model, data, q, v, tau);
+        std::cout << "Accelerations:\n" <<
+                     "\tMuJoCo:    " << mj_a.transpose() <<
+                     "\n\tPinocchio: " << data.ddq.transpose() << "\n\n";
+        acc_err(k) = (mj_a - data.ddq).norm();
 
         // Calculate derivatives with MuJoCo hardWorker
         auto tHWStart = std::chrono::system_clock::now();
@@ -329,13 +339,13 @@ int main(int argc, char const *argv[]) {
     {
         if( k%10 == 0 )
         {
-            printf("%-12s%-36s%-36s\n",
-                   "Sample","Prediction Error","Computation Time [s]");
-            printf("%-12s%-12s%-12s%-12s%-12s%-12s%-12s\n",
-                   "#","hardWorker","worker","Pinocchio","hardWorker","worker","Pinocchio");
+            printf("%-10s%-16s%-36s%-36s\n",
+                   "Sample","Acceleration","Prediction Error","Computation Time [s]");
+            printf("%-10s%-16s%-12s%-12s%-12s%-12s%-12s%-12s\n",
+                   "#","error","hardWorker","worker","Pinocchio","hardWorker","worker","Pinocchio");
         }
-        printf("%-12d%-12.6g%-12.6g%-12.6g%-12.6g%-12.6g%-12.6g\n",
-               k+1,eHW(k),eW(k),eP(k),tHW(k),tW(k),tP(k));
+        printf("%-10d%-16.6g%-12.6g%-12.6g%-12.6g%-12.6g%-12.6g%-12.6g\n",
+               k+1,acc_err(k),eHW(k),eW(k),eP(k),tHW(k),tW(k),tP(k));
     }
 
     printf("\nStatistics for %d samples:\n",nSample);
