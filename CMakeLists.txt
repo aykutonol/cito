@@ -7,7 +7,6 @@ find_package(catkin REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(yaml-cpp 0.6 REQUIRED)
 find_package(pinocchio REQUIRED)
-find_package(boost REQUIRED COMPONENTS system)
 
 # On OSX, avoid CPM0042 warning and link /usr/local/lib
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -43,8 +42,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
                           ${SNOPT_DIR}/lib/libsnopt7_cpp.so
                           pthread
                           yaml-cpp
-                          ${Boost_SYSTEM_LIBRARY}
-                          urdfdom_model
+                          pinocchio::pinocchio
     )
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     target_link_libraries(${PROJECT_NAME}
@@ -52,15 +50,9 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
                           ${SNOPT_DIR}/lib/libsnopt7_cpp.dylib
                           pthread
                           yaml-cpp
-                          ${Boost_SYSTEM_LIBRARY}
-                          urdfdom_model
+                          pinocchio::pinocchio
     )
 endif()
-target_compile_definitions(${PROJECT_NAME} PUBLIC PINOCCHIO_URDFDOM_TYPEDEF_SHARED_PTR
-                                                  PINOCCHIO_URDFDOM_USE_STD_SHARED_PTR
-                                                  BOOST_MPL_LIMIT_LIST_SIZE=30
-                                                  PINOCCHIO_WITH_URDFDOM
-)
 
 # Set executable names
 set(NODE_NAME1 main)
