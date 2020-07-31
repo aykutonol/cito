@@ -190,6 +190,10 @@ int main(int argc, char const *argv[]) {
     // Offsets between the models assuming the MuJoCo model may have initial unactuated DOF
     const int ndof=model.nv, pos_off=m->nq-model.nq, vel_off=m->nv-model.nv;
 
+    // Assume a free joint is added if nq = nv+1 in Pinocchio
+    bool has_free_jnt = (model.nq == model.nv + 1) ? true : false;
+    std::cout << "INFO: Pinocchio model includes " << has_free_jnt << " free joint.\n";
+
     // Set the configuration identical to MuJoCo
     Eigen::VectorXd q(model.nq), v(model.nv), tau(model.nv), tau_w_contact(model.nv);
     mju_copy(q.data(), d->qpos+pos_off, model.nq);
