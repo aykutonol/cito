@@ -214,7 +214,7 @@ int main(int argc, char const *argv[]) {
                     q[idx_q+3+j] = d->qpos[pos_off+idx_q+4+j];
                 }
                 q[idx_q+6] = d->qpos[pos_off+idx_q+3];
-                // Project free-body velocity onto the local frame
+                // Project free-body linear velocity onto the local frame
                 Eigen::VectorXd vobj_g(3), vobj_l(3);
                 mju_copy3(vobj_g.data(), d->qvel+vel_off+idx_v);
                 mju_copy4(q_l2g, d->qpos+pos_off+idx_q+3);
@@ -400,37 +400,114 @@ int main(int argc, char const *argv[]) {
         //             "\nda_dv:\nMuJoCo:\n" << mj_da_dv << "\nPinocchio w/ fext:\n" << pn_da_dv << 
         //             "\nda_du:\nMuJoCo:\n" << mj_da_du << "\nPinocchio w/ fext:\n" << pn_da_du << "\n";
 
-    // // Prediction accuracy comparison
-    // // Set random seed
-    // std::srand(std::time(0));
-    // auto dummy_rand = rand();
-    // // Generate random perturbation in global coordinates
-    // eigVd dq(ndof), dv(ndof), du(ndof);
-    // dq.setZero(); dv.setZero(); du.setZero();
-    // if(pos_pert)
-    //     dq = Eigen::VectorXd::Random(ndof)*5e-2;
-    // if(vel_pert)
-    //     dv = Eigen::VectorXd::Random(ndof)*5e-2;
-    // if(tau_pert)
-    //     du = Eigen::VectorXd::Random(ndof)*5e-2;
-    // std::cout << "\nPerturbations:\n\tdq: " << dq.transpose() << "\n\tdv: " << 
-    //              dv.transpose() << "\n\tdu: " << du.transpose() << "\n";
-    // // Apply perturbations in MuJoCo
-    // // Convert perturbations to local coordinates
-    // // Apply perturbations in Pinocchio
-    // // Perturb states and controls
-    // q += dq;
-    // v += dv;
-    // tau += du;
-    // mjData* dPerturbed = mj_makeData(m);
-    // copyData(m, d, dPerturbed);
-    // mju_copy(dPerturbed->qpos+pos_off, q.data(), ndof);
-    // mju_copy(dPerturbed->qvel+vel_off, v.data(), ndof);
-    // mju_copy(dPerturbed->ctrl, tau.data(), ndof);
+    // Prediction accuracy comparison
+    // Set random seed
+    std::srand(std::time(0));
+    auto dummy_rand = rand();
+    // Generate random perturbation in global coordinates
+    eigVd dq(ndof), dv(ndof), du(m->nu);
+    dq.setZero(); dv.setZero(); du.setZero();
+    if(pos_pert)
+        dq = Eigen::VectorXd::Random(ndof)*5e-2;
+    if(vel_pert)
+        dv = Eigen::VectorXd::Random(ndof)*5e-2;
+    if(tau_pert)
+        du = Eigen::VectorXd::Random(m->nu)*5e-2;
+    std::cout << "\nPerturbations:\n\tdq: " << dq.transpose() << "\n\tdv: " << 
+                 dv.transpose() << "\n\tdu: " << du.transpose() << "\n";
+    // Create perturbed data for MuJoCo
+    mjData* dPerturbed = mj_makeData(m);
+    copyData(m, d, dPerturbed);
+    // Perturb positions
+    for(int i=vel_off; i<m->nv; i++)
+    {
+        // Get joint id for this dof
+        int jid = m->dof_jntid[i];
+        // Get quaternion address and dof position within quaternion (-1: not in quaternion)
+        int quatadr = -1, dofpos = 0;
+        if(m->jnt_type[jid]==mjJNT_FREE && i>=m->jnt_dofadr[jid]+3)
+        {
+            quatadr = m->jnt_qposadr[jid] + 3;
+            dofpos = i - m->jnt_dofadr[jid] - 3;
+        }
+        // apply quaternion or simple perturbation
+        if(quatadr>=0)
+        {
+            mjtNum angvel[3] = {0,0,0};
+            angvel[dofpos] = dq[i-vel_off];
+            mju_quatIntegrate(dPerturbed->qpos+pos_off+quatadr, angvel, 1);
+        }
+        else
+            dPerturbed->qpos[m->jnt_qposadr[jid] + i - m->jnt_dofadr[jid]] += dq[i-vel_off];
+    }
+    mju_copy(q.data(), dPerturbed->qpos+pos_off, model.nq);
+    // Perturb velocities
+    mju_copy(v.data(), d->qvel+vel_off, ndof);
+    v += dv;
+    mju_copy(dPerturbed->qvel+vel_off, v.data(), ndof);
+    // Convert MuJoCo free-body states into Pinocchio's convention
+    for(int i=0; i<model.njoints; i++)
+    {
+        int idx_v=model.joints[i].idx_v(),
+            idx_q=model.joints[i].idx_q();
+        if(idx_v>=0)
+        {
+            // Check if the joint is free
+            if(model.joints[i].nv()==6)
+            {
+                // Change quaternion convention from wxyz to xyzw
+                for(int j=0; j<3; j++)
+                {
+                    q[idx_q+j] = dPerturbed->qpos[pos_off+idx_q+j];
+                    q[idx_q+3+j] = dPerturbed->qpos[pos_off+idx_q+4+j];
+                }
+                q[idx_q+6] = dPerturbed->qpos[pos_off+idx_q+3];
+                // Project free-body linear velocity onto the local frame
+                Eigen::VectorXd vobj_g(3), vobj_l(3);
+                mju_copy3(vobj_g.data(), dPerturbed->qvel+vel_off+idx_v);
+                mju_copy4(q_l2g, d->qpos+pos_off+idx_q+3);
+                mju_negQuat(q_g2l, q_l2g);
+                mju_rotVecQuat(vobj_l.data(), vobj_g.data(), q_g2l);
+                v.segment(idx_v, 3) = vobj_l;
+            }
+        }
+    }
+    // Perturb controls
+    tau.tail(m->nu) += du;
+    mju_copy(dPerturbed->ctrl, tau.tail(m->nu).data(), m->nu);
+    // Evaluate forward dynamics
+    mj_forward(m, dPerturbed);
+    // Print changes
+    Eigen::VectorXd q_n(m->nq), q_p(m->nq), q_d(m->nq);
+    mju_copy(q_n.data(), d->qpos, m->nq);
+    mju_copy(q_p.data(), dPerturbed->qpos, m->nq);
+    q_d = q_p - q_n;
+    Eigen::VectorXd v_n(m->nv), v_p(m->nv), v_d(m->nv);
+    mju_copy(v_n.data(), d->qvel, m->nv);
+    mju_copy(v_p.data(), dPerturbed->qvel, m->nv);
+    v_d = v_p - v_n;
+    Eigen::VectorXd u_n(m->nu), u_p(m->nu), u_d(m->nu);
+    mju_copy(u_n.data(), d->ctrl, m->nu);
+    mju_copy(u_p.data(), dPerturbed->ctrl, m->nu);
+    u_d = u_p - u_n;
+    std::cout << "\nqn:\n" << q_n.transpose() << 
+                 "\ndq:\n" << dq.transpose() <<
+                 "\nqp:\n" << q_p.transpose() <<
+                 "\nqd:\n" << q_d.transpose() <<
+                 "\nq: \n" << q.transpose() << "\n";
+    std::cout << "\nvn:\n" << v_n.transpose() << 
+                 "\ndv:\n" << dv.transpose() <<
+                 "\nvp:\n" << v_p.transpose() <<
+                 "\nvd:\n" << v_d.transpose() <<
+                 "\nv :\n" << v.transpose() << "\n";
+    std::cout << "\nun:\n" << u_n.transpose() << 
+                 "\ndu:\n" << du.transpose() <<
+                 "\nup:\n" << u_p.transpose() <<
+                 "\nud:\n" << u_d.transpose() <<
+                 "\nu :\n" << tau.transpose() << "\n";
 
     // // Calculate actual perturbed accelerations using MuJoCo
     // Eigen::VectorXd mj_qacc_pert(ndof), mj_qacc_unc_pert(ndof), pn_a_pert(ndof), pn_a_unc_pert(ndof);
-    // mj_forward(m, dPerturbed);
     // mju_copy(mj_qacc_pert.data(), dPerturbed->qacc+vel_off, ndof);
     // mju_copy(mj_qacc_unc_pert.data(), dPerturbed->qacc_unc+vel_off, ndof);
     // // Get constraint forces in joint space
@@ -468,8 +545,12 @@ int main(int argc, char const *argv[]) {
     //              "\nPinocchio:          " << ((mj_qacc_pert-pn_a_pred).cwiseAbs()).transpose() <<
     //              "\nPinocchio w/o fext: " << ((mj_qacc_pert-pn_a_pred_wo_fext).cwiseAbs()).transpose() << "\n";
 
+    // Delete perturbed data
+    mj_deleteData(dPerturbed);
+
     // Shut down
     mj_deleteModel(m);
+    mj_deleteData(d);
     mj_deactivate();
     return 0;
 }
