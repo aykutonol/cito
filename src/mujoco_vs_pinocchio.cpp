@@ -378,41 +378,53 @@ int main(int argc, char const *argv[]) {
 
     // Pinocchio w/ fext
     pinocchio::computeABADerivatives(model, data, q, v, tau, fext);
-    pn_da_dq.setZero(); pn_da_dv.setZero(); pn_da_du.setZero();
-    pn_da_dv.block(3, 3, 3, 3) = data.ddq_dv.block(obj_idx_v+3, obj_idx_v+3, 3, 3);
+    pn_da_dq = data.ddq_dq;
+    pn_da_dv = data.ddq_dv;
     pn_da_du = data.Minv;
+    if(model.nq == model.nv+1)
+    {
+        pn_da_dq.block(0, 0, 6, 6).setZero();
+        pn_da_dv.block(0, 0, 6, 6).setZero();
+        pn_da_dv.block(3, 3, 3, 3) = data.ddq_dv.block(obj_idx_v+3, obj_idx_v+3, 3, 3);
+    }
 
     // Pinocchio w/o fext
     pinocchio::computeABADerivatives(model, data, q, v, tau);
-    pn_da_dq_wo_fext.setZero(); pn_da_dv_wo_fext.setZero(); pn_da_du_wo_fext.setZero();
-    pn_da_dv_wo_fext.block(3, 3, 3, 3) = data.ddq_dv.block(obj_idx_v+3, obj_idx_v+3, 3, 3);
+    pn_da_dq_wo_fext = data.ddq_dq;
+    pn_da_dv_wo_fext = data.ddq_dv;
     pn_da_du_wo_fext = data.Minv;
+    if(model.nq == model.nv+1)
+    {
+        pn_da_dq_wo_fext.block(0, 0, 6, 6).setZero();
+        pn_da_dv_wo_fext.block(0, 0, 6, 6).setZero();
+        pn_da_dv_wo_fext.block(3, 3, 3, 3) = data.ddq_dv.block(obj_idx_v+3, obj_idx_v+3, 3, 3);
+    }
 
     // Print derivative matrices
     std::cout << std::fixed;
     if(print_derivatives)
-        std::cout << "\nda_dq:\nMuJoCo:\n" << mj_da_dq.topLeftCorner(6,6) << "\nPinocchio w/ fext:\n" << pn_da_dq.topLeftCorner(6,6) <<
-                    "\nPinocchio w/o fext:\n" << pn_da_dq_wo_fext.topLeftCorner(6,6) <<
-                    "\nda_dv:\nMuJoCo:\n" << mj_da_dv.topLeftCorner(6,6) << "\nPinocchio w/ fext:\n" << pn_da_dv.topLeftCorner(6,6) << 
-                    "\nda_du:\nMuJoCo:\n" << mj_da_du.topLeftCorner(6,6) << "\nPinocchio w/ fext:\n" << pn_da_du.topLeftCorner(6,6) << "\n";
-        // std::cout << "\nda_dq:\nMuJoCo:\n" << mj_da_dq << "\nPinocchio w/ fext:\n" << pn_da_dq <<
-        //             "\nPinocchio w/o fext:\n" << pn_da_dq_wo_fext <<
-        //             "\nda_dv:\nMuJoCo:\n" << mj_da_dv << "\nPinocchio w/ fext:\n" << pn_da_dv << 
-        //             "\nda_du:\nMuJoCo:\n" << mj_da_du << "\nPinocchio w/ fext:\n" << pn_da_du << "\n";
+        // std::cout << "\nda_dq:\nMuJoCo:\n" << mj_da_dq.topLeftCorner(6,6) << "\nPinocchio w/ fext:\n" << pn_da_dq.topLeftCorner(6,6) <<
+        //             "\nPinocchio w/o fext:\n" << pn_da_dq_wo_fext.topLeftCorner(6,6) <<
+        //             "\nda_dv:\nMuJoCo:\n" << mj_da_dv.topLeftCorner(6,6) << "\nPinocchio w/ fext:\n" << pn_da_dv.topLeftCorner(6,6) << 
+        //             "\nda_du:\nMuJoCo:\n" << mj_da_du.topLeftCorner(6,6) << "\nPinocchio w/ fext:\n" << pn_da_du.topLeftCorner(6,6) << "\n";
+        std::cout << "\nda_dq:\nMuJoCo:\n" << mj_da_dq << "\nPinocchio w/ fext:\n" << pn_da_dq <<
+                    "\nPinocchio w/o fext:\n" << pn_da_dq_wo_fext <<
+                    "\nda_dv:\nMuJoCo:\n" << mj_da_dv << "\nPinocchio w/ fext:\n" << pn_da_dv << 
+                    "\nda_du:\nMuJoCo:\n" << mj_da_du << "\nPinocchio w/ fext:\n" << pn_da_du << "\n";
 
     // Prediction accuracy comparison
     // Set random seed
     std::srand(std::time(0));
     auto dummy_rand = rand();
     // Generate random perturbation in global coordinates
-    eigVd dq(ndof), dv(ndof), du(m->nu);
+    eigVd dq(ndof), dv(ndof), du(ndof);
     dq.setZero(); dv.setZero(); du.setZero();
     if(pos_pert)
         dq = Eigen::VectorXd::Random(ndof)*5e-2;
     if(vel_pert)
         dv = Eigen::VectorXd::Random(ndof)*5e-2;
     if(tau_pert)
-        du = Eigen::VectorXd::Random(m->nu)*5e-2;
+        du.tail(m->nu) = Eigen::VectorXd::Random(m->nu)*5e-2;
     std::cout << "\nPerturbations:\n\tdq: " << dq.transpose() << "\n\tdv: " << 
                  dv.transpose() << "\n\tdu: " << du.transpose() << "\n";
     // Create perturbed data for MuJoCo
@@ -473,10 +485,11 @@ int main(int argc, char const *argv[]) {
         }
     }
     // Perturb controls
-    tau.tail(m->nu) += du;
+    tau.tail(m->nu) += du.tail(m->nu);
     mju_copy(dPerturbed->ctrl, tau.tail(m->nu).data(), m->nu);
     // Evaluate forward dynamics
-    mj_forward(m, dPerturbed);
+    for(int i=0; i<3; i++)
+        mj_forward(m, dPerturbed);
     // Print changes
     Eigen::VectorXd q_n(m->nq), q_p(m->nq), q_d(m->nq);
     mju_copy(q_n.data(), d->qpos, m->nq);
@@ -506,44 +519,51 @@ int main(int argc, char const *argv[]) {
                  "\nud:\n" << u_d.transpose() <<
                  "\nu :\n" << tau.transpose() << "\n";
 
-    // // Calculate actual perturbed accelerations using MuJoCo
-    // Eigen::VectorXd mj_qacc_pert(ndof), mj_qacc_unc_pert(ndof), pn_a_pert(ndof), pn_a_unc_pert(ndof);
-    // mju_copy(mj_qacc_pert.data(), dPerturbed->qacc+vel_off, ndof);
-    // mju_copy(mj_qacc_unc_pert.data(), dPerturbed->qacc_unc+vel_off, ndof);
-    // // Get constraint forces in joint space
-    // mju_copy(qcon.data(), dPerturbed->qfrc_constraint+vel_off, ndof);
-    // tau_w_contact = tau + qcon;
+    // Calculate actual perturbed accelerations using MuJoCo
+    Eigen::VectorXd mj_qacc_pert(ndof), mj_qacc_unc_pert(ndof), pn_a_pert(ndof), pn_a_unc_pert(ndof);
+    mju_copy(mj_qacc_pert.data(), dPerturbed->qacc+vel_off, ndof);
+    mju_copy(mj_qacc_unc_pert.data(), dPerturbed->qacc_unc+vel_off, ndof);
+    // Get constraint forces in joint space
+    mju_copy(qcon.data(), dPerturbed->qfrc_constraint+vel_off, ndof);
+    tau_w_contact = tau + qcon;
 
-    // // Print updated contact info
-    // printContactInfo(m, dPerturbed);
-    // // Update fext for Pinocchio computations
-    // fext = getExternalForce(m, dPerturbed, model);
+    // Print updated contact info
+    printContactInfo(m, dPerturbed);
+    // Update fext for Pinocchio computations
+    fext = getExternalForce(m, dPerturbed, model);
 
-    // // Calculate actual perturbed accelerations using Pinocchio
-    // pinocchio::aba(model, data, q, v, tau, fext);
-    // pn_a_pert = data.ddq;
-    // pinocchio::aba(model, data, q, v, tau_w_contact);
-    // pn_a_unc_pert = data.ddq;
+    // Calculate actual perturbed accelerations using Pinocchio
+    pinocchio::aba(model, data, q, v, tau, fext);
+    pn_a_pert = data.ddq;
+    pinocchio::forwardKinematics(model, data, q, v, data.ddq);
+    obj_acc = pinocchio::getClassicalAcceleration(model, data, obj_jnt_id, pinocchio::LOCAL_WORLD_ALIGNED);
+    pn_a_pert.segment(obj_idx_v, 3) = obj_acc.linear();
+    // Replace fext with external forces projected on the joint space
+    pinocchio::aba(model, data, q, v, tau_w_contact);
+    pn_a_unc_pert = data.ddq;
+    pinocchio::forwardKinematics(model, data, q, v, data.ddq);
+    obj_acc = pinocchio::getClassicalAcceleration(model, data, obj_jnt_id, pinocchio::LOCAL_WORLD_ALIGNED);
+    pn_a_unc_pert.segment(obj_idx_v, 3) = obj_acc.linear();
 
-    // // Calculate predicted accelerations
-    // Eigen::VectorXd mj_a_pred(ndof), pn_a_pred(ndof), pn_a_pred_wo_fext(ndof);
-    // mj_a_pred = mj_qacc + mj_da_dq*dq + mj_da_dv*dv + mj_da_du*du;
-    // pn_a_pred = mj_qacc + pn_da_dq*dq + pn_da_dv*dv + pn_da_du*du;
-    // pn_a_pred_wo_fext = mj_qacc + pn_da_dq_wo_fext*dq + pn_da_dv_wo_fext*dv + pn_da_du_wo_fext*du;
+    // Calculate predicted accelerations
+    Eigen::VectorXd mj_a_pred(ndof), pn_a_pred(ndof), pn_a_pred_wo_fext(ndof);
+    mj_a_pred = mj_qacc + mj_da_dq*dq + mj_da_dv*dv + mj_da_du*du;
+    pn_a_pred = mj_qacc + pn_da_dq*dq + pn_da_dv*dv + pn_da_du*du;
+    pn_a_pred_wo_fext = mj_qacc + pn_da_dq_wo_fext*dq + pn_da_dv_wo_fext*dv + pn_da_du_wo_fext*du;
 
-    // // Print predicted accelerations
-    // std::cout << "\n\nActual accelerations after perturbation:" <<
-    //              "\nMuJoCo:             " << mj_qacc_pert.transpose() <<
-    //              "\nPinocchio:          " << pn_a_pert.transpose() <<
-    //              "\nPinocchio w/ qcon:  " << pn_a_unc_pert.transpose() <<
-    //              "\nPredicted accelerations:" <<
-    //              "\nMuJoCo:             " << mj_a_pred.transpose() <<
-    //              "\nPinocchio:          " << pn_a_pred.transpose() <<
-    //              "\nPinocchio w/o fext: " << pn_a_pred_wo_fext.transpose() <<
-    //              "\nDiscrepancies w.r.t. MuJoCo's perturbed acceleration:" <<
-    //              "\nMuJoCo:             " << ((mj_qacc_pert-mj_a_pred).cwiseAbs()).transpose() <<
-    //              "\nPinocchio:          " << ((mj_qacc_pert-pn_a_pred).cwiseAbs()).transpose() <<
-    //              "\nPinocchio w/o fext: " << ((mj_qacc_pert-pn_a_pred_wo_fext).cwiseAbs()).transpose() << "\n";
+    // Print predicted accelerations
+    std::cout << "\n\nActual accelerations after perturbation:" <<
+                 "\nMuJoCo:             " << mj_qacc_pert.transpose() <<
+                 "\nPinocchio:          " << pn_a_pert.transpose() <<
+                 "\nPinocchio w/ qcon:  " << pn_a_unc_pert.transpose() <<
+                 "\nPredicted accelerations:" <<
+                 "\nMuJoCo:             " << mj_a_pred.transpose() <<
+                 "\nPinocchio:          " << pn_a_pred.transpose() <<
+                 "\nPinocchio w/o fext: " << pn_a_pred_wo_fext.transpose() <<
+                 "\nDiscrepancies w.r.t. MuJoCo's perturbed acceleration:" <<
+                 "\nMuJoCo:             " << ((mj_qacc_pert-mj_a_pred).cwiseAbs()).transpose() <<
+                 "\nPinocchio:          " << ((mj_qacc_pert-pn_a_pred).cwiseAbs()).transpose() <<
+                 "\nPinocchio w/o fext: " << ((mj_qacc_pert-pn_a_pred_wo_fext).cwiseAbs()).transpose() << "\n";
 
     // Delete perturbed data
     mj_deleteData(dPerturbed);
