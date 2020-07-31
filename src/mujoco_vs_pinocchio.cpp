@@ -477,7 +477,7 @@ int main(int argc, char const *argv[]) {
                 // Project free-body linear velocity onto the local frame
                 Eigen::VectorXd vobj_g(3), vobj_l(3);
                 mju_copy3(vobj_g.data(), dPerturbed->qvel+vel_off+idx_v);
-                mju_copy4(q_l2g, d->qpos+pos_off+idx_q+3);
+                mju_copy4(q_l2g, dPerturbed->qpos+pos_off+idx_q+3);
                 mju_negQuat(q_g2l, q_l2g);
                 mju_rotVecQuat(vobj_l.data(), vobj_g.data(), q_g2l);
                 v.segment(idx_v, 3) = vobj_l;
@@ -525,6 +525,9 @@ int main(int argc, char const *argv[]) {
     mju_copy(mj_qacc_unc_pert.data(), dPerturbed->qacc_unc+vel_off, ndof);
     // Get constraint forces in joint space
     mju_copy(qcon.data(), dPerturbed->qfrc_constraint+vel_off, ndof);
+    Eigen::Vector3d qcon_vobj;
+    mju_rotVecQuat(qcon_vobj.data(), qcon.head(3).data(), q_g2l);
+    qcon.head(3) = qcon_vobj;
     tau_w_contact = tau + qcon;
 
     // Print updated contact info
