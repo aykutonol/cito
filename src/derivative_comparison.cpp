@@ -41,7 +41,7 @@ bool showTime  = false;
 bool readYAML  = false;
 
 // Compensate bias term
-double compensateBias = 1.0;
+double compensateBias = 0.0;
 
 // Number of samples
 int nSample = 50;
@@ -201,12 +201,12 @@ int main(int argc, char const *argv[]) {
         mju_copy(da_df.data(), deriv+2*m->nv*m->nv, m->nv*m->nv);
         // Build derivative matrices
         FxW.setZero();
-        FxW.topLeftCorner(m->nv, m->nv)     = Eigen::MatrixXd::Identity(m->nv, m->nv) + 0.5*cp.tc*cp.tc*da_dq;
-        FxW.topRightCorner(m->nv, m->nv)    = cp.tc*Eigen::MatrixXd::Identity(m->nv, m->nv) + 0.5*cp.tc*cp.tc*da_dv;
+        FxW.topLeftCorner(m->nv, m->nv)     = Eigen::MatrixXd::Identity(m->nv, m->nv) + cp.tc*cp.tc*da_dq;
+        FxW.topRightCorner(m->nv, m->nv)    = cp.tc*Eigen::MatrixXd::Identity(m->nv, m->nv) + cp.tc*cp.tc*da_dv;
         FxW.bottomLeftCorner(m->nv, m->nv)  = cp.tc*da_dq;
         FxW.bottomRightCorner(m->nv, m->nv) = Eigen::MatrixXd::Identity(m->nv, m->nv) + cp.tc*da_dv;
         FuW.setZero();
-        FuW.topRows(m->nv)    = 0.5*cp.tc*cp.tc*da_df;
+        FuW.topRows(m->nv)    = cp.tc*cp.tc*da_df;
         FuW.bottomRows(m->nv) = cp.tc*da_df;
 
         // Calculate derivatives with Pinocchio
@@ -218,12 +218,12 @@ int main(int argc, char const *argv[]) {
             std::cout << "\nINFO: Pinocchio took " << tP(k) << " s\n\n";
         // Build derivative matrices
         FxP.setZero();
-        FxP.topLeftCorner(m->nv, m->nv)     = Eigen::MatrixXd::Identity(m->nv, m->nv) + 0.5*cp.tc*cp.tc*data.ddq_dq;
-        FxP.topRightCorner(m->nv, m->nv)    = cp.tc*Eigen::MatrixXd::Identity(m->nv, m->nv) + 0.5*cp.tc*cp.tc*data.ddq_dv;
+        FxP.topLeftCorner(m->nv, m->nv)     = Eigen::MatrixXd::Identity(m->nv, m->nv) + cp.tc*cp.tc*data.ddq_dq;
+        FxP.topRightCorner(m->nv, m->nv)    = cp.tc*Eigen::MatrixXd::Identity(m->nv, m->nv) + cp.tc*cp.tc*data.ddq_dv;
         FxP.bottomLeftCorner(m->nv, m->nv)  = cp.tc*data.ddq_dq;
         FxP.bottomRightCorner(m->nv, m->nv) = Eigen::MatrixXd::Identity(m->nv, m->nv) + cp.tc*data.ddq_dv;
         FuP.setZero();
-        FuP.topRows(m->nv)    = 0.5*cp.tc*cp.tc*data.Minv;
+        FuP.topRows(m->nv)    = cp.tc*cp.tc*data.Minv;
         FuP.bottomRows(m->nv) = cp.tc*data.Minv;
 
         // Show derivative matrices
