@@ -9,8 +9,15 @@
 // Perturbation flags
 int pos_pert=1, vel_pert=0, tau_pert=0;
 
+// External force flag
+int fext_flag=1;
+
+// Number of random samples
+int nSample = 50;
+
 // Compensate bias term
 double compensateBias = 1.0;
+
 
 PINOCCHIO_ALIGNED_STD_VECTOR(pinocchio::Force) getExternalForce(const mjModel* m, const mjData* d, const pinocchio::Model& model)
 {
@@ -138,22 +145,16 @@ bool printTime  = false;
 
 int main(int argc, char const *argv[]) {
     // Parse command line arguments
-    int nSample = 50, fext_flag=1;
     if(argc>1)
-    {
         nSample = atoi(argv[1]);
-        if(argc>2)
-        {
-            fext_flag = atoi(argv[2]);
-            // Get the perturbation flags, if set
-            if(argc>3)
-            {
-                pos_pert = atoi(argv[3]);
-                vel_pert = atoi(argv[4]);
-                tau_pert = atoi(argv[5]);
-            }
-        }
-    }
+    if(argc>2)
+        fext_flag = atoi(argv[2]);
+    if(argc>3)
+        pos_pert = atoi(argv[3]);
+    if(argc>4)
+        vel_pert = atoi(argv[4]);
+    if(argc>5)
+        tau_pert = atoi(argv[5]);
 
     // Initialize MuJoCo
     const char* mjKeyPath = std::getenv("MJ_KEY");
