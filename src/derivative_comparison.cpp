@@ -36,19 +36,6 @@ void showConfig(mjModel* m, mjData* d)
     mju_printMat(d->qacc, 1, m->nv);
 }
 
-void copyData(const mjModel* m, const mjData* dmain, mjData* d)
-{
-    // Copy state and control from dmain to thread-specific d
-    d->time = dmain->time;
-    mju_copy(d->qpos, dmain->qpos, m->nq);
-    mju_copy(d->qvel, dmain->qvel, m->nv);
-    mju_copy(d->qacc, dmain->qacc, m->nv);
-    mju_copy(d->qacc_warmstart, dmain->qacc_warmstart, m->nv);
-    mju_copy(d->qfrc_applied, dmain->qfrc_applied, m->nv);
-    mju_copy(d->xfrc_applied, dmain->xfrc_applied, 6*m->nbody);
-    mju_copy(d->ctrl, dmain->ctrl, m->nu);
-}
-
 int main(int argc, char const *argv[]) {
     // Get the number of samples from the command, if set
     if(argc>1)
@@ -246,7 +233,7 @@ int main(int argc, char const *argv[]) {
 
         /// Nominal trajectory
         mjData* dNominal = mj_makeData(m);
-        copyData(m, d, dNominal);
+        mj_copyData(dNominal, m, d);
         mj_forward(m, dNominal);
         cc.takeStep(dNominal, u, false, compensateBias);
         xNewNominal = cc.getState(dNominal);
@@ -279,7 +266,7 @@ int main(int argc, char const *argv[]) {
 
         // Perturbed trajectory
         mjData* dPerturbed = mj_makeData(m);
-        copyData(m, d, dPerturbed);
+        mj_copyData(dPerturbed, m, d);
         mju_copy(dPerturbed->ctrl, u.data(), m->nu);
         mju_copy(dPerturbed->qpos, x.head(m->nv).data(), m->nv);
         mju_copy(dPerturbed->qvel, x.tail(m->nv).data(), m->nv);

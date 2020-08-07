@@ -18,7 +18,6 @@ int nSample = 50;
 // Compensate bias term
 double compensateBias = 1.0;
 
-
 PINOCCHIO_ALIGNED_STD_VECTOR(pinocchio::Force) getExternalForce(const mjModel* m, const mjData* d, const pinocchio::Model& model)
 {
     PINOCCHIO_ALIGNED_STD_VECTOR(pinocchio::Force) fext((size_t)model.njoints, pinocchio::Force::Zero());
@@ -118,19 +117,6 @@ void printConfig(mjModel* m, mjData* d)
     mju_printMat(d->qacc, 1, m->nv);
     std::cout << "qcst: ";
     mju_printMat(d->qfrc_constraint, 1, m->nv);
-}
-
-void copyData(const mjModel* m, const mjData* dmain, mjData* d)
-{
-    // copy state and control from dmain to thread-specific d
-    d->time = dmain->time;
-    mju_copy(d->qpos, dmain->qpos, m->nq);
-    mju_copy(d->qvel, dmain->qvel, m->nv);
-    mju_copy(d->qacc, dmain->qacc, m->nv);
-    mju_copy(d->qacc_warmstart, dmain->qacc_warmstart, m->nv);
-    mju_copy(d->qfrc_applied, dmain->qfrc_applied, m->nv);
-    mju_copy(d->xfrc_applied, dmain->xfrc_applied, 6*m->nbody);
-    mju_copy(d->ctrl, dmain->ctrl, m->nu);
 }
 
 // Flags
@@ -355,7 +341,7 @@ int main(int argc, char const *argv[]) {
 
         // Nominal trajectory
         mjData* dNominal = mj_makeData(m);
-        copyData(m, d, dNominal);
+        mj_copyData(dNominal, m, d);
         mj_forward(m, dNominal);
         if( printTraj )
         {
@@ -391,7 +377,7 @@ int main(int argc, char const *argv[]) {
 
         // Perturbed trajectory
         mjData* dPerturbed = mj_makeData(m);
-        copyData(m, d, dPerturbed);
+        mj_copyData(dPerturbed, m, d);
         mju_copy(dPerturbed->ctrl, u.data(), m->nu);
         // mju_copy(dPerturbed->qfrc_applied, u.data(), m->nv);
         mju_copy(dPerturbed->qpos, x.head(m->nv).data(), m->nv);
