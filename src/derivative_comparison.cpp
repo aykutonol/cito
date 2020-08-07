@@ -5,6 +5,24 @@
 #include "pinocchio/parsers/urdf.hpp"
 #include "pinocchio/algorithm/aba-derivatives.hpp"
 
+// Flags
+bool showDeriv = true;
+bool showMInit = false;
+bool showPInit = true;
+bool showPred  = true;
+bool showPert  = false;
+bool showTime  = false;
+bool readYAML  = false;
+
+// Perturbation flags
+int pos_pert=1, vel_pert=0, tau_pert=0;
+
+// Compensate bias term
+double compensateBias = 0.0;
+
+// Number of samples
+int nSample = 50;
+
 void showConfig(mjModel* m, mjData* d)
 {
     std::cout << "\ntime: " << d->time << "\n";
@@ -31,27 +49,16 @@ void copyData(const mjModel* m, const mjData* dmain, mjData* d)
     mju_copy(d->ctrl, dmain->ctrl, m->nu);
 }
 
-// Flags
-bool showDeriv = true;
-bool showMInit = false;
-bool showPInit = true;
-bool showPred  = true;
-bool showPert  = false;
-bool showTime  = false;
-bool readYAML  = false;
-
-// Compensate bias term
-double compensateBias = 0.0;
-
-// Number of samples
-int nSample = 50;
-
 int main(int argc, char const *argv[]) {
     // Get the number of samples from the command, if set
     if(argc>1)
-    {
         nSample = atoi(argv[1]);
-    }
+    if(argc>2)
+        pos_pert = atoi(argv[2]);
+    if(argc>3)
+        vel_pert = atoi(argv[3]);
+    if(argc>4)
+        tau_pert = atoi(argv[4]);
     // Get workspace directory path
     const std::string workspaceDir = std::getenv("CITO_WS");
 
@@ -249,8 +256,12 @@ int main(int argc, char const *argv[]) {
         // Generate random perturbation
         if( !readYAML )
         {
-            dx = Eigen::VectorXd::Random(cp.n)*1e-1;
-            du = Eigen::VectorXd::Random(cp.m)*1e-1;
+            if(pos_pert)
+                dx.head(m->nv) = Eigen::VectorXd::Random(m->nv)*1e-1;
+            if(vel_pert)
+                dx.tail(m->nv) = Eigen::VectorXd::Random(m->nv)*1e-1;
+            if(tau_pert)
+                du = Eigen::VectorXd::Random(cp.m)*1e-1;
         }
         /// Show perturbation
         if( showPert )
