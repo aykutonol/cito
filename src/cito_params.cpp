@@ -75,15 +75,12 @@ CitoParams::CitoParams(const mjModel* model) : model(model)
     sPair1 = Eigen::Map<Eigen::VectorXi>(stdVecInt.data(), stdVecInt.size());
     stdVecInt = { params["spair2"].as<std::vector<int>>() };
     sPair2 = Eigen::Map<Eigen::VectorXi>(stdVecInt.data(), stdVecInt.size());
-    mjtNum normal[3] = {1, 0, 0};
-    mjtNum mjQuat[4];
+    mjtNum surface_normal[3] = {1, 0, 0};
+    mjtNum site_quat[4];
     for( int i=0; i<nPair; i++ )
     {
-        for( int j=0; j<4; j++ )
-        {
-            mjQuat[j] = model->site_quat[sPair2(i)*4+j];
-        }
-        mju_rotVecQuat(nCS.col(i).data(), normal, mjQuat);
+        mju_copy4(site_quat, model->site_quat+4*sPair2(i));
+        mju_rotVecQuat(nCS.col(i).data(), surface_normal, site_quat);
     }
     // dimensions
     n = 2*nv;               // dimensionality of states
