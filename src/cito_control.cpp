@@ -104,7 +104,7 @@ eigMd CitoControl::contactModel(const mjData* d, const eigVd u)
 
 // getState: converts free joints' quaternions to Euler angles so that
 // the dimensionality of the state vector is 2*nv instead of nq+nv
-eigVm CitoControl::getState(const mjData* d)
+eigVd CitoControl::getState(const mjData* d)
 {
     x.setZero();
     int freeNo = 0;

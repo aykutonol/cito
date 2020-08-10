@@ -33,7 +33,7 @@ private:
     /// Perturbation for central differences
     double eps = 1e-6;
     /// Variables for differentiation
-    eigVm xNewTemp, xNewP, xNewN;
+    eigVd xNewTemp, xNewP, xNewN;
     eigVd uTemp;
     /// Objects
     CitoParams  cp;

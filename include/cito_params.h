@@ -23,7 +23,6 @@
 /// Types
 typedef Eigen::VectorXd eigVd;
 typedef Eigen::MatrixXd eigMd;
-typedef Eigen::Matrix<mjtNum, Eigen::Dynamic, 1> eigVm;
 typedef Eigen::Matrix<mjtNum, Eigen::Dynamic, Eigen::Dynamic> eigMm;
 typedef std::vector<eigMm> eigTm;
 
