@@ -72,18 +72,15 @@ eigMd CitoControl::contactModel(const mjData* d, const eigVd u)
     for( int pI=0; pI<cp.nPair; pI++ )
     {
         // vectors in the world frame
-        for( int i=0; i<3; i++ )
-        {
-          pSR[i] = d->site_xpos[cp.sPair1[pI]*3+i];         // position of the site on the robot
-          pSE[i] = d->site_xpos[cp.sPair2[pI]*3+i];         // position of the site in the environment
-          nCS[i] = cp.nCS.col(pI)[i];                       // contact surface normal
-        }
-        vRE  = pSE - pSR;                                   // vector from the robot (end effector) to the environment
+        mju_copy3(pSR.data(), d->site_xpos+3*cp.sPair1[pI]);    // position of the site on the robot
+        mju_copy3(pSE.data(), d->site_xpos+3*cp.sPair2[pI]);    // position of the site in the environment
+        nCS = cp.nCS.col(pI);                                   // contact surface normal
+        vRE  = pSE - pSR;                                       // vector from the robot (end effector) to the environment
         // distance
-        phiE = vRE.norm();                                  // Euclidean distance between the end effector and the environment
-        phiN = vRE.dot(nCS);                                // normal distance between the end effector and the environment
-        zeta  = tanh(phiR*phiE);                            // semi-sphere based on the Euclidean distance
-        phiC = zeta*phiE + (1-zeta)*phiN;                   // combined distance
+        phiE = vRE.norm();                                      // Euclidean distance between the end effector and the environment
+        phiN = vRE.dot(nCS);                                    // normal distance between the end effector and the environment
+        zeta  = tanh(phiR*phiE);                                // semi-sphere based on the Euclidean distance
+        phiC = zeta*phiE + (1-zeta)*phiN;                       // combined distance
         // normal force in the contact frame
         gamma = u(m->nu+pI)*exp(-alpha*phiC);
         // contact generalized in the world frame
@@ -91,18 +88,15 @@ eigMd CitoControl::contactModel(const mjData* d, const eigVd u)
         // loop for each free body
         for( int fI=0; fI<cp.nFree; fI++ )
         {
-          for( int i=0; i<3; i++ )
-          {
-            pBF[i] = d->qpos[cp.pFree[fI]+i];               // position of the center of mass of the free body
-          }
-          vEF = pBF - pSR;                                  // vector from the end effector to the free body
-          // wrench on the free body due to the contact pI: [lambda; cross(vEF, lambda)]
-          h(fI*6+0) += lambda[0];
-          h(fI*6+1) += lambda[1];
-          h(fI*6+2) += lambda[2];
-          h(fI*6+3) += -vEF[2]*lambda[1] + vEF[1]*lambda[2];
-          h(fI*6+4) +=  vEF[2]*lambda[0] - vEF[0]*lambda[2];
-          h(fI*6+5) += -vEF[1]*lambda[0] + vEF[0]*lambda[1];
+            mju_copy3(pBF.data(), d->qpos+cp.pFree[fI]);        // position of the center of mass of the free body
+            vEF = pBF - pSR;                                    // vector from the end effector to the free body
+            // wrench on the free body due to the contact pI: [lambda; cross(vEF, lambda)]
+            h(fI*6+0) += lambda[0];
+            h(fI*6+1) += lambda[1];
+            h(fI*6+2) += lambda[2];
+            h(fI*6+3) += -vEF[2]*lambda[1] + vEF[1]*lambda[2];
+            h(fI*6+4) +=  vEF[2]*lambda[0] - vEF[0]*lambda[2];
+            h(fI*6+5) += -vEF[1]*lambda[0] + vEF[0]*lambda[1];
         }
     }
     return h;
