@@ -43,7 +43,7 @@ private:
     eigMd h, hCon;
     /// Contact model variables
     double phiE, phiN, zeta, phiC, gamma, alpha, phiR;
-    Eigen::Matrix<double, 3, 1> pSR, pSE, pBF, nCS, vRE, vEF, lambda;
+    Eigen::Vector3d pSR, pSE, pBF, nCS, vRE, vEF, lambda;
     /// getState variables
     eigVm x;
     Eigen::Matrix<mjtNum, 4, 1> jFreeQuat;
