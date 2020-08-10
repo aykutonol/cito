@@ -24,7 +24,7 @@ public:
     /// Destructor
     ~CitoSCvx() {}
     /// This function returns the nonlinear cost given control trajectory and final state
-    double getCost(const eigMm X, const eigMd U);
+    double getCost(const eigMd X, const eigMd U);
     /// This function rolls-out and linearizes the dynamics given control trajectory
     trajectory runSimulation(const eigMd U0, bool linearize, bool save, double compensateBias);
     /// This function executes the successive convexification algorithm
@@ -43,9 +43,9 @@ private:
            rMin, rMax;                  // trust-region radius limits
     bool *accept, dLTolMet = false, stop = false;
     /// Trajectories
-    eigMm XSucc, dX, XTilde;
+    eigMd XSucc, dX, XTilde;
     eigMd USucc, dU, UTemp;
-    eigTm Fx, Fu;
+    eigTd Fx, Fu;
     trajectory traj, trajS, trajTemp;
     /// Cost function variables
     eigVd finalPos;

@@ -44,7 +44,7 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(mo
 
 // ***** FUNCTIONS *************************************************************
 // getCost: returns the nonlinear cost given control trajectory and final state
-double CitoSCvx::getCost(const eigMm X, const eigMd U)
+double CitoSCvx::getCost(const eigMd X, const eigMd U)
 {
     // final cost
     finalPos = X.col(cp.N).segment(cp.controlJointDOF0, 6);

@@ -23,16 +23,15 @@
 /// Types
 typedef Eigen::VectorXd eigVd;
 typedef Eigen::MatrixXd eigMd;
-typedef Eigen::Matrix<mjtNum, Eigen::Dynamic, Eigen::Dynamic> eigMm;
-typedef std::vector<eigMm> eigTm;
+typedef std::vector<eigMd> eigTd;
 
 /// Structs
 struct trajectory
 {
-    eigMm X;
+    eigMd X;
     eigMd U;
-    eigTm Fx;
-    eigTm Fu;
+    eigTd Fx;
+    eigTd Fu;
 };
 
 /// Paths
@@ -55,7 +54,7 @@ public:
         nFree, *pFree, *bFree, *dAct,
         *quatAdr, *dofAdr;
     Eigen::VectorXi sPair1, sPair2;
-    eigMm nCS;
+    eigMd nCS;
     /// Task parameters
     eigVd desiredPos;
     int controlJointDOF0;
