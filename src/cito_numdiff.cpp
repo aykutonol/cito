@@ -13,7 +13,7 @@ CitoNumDiff::CitoNumDiff(const mjModel* model) : m(model), cp(model), cc(model)
 }
 // ***** FUNCTIONS *************************************************************
 // copyTakeStep: sets xNew to the integration of data given a control input
-void CitoNumDiff::copyTakeStep(const mjData* dMain, const eigVd u, mjtNum* xNew, double compensateBias)
+void CitoNumDiff::copyTakeStep(const mjData* dMain, const eigVd u, double* xNew, double compensateBias)
 {
     // create new data
     mjData* d;
@@ -41,7 +41,7 @@ void CitoNumDiff::copyTakeStep(const mjData* dMain, const eigVd u, mjtNum* xNew,
 }
 
 // hardWorker: for full, slow finite-difference computation
-void CitoNumDiff::hardWorker(const mjData* dMain, const eigVd uMain, mjtNum* deriv, double compensateBias)
+void CitoNumDiff::hardWorker(const mjData* dMain, const eigVd uMain, double* deriv, double compensateBias)
 {
     // create data
     mjData* d;
@@ -145,9 +145,9 @@ void CitoNumDiff::hardWorker(const mjData* dMain, const eigVd uMain, mjtNum* der
 }
 
 // linDyn: calculates derivatives of the state and control trajectories
-void CitoNumDiff::linDyn(const mjData* dMain, const eigVd uMain, mjtNum* Fxd, mjtNum* Fud, double compensateBias)
+void CitoNumDiff::linDyn(const mjData* dMain, const eigVd uMain, double* Fxd, double* Fud, double compensateBias)
 {
-    mjtNum* deriv = (mjtNum*) mju_malloc(sizeof(mjtNum)*cp.n*(cp.n+cp.m));
+    double* deriv = (double*) mju_malloc(sizeof(double)*cp.n*(cp.n+cp.m));
     this->hardWorker( dMain, uMain, deriv, compensateBias);
     mju_copy(Fxd, deriv, cp.n*cp.n);
     mju_copy(Fud, deriv+cp.n*cp.n, cp.n*cp.m);
