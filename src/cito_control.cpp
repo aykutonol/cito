@@ -31,7 +31,7 @@ CitoControl::~CitoControl()
 
 // ***** FUNCTIONS *************************************************************
 // takeStep: takes a full control step given a control input
-void CitoControl::takeStep(mjData*d, const eigVd u, bool save, double compensateBias)
+void CitoControl::takeStep(mjData* d, const eigVd u, bool save, double compensateBias)
 {
     if( save ) { sl.writeData(d); }
     for( int i=0; i<cp.ndpc; i++ )

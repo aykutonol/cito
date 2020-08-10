@@ -22,7 +22,7 @@ public:
     /// Destructor
     ~CitoControl();
     /// This function takes a full control step given a control input
-    void takeStep(mjData*d, const eigVd u, bool save, double compensateBias);
+    void takeStep(mjData* d, const eigVd u, bool save, double compensateBias);
     /// This function sets generalized forces on joints and free bodies
     void setControl(mjData* d, const eigVd u, double compensateBias);
     /** This function converts free joints' quaternions to Euler angles so that
