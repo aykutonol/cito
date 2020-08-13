@@ -4,7 +4,7 @@
 
 #include "cito_params.h"
 
-// ***** CONSTRUCTOR & DESTRUCTOR **********************************************
+// ***** CONSTRUCTOR ***********************************************************
 CitoParams::CitoParams(const mjModel* model) : model(model)
 {
     // read config files
@@ -86,4 +86,11 @@ CitoParams::CitoParams(const mjModel* model) : model(model)
     n = 2*nv;               // dimensionality of states
     m = nu+nPair;           // dimensionality of controls
     nTraj = (N+1)*n + N*m;  // number of parameters in discretized trajectory
+}
+// ***** DESTRUCTOR ************************************************************
+CitoParams::~CitoParams()
+{
+    delete[] quatAdr;   delete[] dofAdr;
+    delete[] bFree;     delete[] pFree;
+    delete[] dAct;
 }

@@ -20,9 +20,10 @@ class CitoSCvx
 {
 public:
     /// Constructor
-    CitoSCvx(const mjModel* model);
+    CitoSCvx(const mjModel* model, std::shared_ptr<CitoParams> params);
+    // CitoSCvx(const mjModel* model, CitoParams* params);
     /// Destructor
-    ~CitoSCvx() {}
+    ~CitoSCvx();
     /// This function returns the nonlinear cost given control trajectory and final state
     double getCost(const eigMd X, const eigMd U);
     /// This function rolls-out and linearizes the dynamics given control trajectory
@@ -51,7 +52,7 @@ private:
     eigVd finalPos;
     double Jf, Ji, Jt;      // final, integrated, and total cost values
     /// Objects
-    CitoParams  cp;
+    std::shared_ptr<CitoParams> cp;
     CitoControl cc;
     CitoNumDiff nd;
     CitoSQOPT   sq;
