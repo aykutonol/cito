@@ -27,19 +27,18 @@ int main(int argc, char const *argv[]) {
     else {  m = mj_loadXML(modelPath, NULL, NULL, 0); }
     if( !m ) { mju_error("Cannot load the model"); }
     // ***** Create objects for CITO *********************************************/
-    std::shared_ptr<CitoParams> cp = std::make_shared<CitoParams>(m);
-    // CitoParams *cp = new CitoParams(m);
-    CitoSCvx scvx(m, cp);
+    CitoParams cp(m);
+    CitoSCvx scvx(m);
     // ***** Trajectories ********************************************************/
-    eigMd U0, U; U0.resize(cp->m,cp->N); U.resize(cp->m,cp->N);
+    eigMd U0, U; U0.resize(cp.m,cp.N); U.resize(cp.m,cp.N);
     trajectory traj;
     // ***** Initial control trajectory ******************************************/
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
     double kCon0 = vscm["kCon0"].as<double>();
-    for (int i=0; i<cp->N; i++)
+    for (int i=0; i<cp.N; i++)
     {
         U0.col(i).setZero();
-        for (int j=0; j<cp->nPair; j++)
+        for (int j=0; j<cp.nPair; j++)
         {
             U0.col(i)[m->nu + j] = kCon0;
         }
@@ -50,20 +49,20 @@ int main(int argc, char const *argv[]) {
     traj = scvx.runSimulation(U, false, true, 1);
     // Print the trajectory
     std::cout << "\n\nOptimal trajectory:\n";
-    for( int i=0; i<cp->N; i++ )
+    for( int i=0; i<cp.N; i++ )
     {
         std::cout << "time step " << i << ":\n\t\tpos = " << traj.X.col(i).head(m->nv).transpose() << "\n";
         std::cout << "\t\t vel = " << traj.X.col(i).tail(m->nv).transpose() << "\n";
         std::cout << "\t\t tau = ";
         std::cout << traj.U.col(i).head(m->nu).transpose() << "\n";
         std::cout <<"\t\t KCon = ";
-        std::cout << traj.U.col(i).tail(cp->nPair).transpose() << "\n\n";
+        std::cout << traj.U.col(i).tail(cp.nPair).transpose() << "\n\n";
     }
-    std::cout << "time step " << cp->N << ":\n\t\tpos = " << traj.X.col(cp->N).head(m->nv).transpose() << "\n";
-    std::cout << "\t\t vel = " << traj.X.col(cp->N).tail(m->nv).transpose() << "\n";
+    std::cout << "time step " << cp.N << ":\n\t\tpos = " << traj.X.col(cp.N).head(m->nv).transpose() << "\n";
+    std::cout << "\t\t vel = " << traj.X.col(cp.N).tail(m->nv).transpose() << "\n";
     // ***** Evaluate the optimal const ******************************************/
     double J = scvx.getCost(traj.X, traj.U);
-    std::cout << "J = " << J << ", kmax = " << U.bottomRows(cp->nPair).maxCoeff() <<
+    std::cout << "J = " << J << ", kmax = " << U.bottomRows(cp.nPair).maxCoeff() <<
                  "\n\nINFO: Planning completed.\n\n";
     // ***** MuJoCo shut down ****************************************************/
     mj_deleteModel(m);

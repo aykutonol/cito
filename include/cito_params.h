@@ -46,7 +46,7 @@ public:
     /// Constructor
     CitoParams(const mjModel *model);
     /// Destructor
-    ~CitoParams();
+    ~CitoParams() {}
     /// Simulation and model parameters
     const mjModel *model;
     double tf, tc, dt;
