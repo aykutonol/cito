@@ -1,6 +1,6 @@
 /*! Main */
 /**
- *  \brief main solves the CITO problem using SCvx
+ *  \brief main solves the CITO problem using SCVX
  *
  *  This file initializes MuJoCo and runs the successive convexification algorithm.
  *  The optimal trajectory is recorded to cito_ws/logs for playback and execution.
@@ -28,7 +28,7 @@ int main(int argc, char const *argv[]) {
     if( !m ) { mju_error("Cannot load the model"); }
     // ***** Create objects for CITO *********************************************/
     CitoParams cp(m);
-    CitoSCvx scvx(m);
+    CitoSCVX scvx(m);
     // ***** Trajectories ********************************************************/
     eigMd U0, U; U0.resize(cp.m,cp.N); U.resize(cp.m,cp.N);
     trajectory traj;
@@ -44,7 +44,7 @@ int main(int argc, char const *argv[]) {
         }
     }
     // ***** Run successive convexification **************************************/
-    U = scvx.solveSCvx(U0);
+    U = scvx.solveSCVX(U0);
     // ***** Evaluate the optimal trajectory *************************************/
     traj = scvx.runSimulation(U, false, true, 1);
     // Print the trajectory

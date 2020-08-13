@@ -3,7 +3,7 @@
  *  \brief CitoSQOPT class consists of functions for using SQOPT
  *
  *  This class defines functions that are used to convert the convex subproblems
- *  used in SCvx to the appropriate form for SQOPT.
+ *  used in SCVX to the appropriate form for SQOPT.
  *
  *  \author Aykut Onol
  */

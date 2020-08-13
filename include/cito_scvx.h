@@ -1,9 +1,9 @@
 /*! Successive Convexification */
 /**
- *  \brief CitoSCvx class consists of functions to run the SCvx algorithm
+ *  \brief CitoSCVX class consists of functions to run the SCVX algorithm
  *
  *  This class defines functions that are used to roll-out the dynamics,
- *  evaluate the cost, and execute the SCvx algorithm.
+ *  evaluate the cost, and execute the SCVX algorithm.
  *
  *  \author Aykut Onol
  */
@@ -16,24 +16,24 @@
 #include "cito_sqopt.h"
 
 
-class CitoSCvx
+class CitoSCVX
 {
 public:
     /// Constructor
-    CitoSCvx(const mjModel* model);
+    CitoSCVX(const mjModel* model);
     /// Destructor
-    ~CitoSCvx();
+    ~CitoSCVX();
     /// This function returns the nonlinear cost given control trajectory and final state
     double getCost(const eigMd X, const eigMd U);
     /// This function rolls-out and linearizes the dynamics given control trajectory
     trajectory runSimulation(const eigMd U0, bool linearize, bool save, double compensateBias);
     /// This function executes the successive convexification algorithm
-    eigMd solveSCvx(const eigMd U);
+    eigMd solveSCVX(const eigMd U);
 
 private:
     /// MuJoCo model
     const mjModel* m;
-    /// SCvx parameters
+    /// SCVX parameters
     int maxIter;                        // maximum number of iterations
     double *J, *JTemp, *JTilde,         // cost terms
            *r, *dJ, *dL, *rho,          // trust region radius, change, and similarity

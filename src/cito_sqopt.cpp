@@ -1,6 +1,6 @@
 // ***** DESCRIPTION ***********************************************************
 // CitoSQOPT class consists of functions that are used to convert the convex
-// subproblems used in SCvx to the appropriate form for SQOPT.
+// subproblems used in SCVX to the appropriate form for SQOPT.
 
 #include "cito_sqopt.h"
 

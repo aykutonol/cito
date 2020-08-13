@@ -1,25 +1,25 @@
 // ***** DESCRIPTION ***********************************************************
-// CitoSCvx class defines functions that are used to roll-out the dynamics,
-// evaluate the cost, and execute the SCvx algorithm.
+// CitoSCVX class defines functions that are used to roll-out the dynamics,
+// evaluate the cost, and execute the SCVX algorithm.
 
 #include "cito_scvx.h"
 
 // ***** CONSTRUCTOR ***********************************************************
-CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(model), sq(model)
+CitoSCVX::CitoSCVX(const mjModel* model) : m(model), cp(model), cc(model), nd(model), sq(model)
 {
     // initialize Eigen variables
     finalPos.resize(6);
-    // get SCvx parameters
-    YAML::Node paramSCvx = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/scvx.yaml");
-    beta_expand = paramSCvx["beta_expand"].as<double>();
-    beta_shrink = paramSCvx["beta_shrink"].as<double>();
-    maxIter = paramSCvx["maxIter"].as<int>();
-    dLTol = paramSCvx["dLTol"].as<double>();
-    rho0 = paramSCvx["rho0"].as<double>();
-    rho1 = paramSCvx["rho1"].as<double>();
-    rho2 = paramSCvx["rho2"].as<double>();
-    rMin = paramSCvx["rMin"].as<double>();
-    rMax = paramSCvx["rMax"].as<double>();
+    // get SCVX parameters
+    YAML::Node paramSCVX = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/scvx.yaml");
+    beta_expand = paramSCVX["beta_expand"].as<double>();
+    beta_shrink = paramSCVX["beta_shrink"].as<double>();
+    maxIter = paramSCVX["maxIter"].as<int>();
+    dLTol = paramSCVX["dLTol"].as<double>();
+    rho0 = paramSCVX["rho0"].as<double>();
+    rho1 = paramSCVX["rho1"].as<double>();
+    rho2 = paramSCVX["rho2"].as<double>();
+    rMin = paramSCVX["rMin"].as<double>();
+    rMax = paramSCVX["rMax"].as<double>();
     J      = new double[maxIter+1];
     JTemp  = new double[maxIter+1];
     JTilde = new double[maxIter+1];
@@ -28,7 +28,7 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(mo
     rho    = new double[maxIter+1];
     r      = new double[maxIter+1];
     accept = new bool[maxIter];
-    r[0]  = paramSCvx["r0"].as<double>();        // initial trust-region radius
+    r[0]  = paramSCVX["r0"].as<double>();        // initial trust-region radius
     // set bounds
     cc.getBounds();
     // resize trajectories
@@ -42,7 +42,7 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(mo
     }
 }
 // ***** DESTRUCTOR ************************************************************
-CitoSCvx::~CitoSCvx()
+CitoSCVX::~CitoSCVX()
 {
     delete[] J;     delete[] JTemp;     delete[] JTilde;
     delete[] dJ;    delete[] dL;        delete[] rho;
@@ -51,7 +51,7 @@ CitoSCvx::~CitoSCvx()
 
 // ***** FUNCTIONS *************************************************************
 // getCost: returns the nonlinear cost given control trajectory and final state
-double CitoSCvx::getCost(const eigMd X, const eigMd U)
+double CitoSCVX::getCost(const eigMd X, const eigMd U)
 {
     // final cost
     finalPos = X.col(cp.N).segment(cp.controlJointDOF0, 6);
@@ -66,7 +66,7 @@ double CitoSCvx::getCost(const eigMd X, const eigMd U)
 }
 
 // runSimulation: rolls-out and linearizes the dynamics given control trajectory
-trajectory CitoSCvx::runSimulation(const eigMd U, bool linearize, bool save, double compensateBias)
+trajectory CitoSCVX::runSimulation(const eigMd U, bool linearize, bool save, double compensateBias)
 {
     // make mjData
     mjData* d = NULL;
@@ -104,12 +104,12 @@ trajectory CitoSCvx::runSimulation(const eigMd U, bool linearize, bool save, dou
     return traj;
 }
 
-// solveSCvx: executes the successive convexification algorithm
-eigMd CitoSCvx::solveSCvx(const eigMd U0)
+// solveSCVX: executes the successive convexification algorithm
+eigMd CitoSCVX::solveSCVX(const eigMd U0)
 {
     // initialize USucc for the first succession
     USucc = U0;
-    // start the SCvx algorithm
+    // start the SCVX algorithm
     int iter = 0;
     while( !stop )
     {
