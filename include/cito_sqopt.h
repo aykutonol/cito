@@ -20,7 +20,7 @@ public:
     /// Constructor
     CitoSQOPT(const mjModel* model);
     /// Destructor
-    ~CitoSQOPT() {}
+    ~CitoSQOPT();
     /// This function solves the convex subproblem
     void solveCvx(double *xTraj, double r, const eigMd X, const eigMd U,
                   const eigTd Fx, const eigTd Fu, int *isJFree, int *isAFree,

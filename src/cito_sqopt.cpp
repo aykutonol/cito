@@ -4,7 +4,7 @@
 
 #include "cito_sqopt.h"
 
-// ***** CONSTRUCTOR & DESTRUCTOR **********************************************
+// ***** CONSTRUCTOR ***********************************************************
 CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
 {
     // initialize Eigen variables
@@ -66,6 +66,13 @@ CitoSQOPT::CitoSQOPT(const mjModel* model) : m(model), cp(model)
     iu[2] = cp.nPair;
     cvxProb.setUserI(iu, leniu);
 }
+// ***** DESTRUCTOR ************************************************************
+CitoSQOPT::~CitoSQOPT()
+{
+    delete[] cObj;  delete[] indMove;
+    delete[] ru;    delete[] iu;
+}
+
 // ***** FUNCTIONS *************************************************************
 // qpHx: sets Hx to the H*x part of the quadratic cost to be multiplied by x'
 void CitoSQOPT::qpHx(int *nnH, double x[], double Hx[], int *nState,
@@ -412,4 +419,5 @@ void CitoSQOPT::sortX(double *x, int *moveIndices)
     {
         x[i] = xTemp[i];
     }
+    delete[] xTemp;
 }
