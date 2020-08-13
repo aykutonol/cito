@@ -5,11 +5,12 @@
 #include "cito_numdiff.h"
 
 // ***** CONSTRUCTOR ***********************************************************
-CitoNumDiff::CitoNumDiff(const mjModel* model) : m(model), cp(model), cc(model)
+CitoNumDiff::CitoNumDiff(const mjModel* m_, CitoParams* cp_, CitoControl* cc_) : 
+                         m(m_), cp(cp_), cc(cc_)
 {
     // initialize Eigen variables
-    xNewTemp.resize(cp.n); xNewP.resize(cp.n); xNewN.resize(cp.n);
-    uTemp.resize(cp.m);
+    xNewTemp.resize(cp->n); xNewP.resize(cp->n); xNewN.resize(cp->n);
+    uTemp.resize(cp->m);
 }
 // ***** FUNCTIONS *************************************************************
 // copyTakeStep: sets xNew to the integration of data given a control input
@@ -29,13 +30,13 @@ void CitoNumDiff::copyTakeStep(const mjData* dMain, const eigVd u, double* xNew,
     mju_copy(d->ctrl, dMain->ctrl, m->nu);
     // run full computation at center point (usually faster than copying dMain)
     mj_forward(m, d);
-    cc.setControl(d, u, compensateBias);
+    cc->setControl(d, u, compensateBias);
     // take a full control step (i.e., tc/dt steps)
-    cc.takeStep(d, u, false, compensateBias);
+    cc->takeStep(d, u, false, compensateBias);
     // get new state
     xNewTemp.setZero();
-    xNewTemp = cc.getState(d);
-    mju_copy(xNew, xNewTemp.data(), cp.n);
+    xNewTemp = cc->getState(d);
+    mju_copy(xNew, xNewTemp.data(), cp->n);
     // delete data
     mj_deleteData(d);
 }
@@ -61,11 +62,11 @@ void CitoNumDiff::hardWorker(const mjData* dMain, const eigVd uMain, double* der
         // get joint id for this dof
         int jID = m->dof_jntid[i];
         // apply quaternion or simple perturbation
-        if( cp.quatAdr[i]>=0 )
+        if( cp->quatAdr[i]>=0 )
         {
             mjtNum angvel[3] = {0,0,0};
-            angvel[cp.dofAdr[i]] = eps;
-            mju_quatIntegrate(d->qpos+cp.quatAdr[i], angvel, 1);
+            angvel[cp->dofAdr[i]] = eps;
+            mju_quatIntegrate(d->qpos+cp->quatAdr[i], angvel, 1);
         }
         else
         {
@@ -77,11 +78,11 @@ void CitoNumDiff::hardWorker(const mjData* dMain, const eigVd uMain, double* der
         // undo perturbation
         mju_copy(d->qpos, dMain->qpos, m->nq);
         // apply quaternion or simple perturbation
-        if( cp.quatAdr[i]>=0 )
+        if( cp->quatAdr[i]>=0 )
         {
             mjtNum angvel[3] = {0,0,0};
-            angvel[cp.dofAdr[i]] = -eps;
-            mju_quatIntegrate(d->qpos+cp.quatAdr[i], angvel, 1);
+            angvel[cp->dofAdr[i]] = -eps;
+            mju_quatIntegrate(d->qpos+cp->quatAdr[i], angvel, 1);
         }
         else
         {
@@ -93,9 +94,9 @@ void CitoNumDiff::hardWorker(const mjData* dMain, const eigVd uMain, double* der
         // undo perturbation
         mju_copy(d->qpos, dMain->qpos, m->nq);
         // compute column i of dx/dqpos
-        for( int j=0; j<cp.n; j++ )
+        for( int j=0; j<cp->n; j++ )
         {
-            deriv[i*cp.n + j] = (xNewP(j) - xNewN(j))/(2*eps);
+            deriv[i*cp->n + j] = (xNewP(j) - xNewN(j))/(2*eps);
         }
     }
     // finite-difference over velocities
@@ -114,15 +115,15 @@ void CitoNumDiff::hardWorker(const mjData* dMain, const eigVd uMain, double* der
         // undo perturbation
         d->qvel[i] = dMain->qvel[i];
         // compute column i of dx/dqvel
-        for( int j=0; j<cp.n; j++ )
+        for( int j=0; j<cp->n; j++ )
         {
-            deriv[cp.n*m->nv + i*cp.n + j] = (xNewP(j) - xNewN(j))/(2*eps);
+            deriv[cp->n*m->nv + i*cp->n + j] = (xNewP(j) - xNewN(j))/(2*eps);
         }
     }
     // finite-difference over control variables
     // copy uMain to uTemp for perturbations
     uTemp = uMain;
-    for( int i=0; i<cp.m; i++ )
+    for( int i=0; i<cp->m; i++ )
     {
         // perturbation in the positive direction
         uTemp(i) += eps;
@@ -135,9 +136,9 @@ void CitoNumDiff::hardWorker(const mjData* dMain, const eigVd uMain, double* der
         xNewN.setZero();
         this->copyTakeStep(d, uTemp, xNewN.data(), compensateBias);
         // compute column i of dx/du
-        for( int j=0; j<cp.n; j++ )
+        for( int j=0; j<cp->n; j++ )
         {
-            deriv[cp.n*cp.n + i*cp.n + j] = (xNewP(j) - xNewN(j))/(2*eps);
+            deriv[cp->n*cp->n + i*cp->n + j] = (xNewP(j) - xNewN(j))/(2*eps);
         }
     }
     // delete data
@@ -147,9 +148,9 @@ void CitoNumDiff::hardWorker(const mjData* dMain, const eigVd uMain, double* der
 // linDyn: calculates derivatives of the state and control trajectories
 void CitoNumDiff::linDyn(const mjData* dMain, const eigVd uMain, double* Fxd, double* Fud, double compensateBias)
 {
-    double* deriv = (double*) mju_malloc(sizeof(double)*cp.n*(cp.n+cp.m));
+    double* deriv = (double*) mju_malloc(sizeof(double)*cp->n*(cp->n+cp->m));
     this->hardWorker( dMain, uMain, deriv, compensateBias);
-    mju_copy(Fxd, deriv, cp.n*cp.n);
-    mju_copy(Fud, deriv+cp.n*cp.n, cp.n*cp.m);
+    mju_copy(Fxd, deriv, cp->n*cp->n);
+    mju_copy(Fud, deriv+cp->n*cp->n, cp->n*cp->m);
     mju_free(deriv);
 }

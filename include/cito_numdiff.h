@@ -17,7 +17,7 @@ class CitoNumDiff
 {
 public:
     /// Constructor
-    CitoNumDiff(const mjModel* model);
+    CitoNumDiff(const mjModel* m_, CitoParams* cp_, CitoControl* cc_);
     /// Destructor
     ~CitoNumDiff() {}
     /// This function calculates derivatives of the state and control trajectories
@@ -36,8 +36,8 @@ private:
     eigVd xNewTemp, xNewP, xNewN;
     eigVd uTemp;
     /// Objects
-    CitoParams  cp;
-    CitoControl cc;
+    CitoParams  *cp;
+    CitoControl *cc;
 };
 
 #endif //CITO_NUMDIFF_H
