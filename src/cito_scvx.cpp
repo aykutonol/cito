@@ -41,6 +41,13 @@ CitoSCvx::CitoSCvx(const mjModel* model) : m(model), cp(model), cc(model), nd(mo
         Fu[i].resize(cp.n, cp.m);
     }
 }
+// ***** DESTRUCTOR ************************************************************
+CitoSCvx::~CitoSCvx()
+{
+    delete[] J;     delete[] JTemp;     delete[] JTilde;
+    delete[] dJ;    delete[] dL;        delete[] rho;
+    delete[] r;     delete[] accept;
+}
 
 // ***** FUNCTIONS *************************************************************
 // getCost: returns the nonlinear cost given control trajectory and final state
@@ -205,6 +212,7 @@ eigMd CitoSCvx::solveSCvx(const eigMd U0)
         std::cout << "J = " << JTemp[iter] << ", JTilde = " << JTilde[iter] << "\n\n\n";
         // next iteration ======================================================
         iter++;
+        delete[] dTraj;
     }
     // summary screen output ===============================================
     std::cout << "\n\nSCVX Summary\nJ0=" << J[0] << "\n\n";

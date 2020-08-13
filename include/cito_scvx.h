@@ -22,7 +22,7 @@ public:
     /// Constructor
     CitoSCvx(const mjModel* model);
     /// Destructor
-    ~CitoSCvx() {}
+    ~CitoSCvx();
     /// This function returns the nonlinear cost given control trajectory and final state
     double getCost(const eigMd X, const eigMd U);
     /// This function rolls-out and linearizes the dynamics given control trajectory
