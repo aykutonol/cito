@@ -24,9 +24,9 @@ CitoControl::CitoControl(const mjModel* model) : m(model), cp(model), sl(model)
 CitoControl::~CitoControl()
 {
     // delete bound variables
-    delete []qposLB;        delete []qposUB;
-    delete []tauLB;         delete []tauUB;
-    delete []isJFree;       delete []isAFree;
+    delete[] qposLB;        delete[] qposUB;
+    delete[] tauLB;         delete[] tauUB;
+    delete[] isJFree;       delete[] isAFree;
 }
 
 // ***** FUNCTIONS *************************************************************
