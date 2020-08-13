@@ -44,7 +44,7 @@ namespace paths
 class CitoParams{
 public:
     /// Constructor
-    CitoParams(const mjModel *model);
+    CitoParams(const mjModel *model_);
     /// Destructor
     ~CitoParams();
     /// Simulation and model parameters

@@ -5,7 +5,7 @@
 #include "cito_params.h"
 
 // ***** CONSTRUCTOR ***********************************************************
-CitoParams::CitoParams(const mjModel* model) : model(model)
+CitoParams::CitoParams(const mjModel* model_) : model(model_)
 {
     // read config files
     YAML::Node params = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/params.yaml");
