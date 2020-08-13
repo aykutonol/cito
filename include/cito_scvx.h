@@ -20,7 +20,7 @@ class CitoSCVX
 {
 public:
     /// Constructor
-    CitoSCVX(const mjModel* model);
+    CitoSCVX(const mjModel* m_, CitoParams* cp_, CitoControl* cc_);
     /// Destructor
     ~CitoSCVX();
     /// This function returns the nonlinear cost given control trajectory and final state
@@ -51,8 +51,8 @@ private:
     eigVd finalPos;
     double Jf, Ji, Jt;      // final, integrated, and total cost values
     /// Objects
-    CitoParams  cp;
-    CitoControl cc;
+    CitoParams  *cp;
+    CitoControl *cc;
     CitoNumDiff nd;
     CitoSQOPT   sq;
 };
