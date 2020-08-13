@@ -7,7 +7,7 @@
 
 
 // ***** CONSTRUCTOR & DESTRUCTOR **********************************************
-CitoControl::CitoControl(const mjModel* model) : m(model), cp(model), sl(model)
+CitoControl::CitoControl(const mjModel* m_, CitoParams* cp_) : m(m_), cp(cp_), sl(m_)
 {
     // read contact model parameters
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
@@ -18,8 +18,8 @@ CitoControl::CitoControl(const mjModel* model) : m(model), cp(model), sl(model)
     tauLB   = new double[m->nu];   tauUB   = new double[m->nu];
     isJFree = new int[m->nv];      isAFree = new int[m->nu];
     // initialize Eigen variables
-    h.resize(6*cp.nFree,1); hCon.resize(6*cp.nFree,1);
-    x.resize(cp.n);
+    h.resize(6*cp->nFree,1); hCon.resize(6*cp->nFree,1);
+    x.resize(cp->n);
 }
 CitoControl::~CitoControl()
 {
@@ -34,7 +34,7 @@ CitoControl::~CitoControl()
 void CitoControl::takeStep(mjData* d, const eigVd u, bool save, double compensateBias)
 {
     if( save ) { sl.writeData(d); }
-    for( int i=0; i<cp.ndpc; i++ )
+    for( int i=0; i<cp->ndpc; i++ )
     {
         mj_step1(m, d);
         this->setControl(d, u, compensateBias);
@@ -49,17 +49,17 @@ void CitoControl::setControl(mjData* d, const eigVd u, double compensateBias)
     // set control given the control input
     for( int i=0; i<m->nu; i++ )
     {
-      d->ctrl[i] = u(i) + compensateBias*d->qfrc_bias[cp.dAct[i]];
+      d->ctrl[i] = u(i) + compensateBias*d->qfrc_bias[cp->dAct[i]];
     }
     // contact model
     hCon.setZero();
     hCon = this->contactModel(d, u);
     // set external forces on the free bodies
-    for( int i=0; i<cp.nFree; i++ )
+    for( int i=0; i<cp->nFree; i++ )
     {
       for( int j=0; j<6; j++ )
       {
-        d->xfrc_applied[cp.bFree[i]*6+j] = hCon(i*6+j);
+        d->xfrc_applied[cp->bFree[i]*6+j] = hCon(i*6+j);
       }
     }
 }
@@ -69,12 +69,12 @@ eigMd CitoControl::contactModel(const mjData* d, const eigVd u)
 {
     h.setZero();
     // loop for each contact pair
-    for( int pI=0; pI<cp.nPair; pI++ )
+    for( int pI=0; pI<cp->nPair; pI++ )
     {
         // vectors in the world frame
-        mju_copy3(pSR.data(), d->site_xpos+3*cp.sPair1[pI]);    // position of the site on the robot
-        mju_copy3(pSE.data(), d->site_xpos+3*cp.sPair2[pI]);    // position of the site in the environment
-        nCS = cp.nCS.col(pI);                                   // contact surface normal
+        mju_copy3(pSR.data(), d->site_xpos+3*cp->sPair1[pI]);    // position of the site on the robot
+        mju_copy3(pSE.data(), d->site_xpos+3*cp->sPair2[pI]);    // position of the site in the environment
+        nCS = cp->nCS.col(pI);                                   // contact surface normal
         vRE  = pSE - pSR;                                       // vector from the robot (end effector) to the environment
         // distance
         phiE = vRE.norm();                                      // Euclidean distance between the end effector and the environment
@@ -86,9 +86,9 @@ eigMd CitoControl::contactModel(const mjData* d, const eigVd u)
         // contact generalized in the world frame
         lambda = gamma*nCS;
         // loop for each free body
-        for( int fI=0; fI<cp.nFree; fI++ )
+        for( int fI=0; fI<cp->nFree; fI++ )
         {
-            mju_copy3(pBF.data(), d->qpos+cp.pFree[fI]);        // position of the center of mass of the free body
+            mju_copy3(pBF.data(), d->qpos+cp->pFree[fI]);        // position of the center of mass of the free body
             vEF = pBF - pSR;                                    // vector from the end effector to the free body
             // wrench on the free body due to the contact pI: [lambda; cross(vEF, lambda)]
             h(fI*6+0) += lambda[0];

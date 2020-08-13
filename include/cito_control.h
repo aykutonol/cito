@@ -18,7 +18,7 @@ class CitoControl
 {
 public:
     /// Constructor
-    CitoControl(const mjModel* model);
+    CitoControl(const mjModel* m_, CitoParams* cp_);
     /// Destructor
     ~CitoControl();
     /// This function takes a full control step given a control input
@@ -48,8 +48,8 @@ private:
     eigVd x;
     Eigen::Matrix<mjtNum, 4, 1> jFreeQuat;
     /// Objects
-    CitoParams cp;
-    MjSaveLog  sl;
+    CitoParams *cp;
+    MjSaveLog sl;
 };
 
 #endif //CITO_CONTROL_H
