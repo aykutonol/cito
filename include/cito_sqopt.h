@@ -18,7 +18,7 @@ class CitoSQOPT
 {
 public:
     /// Constructor
-    CitoSQOPT(const mjModel* model);
+    CitoSQOPT(const mjModel* m_, CitoParams* cp_);
     /// Destructor
     ~CitoSQOPT();
     /// This function solves the convex subproblem
@@ -67,7 +67,7 @@ private:
     int dUOffset, auxOffset;
     double kCon0;
     /// Objects
-    CitoParams cp;
+    CitoParams *cp;
     sqoptProblem cvxProb;
 };
 
