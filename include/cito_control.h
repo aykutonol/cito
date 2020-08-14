@@ -44,6 +44,7 @@ private:
     /// Contact model variables
     double phiE, phiN, zeta, phiC, gamma, alpha, phiR;
     Eigen::Vector3d pSR, pSE, pBF, nCS, vRE, vEF, lambda;
+    mjtNum unit_x[3] = {1., 0., 0.};    // unit-x vector
     /// getState variables
     eigVd x;
     Eigen::Matrix<mjtNum, 4, 1> jFreeQuat;

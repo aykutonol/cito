@@ -72,10 +72,11 @@ eigMd CitoControl::contactModel(const mjData* d, const eigVd u)
     for( int pI=0; pI<cp->nPair; pI++ )
     {
         // vectors in the world frame
-        mju_copy3(pSR.data(), d->site_xpos+3*cp->sPair1[pI]);    // position of the site on the robot
-        mju_copy3(pSE.data(), d->site_xpos+3*cp->sPair2[pI]);    // position of the site in the environment
-        nCS = cp->nCS.col(pI);                                   // contact surface normal
+        mju_copy3(pSR.data(), d->site_xpos+3*cp->sPair1[pI]);   // position of the site on the robot
+        mju_copy3(pSE.data(), d->site_xpos+3*cp->sPair2[pI]);   // position of the site in the environment
         vRE  = pSE - pSR;                                       // vector from the robot (end effector) to the environment
+        // contact surface normal
+        mju_rotVecMat(nCS.data(), unit_x, d->site_xmat+9*cp->sPair2[pI]);
         // distance
         phiE = vRE.norm();                                      // Euclidean distance between the end effector and the environment
         phiN = vRE.dot(nCS);                                    // normal distance between the end effector and the environment
@@ -88,7 +89,7 @@ eigMd CitoControl::contactModel(const mjData* d, const eigVd u)
         // loop for each free body
         for( int fI=0; fI<cp->nFree; fI++ )
         {
-            mju_copy3(pBF.data(), d->qpos+cp->pFree[fI]);        // position of the center of mass of the free body
+            mju_copy3(pBF.data(), d->qpos+cp->pFree[fI]);       // position of the center of mass of the free body
             vEF = pBF - pSR;                                    // vector from the end effector to the free body
             // wrench on the free body due to the contact pI: [lambda; cross(vEF, lambda)]
             h(fI*6+0) += lambda[0];
