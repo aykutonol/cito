@@ -210,7 +210,8 @@ eigMd CitoSCVX::solveSCVX(const eigMd U0)
         std::cout << "Final vel: " << trajTemp.X.col(cp->N).tail(m->nv).transpose() << "\n";
         std::cout << "Predicted:\nFinal pos: " << XTilde.col(cp->N).head(m->nv).transpose() << "\n";
         std::cout << "Final vel: " << XTilde.col(cp->N).tail(m->nv).transpose() << "\n";
-        std::cout << "J = " << JTemp[iter] << ", JTilde = " << JTilde[iter] << "\n\n\n";
+        std::cout << "L = " << JTilde[iter] << ", J = " << JTemp[iter] << ", kmax = " <<
+                     trajTemp.U.bottomRows(cp->nPair).maxCoeff() << "\n\n\n";
         // next iteration ======================================================
         iter++;
         delete[] dTraj;
