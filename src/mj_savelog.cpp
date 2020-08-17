@@ -48,7 +48,7 @@ void MjSaveLog::writeData(const mjData* d)
 {
     /// logFile
     // create data for the record
-    float data[dataSize];
+    float *data = new float[dataSize];
     // write to log file
     data[0] = (float) d->time;
     mju_n2f(data+1, d->qpos, m->nq);
@@ -82,4 +82,5 @@ void MjSaveLog::writeData(const mjData* d)
         }
         trajFile <<"\n";
     }
+    delete[] data;
 }
