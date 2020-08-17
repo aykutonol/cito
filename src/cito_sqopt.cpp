@@ -109,7 +109,7 @@ void CitoSQOPT::setCObj(const eigMd X, const eigMd U,
     // * velocities
     for( int i=0; i<cp->N*m->nv; i++ )
     {
-        cObj[i] = 0;
+        cObj[i] = 0.;
     }
     // * final position
     for( int i=0; i<2; i++ )
@@ -153,10 +153,10 @@ void CitoSQOPT::solveCvx(double *xTraj, double r, const eigMd X, const eigMd U,
     // initial guess
     for( int i=0; i<n+nc; i++ )
     {
-        x[i]  = 0.0;
+        x[i]  = 0.;
         bl[i] = -infBnd;  bu[i] = +infBnd;
-        hs[i] = 0;  eType[i] = 0;  rc[i] = 0.0;
-        if( i>=n ) { pi[i-n] = 0.0; }
+        hs[i] = 0;  eType[i] = 0;  rc[i] = 0.;
+        if( i>=n ) { pi[i-n] = 0.; }
     }
     // set linear constraints and bounds
     this->setA(valA, indA, locA, Fx, Fu);
@@ -225,22 +225,22 @@ void CitoSQOPT::setBounds(double r, const eigMd X, const eigMd U,
     // auxiliary variables > 0
     for( int i=auxOffset; i<n; i++ )
     {
-        bl[i] = 0;
+        bl[i] = 0.;
     }
     // constraints
     // dynamics == 0
     for( int i=n; i<n+(cp->N+1)*cp->n; i++ )
     {
-        bl[i] = 0;
-        bu[i] = 0;
+        bl[i] = 0.;
+        bu[i] = 0.;
     }
     // 0 <= absolute value constraints <= inf
     for( int i=n+(cp->N+1)*cp->n; i<n+(cp->N+1)*cp->n+((cp->N+1)*cp->n+cp->N*cp->m)*2; i++ )
     {
-        bl[i] = 0;
+        bl[i] = 0.;
     }
     // 0 <= trust region <= r
-    bl[n+(cp->N+1)*cp->n+((cp->N+1)*cp->n+cp->N*cp->m)*2] = 0;
+    bl[n+(cp->N+1)*cp->n+((cp->N+1)*cp->n+cp->N*cp->m)*2] = 0.;
     bu[n+(cp->N+1)*cp->n+((cp->N+1)*cp->n+cp->N*cp->m)*2] = r;
 }
 
@@ -255,7 +255,7 @@ void CitoSQOPT::setA(double *valA, int *indA, int *locA, const eigTd Fx, const e
     for( int i=0; i<cp->N*cp->n; i++ )
     {
         indA[indNo] = i;
-        valA[indNo] = -1;
+        valA[indNo] = -1.;
         indNo++;
         // time step index
         indTS = (int) floor(i/cp->n);
@@ -267,10 +267,10 @@ void CitoSQOPT::setA(double *valA, int *indA, int *locA, const eigTd Fx, const e
         }
         // for auxiliary variables
         indA[indNo] = (cp->N+1)*cp->n + colNo;
-        valA[indNo] = +1.0;
+        valA[indNo] = +1.;
         indNo++; //auxNo1++;
         indA[indNo] = (cp->N+1)*cp->n + (cp->N+1)*cp->n + cp->N*cp->m + colNo;
-        valA[indNo] = -1.0;
+        valA[indNo] = -1.;
         indNo++; //auxNo2++;
         // column complete
         colNo++;
@@ -280,14 +280,14 @@ void CitoSQOPT::setA(double *valA, int *indA, int *locA, const eigTd Fx, const e
     for( int i=0; i<cp->n; i++ )
     {
         indA[indNo] = cp->N*cp->n+i;
-        valA[indNo] = -1;
+        valA[indNo] = -1.;
         indNo++;
         // for auxiliary variables
         indA[indNo] = (cp->N+1)*cp->n + colNo;
-        valA[indNo] = +1.0;
+        valA[indNo] = +1.;
         indNo++; //auxNo1++;
         indA[indNo] = (cp->N+1)*cp->n + (cp->N+1)*cp->n + cp->N*cp->m + colNo;
-        valA[indNo] = -1.0;
+        valA[indNo] = -1.;
         indNo++; //auxNo2++;
         // column complete
         colNo++;
@@ -306,10 +306,10 @@ void CitoSQOPT::setA(double *valA, int *indA, int *locA, const eigTd Fx, const e
         }
         // for auxiliary variables
         indA[indNo] = (cp->N+1)*cp->n + colNo;
-        valA[indNo] = +1.0;
+        valA[indNo] = +1.;
         indNo++; //auxNo1++;
         indA[indNo] = (cp->N+1)*cp->n + (cp->N+1)*cp->n + cp->N*cp->m + colNo;
-        valA[indNo] = -1.0;
+        valA[indNo] = -1.;
         indNo++; //auxNo2++;
         // column complete
         colNo++;
@@ -320,14 +320,14 @@ void CitoSQOPT::setA(double *valA, int *indA, int *locA, const eigTd Fx, const e
     for( int i=0; i<(cp->N+1)*cp->n+cp->N*cp->m; i++ )
     {
         indA[indNo] = (cp->N+1)*cp->n + auxNo1;
-        valA[indNo] = +1.0;
+        valA[indNo] = +1.;
         indNo++; auxNo1++;
         indA[indNo] = (cp->N+1)*cp->n + (cp->N+1)*cp->n + cp->N*cp->m + auxNo2;
-        valA[indNo] = +1.0;
+        valA[indNo] = +1.;
         indNo++; auxNo2++;
         // for l1-norm
         indA[indNo] = (cp->N+1)*cp->n + 2*((cp->N+1)*cp->n + cp->N*cp->m);
-        valA[indNo] = +1.0;
+        valA[indNo] = +1.;
         indNo++;
         // column complete
         colNo++;
