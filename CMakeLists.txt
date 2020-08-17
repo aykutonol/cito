@@ -15,6 +15,10 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	set(CMAKE_MACOSX_RPATH FALSE)
 endif()
 
+# Set build type and compilation flags
+set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
+
 catkin_package()
 
 include_directories(
