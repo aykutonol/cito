@@ -351,8 +351,8 @@ void CitoSQOPT::sortToMatch(double *valA, int *indA, int *locA, int *moveIndices
 // moveColA: moves column iMove in A to left
 void CitoSQOPT::moveColA(double *valA, int *indA, int *locA, int iMove)
 {
-    int indAtemp[neA], neCol[n]; double valAtemp[neA];
-
+    int *indAtemp = new int[neA], *neCol = new int[n];
+    double *valAtemp = new double[neA];
     for( int i=0; i<n; i++ )
     {
         neCol[i] = locA[i+1]-locA[i];
@@ -377,12 +377,14 @@ void CitoSQOPT::moveColA(double *valA, int *indA, int *locA, int iMove)
     {
         indA[i] = indAtemp[i]; valA[i] = valAtemp[i];
     }
+    delete[] indAtemp;  delete[] neCol; delete[] valAtemp;
 }
 
 // moveRowBounds: moves row iMove in bounds to top
 void CitoSQOPT::moveRowBounds(double *bl, double *bu, int iMove)
 {
-    double bLTemp[iMove], bUTemp[iMove];
+    double *bLTemp = new double[iMove],
+           *bUTemp = new double[iMove];
     bLTemp[0] = bl[iMove];
     bUTemp[0] = bu[iMove];
     for( int i=0; i<iMove+1; i++ )
@@ -395,6 +397,7 @@ void CitoSQOPT::moveRowBounds(double *bl, double *bu, int iMove)
         bl[i] = bLTemp[i];
         bu[i] = bUTemp[i];
     }
+    delete[] bLTemp;    delete[] bUTemp;
 }
 
 // sortX: sorts decision variables back to original order
