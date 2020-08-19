@@ -53,7 +53,7 @@ public:
     int N, ndpc, nu, nv, n, m, nTraj, nPair,
         nFree, *pFree, *bFree, *dAct,
         *quatAdr, *dofAdr;
-    Eigen::VectorXi sPair1, sPair2;
+    std::vector<Eigen::Vector2i> sites;
     eigMd nCS;
     /// Task parameters
     eigVd desiredPos;

@@ -72,11 +72,11 @@ eigMd CitoControl::contactModel(const mjData* d, const eigVd u)
     for( int pI=0; pI<cp->nPair; pI++ )
     {
         // vectors in the world frame
-        mju_copy3(pSR.data(), d->site_xpos+3*cp->sPair1[pI]);   // position of the site on the robot
-        mju_copy3(pSE.data(), d->site_xpos+3*cp->sPair2[pI]);   // position of the site in the environment
+        mju_copy3(pSR.data(), d->site_xpos+3*cp->sites[pI][0]); // position of the site on the robot
+        mju_copy3(pSE.data(), d->site_xpos+3*cp->sites[pI][1]); // position of the site in the environment
         vRE  = pSE - pSR;                                       // vector from the robot (end effector) to the environment
         // contact surface normal
-        mju_rotVecMat(nCS.data(), unit_x, d->site_xmat+9*cp->sPair2[pI]);
+        mju_rotVecMat(nCS.data(), unit_x, d->site_xmat+9*cp->sites[pI][1]);
         // distance
         phiE = vRE.norm();                                      // Euclidean distance between the end effector and the environment
         phiN = vRE.dot(nCS);                                    // normal distance between the end effector and the environment

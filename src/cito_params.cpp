@@ -68,18 +68,20 @@ CitoParams::CitoParams(const mjModel* model_) : model(model_)
     }
     // contact model parameters
     nPair  = params["npair"].as<int>();     // number of contact pairs
-    sPair1.resize(nPair);                   // indices of sites on the robot
-    sPair2.resize(nPair);                   // incides of corresponding sites in the environment
-    nCS.resize(3,nPair);                    // contact surface normals
-    std::vector<int> stdVecInt = { params["spair1"].as<std::vector<int>>() };
-    sPair1 = Eigen::Map<Eigen::VectorXi>(stdVecInt.data(), stdVecInt.size());
-    stdVecInt = { params["spair2"].as<std::vector<int>>() };
-    sPair2 = Eigen::Map<Eigen::VectorXi>(stdVecInt.data(), stdVecInt.size());
+    std::vector<int> site_rbt = { params["spair1"].as<std::vector<int>>() };
+    std::vector<int> site_env = { params["spair2"].as<std::vector<int>>() };
+    for(int i=0; i<nPair; i++)
+    {
+        Eigen::Vector2i site_pair(site_rbt[i], site_env[i]);
+        sites.push_back(site_pair);
+    }
+    // contact surface normals in the environment
+    nCS.resize(3, nPair);                   // contact surface normals
     mjtNum surface_normal[3] = {1, 0, 0};
     mjtNum site_quat[4];
     for( int i=0; i<nPair; i++ )
     {
-        mju_copy4(site_quat, model->site_quat+4*sPair2(i));
+        mju_copy4(site_quat, model->site_quat+4*sites[i][1]);
         mju_rotVecQuat(nCS.col(i).data(), surface_normal, site_quat);
     }
     // dimensions
