@@ -59,6 +59,7 @@ endif()
 # Set the executable names
 set(NODE_NAME1 main)
 set(NODE_NAME2 playlog)
+set(NODE_NAME3 fcl_funcs)
 
 # Create executables
 # main: solves the CITO problem using successive convexification
@@ -99,5 +100,26 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
                           ${MUJOCO_DIR}/bin/libglfw.3.dylib
                           pthread
                           yaml-cpp
+	)
+endif()
+
+# fcl_funcs: develop and test fcl functions
+add_executable(${NODE_NAME3} test/fcl_funcs.cpp)
+if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+	target_link_libraries(${NODE_NAME3}
+                          ${PROJECT_NAME}
+                          ${MUJOCO_DIR}/bin/libmujoco200nogl.so
+                          ${SNOPT_DIR}/lib/libsnopt7_cpp.so
+                          yaml-cpp
+                          fcl
+	)
+elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+	target_link_libraries(${NODE_NAME3}
+                          ${PROJECT_NAME}
+                          ${MUJOCO_DIR}/bin/libmujoco200nogl.dylib
+                          ${SNOPT_DIR}/lib/libsnopt7_cpp.dylib
+                          pthread
+                          yaml-cpp
+                          fcl
 	)
 endif()
