@@ -6,7 +6,9 @@ add_compile_options(-std=c++11)
 find_package(catkin REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(yaml-cpp 0.6 REQUIRED)
+find_package(fcl REQUIRED)
 
+# Get environment variables
 set(MUJOCO_DIR    "$ENV{MJ_HOME}")
 set(SNOPT_DIR     "$ENV{SN_HOME}")
 
@@ -17,7 +19,7 @@ endif()
 
 # Set build type and compilation flags
 set(CMAKE_BUILD_TYPE Release)
-set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
+# set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
 
 catkin_package()
 
@@ -26,6 +28,7 @@ include_directories(
  ${EIGEN3_INCLUDE_DIR}
  ${MUJOCO_DIR}/include
  ${SNOPT_DIR}/include
+ ${fcl_INCLUDE_DIRS}
 )
 
 # Create the CITO library
