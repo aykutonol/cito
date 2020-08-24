@@ -20,6 +20,16 @@ CitoControl::CitoControl(const mjModel* m_, CitoParams* cp_) : m(m_), cp(cp_), s
     // initialize Eigen variables
     h.resize(6*cp->nFree,1); hCon.resize(6*cp->nFree,1);
     x.resize(cp->n);
+    // create collision geometries/objects
+    fcl::Transform3d tf0;
+    tf0.translation().setZero(); tf0.linear().setIdentity();
+    for( int i=0; i<cp->nPair; i++ )
+    {
+        for( int j=0; j<2; j++) {
+            if(collObjs[cp->sites[i][j]]==NULL)
+                collObjs[cp->sites[i][j]] = new fcl::CollisionObjectd(createCollGeom(m, cp->sites[i][j]), tf0);
+        }
+    }
 }
 CitoControl::~CitoControl()
 {
@@ -27,9 +37,53 @@ CitoControl::~CitoControl()
     delete[] qposLB;        delete[] qposUB;
     delete[] tauLB;         delete[] tauUB;
     delete[] isJFree;       delete[] isAFree;
+    // delete collision objects
+    for(auto it : collObjs)
+        delete it.second;
 }
 
 // ***** FUNCTIONS *************************************************************
+// getSiteTransform: returns the site pose from MuJoCo data
+fcl::Transform3d CitoControl::getSiteTransform(const mjData* d, int site_id) {
+    fcl::Transform3d tf;
+    // get the position
+    mju_copy3(tf.translation().data(), d->site_xpos+3*site_id);
+    // get the rotation
+    Eigen::Matrix<double, 3, 3, Eigen::RowMajor> R;
+    mju_copy(R.data(), d->site_xmat+9*site_id, 9);
+    tf.linear() = R;
+    return tf;
+}
+
+// createCollGeom creates an FCL collision object given a MuJoCo model, site no, and transform
+std::shared_ptr<fcl::CollisionGeometryd> CitoControl::createCollGeom(const mjModel* m, int site_id) {
+    std::shared_ptr<fcl::CollisionGeometryd> geom = NULL;
+    if( m->site_type[site_id]==mjGEOM_SPHERE )
+    {
+        printf("\tCreating a spherical collision object for site %d.\n", site_id);
+        geom = std::make_shared<fcl::Sphered>(m->site_size[site_id*3]);
+    }
+    else if( m->site_type[site_id]==mjGEOM_CYLINDER )
+    {
+        printf("\tCreating a cylindirical collision object for site %d.\n", site_id);
+        geom = std::make_shared<fcl::Cylinderd>(m->site_size[site_id*3+1]*2,
+                                                m->site_size[site_id*3+0]);
+    }
+    else if( m->site_type[site_id]==mjGEOM_BOX )
+    {
+        printf("\tCreating a prismatic collision object for site %d.\n", site_id);
+        geom = std::make_shared<fcl::Boxd>(m->site_size[site_id*3+0]*2,
+                                           m->site_size[site_id*3+1]*2,
+                                           m->site_size[site_id*3+2]*2);
+    }
+    else
+    {
+        printf("\t\033[0;31mCannot add site %d b/c geometry type %d is not implemented.\033[0m\n",
+               site_id, m->site_type[site_id]);
+    }
+    return geom;
+}
+
 // takeStep: takes a full control step given a control input
 void CitoControl::takeStep(mjData* d, const eigVd u, bool save, double compensateBias)
 {
@@ -68,9 +122,15 @@ void CitoControl::setControl(mjData* d, const eigVd u, double compensateBias)
 eigMd CitoControl::contactModel(const mjData* d, const eigVd u)
 {
     h.setZero();
+    // update collision objects poses
+    for(auto it : collObjs)
+        it.second->setTransform(getSiteTransform(d, it.first));
     // loop for each contact pair
     for( int pI=0; pI<cp->nPair; pI++ )
     {
+        // FCL distance calculation
+        distRes.clear();
+        fcl::distance(collObjs[cp->sites[pI][0]], collObjs[cp->sites[pI][1]], distReq, distRes);
         // vectors in the world frame
         mju_copy3(pSR.data(), d->site_xpos+3*cp->sites[pI][0]); // position of the site on the robot
         mju_copy3(pSE.data(), d->site_xpos+3*cp->sites[pI][1]); // position of the site in the environment
@@ -82,6 +142,8 @@ eigMd CitoControl::contactModel(const mjData* d, const eigVd u)
         phiN = vRE.dot(nCS);                                    // normal distance between the end effector and the environment
         zeta  = tanh(phiR*phiE);                                // semi-sphere based on the Euclidean distance
         phiC = zeta*phiE + (1-zeta)*phiN;                       // combined distance
+        // compare distances
+        assert(floor(phiE*1e3)==floor(distRes.min_distance*1e3));
         // normal force in the contact frame
         gamma = u(m->nu+pI)*exp(-alpha*phiC);
         // contact generalized in the world frame

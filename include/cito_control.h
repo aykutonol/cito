@@ -14,6 +14,8 @@
 #include "cito_params.h"
 #include "mj_savelog.h"
 
+#include <fcl/fcl.h>
+
 class CitoControl
 {
 public:
@@ -30,9 +32,12 @@ public:
     eigVd getState(const mjData* d);
     /// This function gets bounds on joint positions, actuator forces from the model
     void getBounds();
-    /// position & torque limits
+    /// Position & torque limits
     double *qposLB, *qposUB, *tauLB, *tauUB;
     int    *isJFree, *isAFree;
+    /// FCL functions
+    fcl::Transform3d getSiteTransform(const mjData* d, int site_id);
+    std::shared_ptr<fcl::CollisionGeometryd> createCollGeom(const mjModel* m, int site_id);
 
 private:
     /// This function returns contact wrench given current state and control input
@@ -51,6 +56,11 @@ private:
     /// Objects
     CitoParams *cp;
     MjSaveLog sl;
+    /// FCL solver and variables
+    fcl::DistanceRequestd distReq;
+    fcl::DistanceResultd  distRes;
+    fcl::detail::GJKSolver_libccdd fclDist;
+    std::unordered_map<int, fcl::CollisionObjectd*> collObjs;
 };
 
 #endif //CITO_CONTROL_H
