@@ -1,5 +1,5 @@
 #include "cito_params.h"
-#include <fcl/narrowphase/distance.h>
+#include <fcl/fcl.h>
 
 // Get site pose from MuJoCo data
 fcl::Transform3d getSiteTransform(mjData* d, const int& site_id) {
@@ -134,6 +134,7 @@ int main(int argc, char* argv[])
     coll_geoms.push_back(std::make_shared<fcl::Boxd>(1., 1., 1.));
     // Create collision objects
     std::vector<fcl::CollisionObjectd*> coll_objs;
+    printf("  Collision geometries:\n");
     for(int i=0; i<coll_geoms.size(); i++)
     {
         coll_objs.push_back(new fcl::CollisionObjectd(coll_geoms[i], transforms[i]));
@@ -141,6 +142,17 @@ int main(int argc, char* argv[])
         std::cout << "\tShape " << i << " - node type: " << coll_geoms[i]->getNodeType() <<
                      ", volume: " << coll_geoms[i]->computeVolume() <<
                      ", pos: " << transforms[i].translation().transpose() << "\n";
+    }
+    // Modify the pose of a collision object
+    fcl::Transform3d tfNew;
+    tfNew.translation() = fcl::Vector3d(1., 2., 3.); tfNew.linear().setIdentity();
+    coll_objs[1]->setTransform(tfNew);
+    // Print collision object data
+    printf("  Collision objects:\n");
+    for(auto it : coll_objs)
+    {
+        std::cout << "\tPos: " << it->getTranslation().transpose() <<
+                     ", object type: " << it->getNodeType() << "\n";
     }
     // Compute distance
     for(int i=0; i<coll_objs.size(); i++)
@@ -154,18 +166,15 @@ int main(int argc, char* argv[])
                 // Print results
                 std::cout << "  Objects " << i << " & " << j <<
                             "\n\tDistance: " << distRes.min_distance <<
-                            "\n\tNearest point on O1: " << distRes.nearest_points[0].transpose() <<
-                            "\n\tNearest point on O3: " << distRes.nearest_points[1].transpose() << "\n";
+                            "\n\tNearest point on O" << i << ": " << distRes.nearest_points[0].transpose() <<
+                            "\n\tNearest point on O" << j << ": " << distRes.nearest_points[1].transpose() << "\n";
             }
         }
     }
 
     // Clean up memory
-    for( int i=0; i<cp.nPair; i++ )
-    {
-        delete fclObjects[cp.sites[i][0]];
-        delete fclObjects[cp.sites[i][1]];
-    }
+    for(auto it : fclObjects)
+        delete it.second;
     for(int i=0; i<coll_objs.size(); i++)
         delete coll_objs[i];
     mj_deleteData(d);
