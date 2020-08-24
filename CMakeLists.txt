@@ -45,6 +45,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
                           ${SNOPT_DIR}/lib/libsnopt7_cpp.so
                           pthread
                           yaml-cpp
+                          fcl
 	)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	target_link_libraries(${PROJECT_NAME}
@@ -52,6 +53,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
                           ${SNOPT_DIR}/lib/libsnopt7_cpp.dylib
                           pthread
                           yaml-cpp
+                          fcl
 	)
 endif()
 
@@ -97,11 +99,9 @@ add_executable(${NODE_NAME3} test/fcl_funcs.cpp)
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	target_link_libraries(${NODE_NAME3}
                           ${PROJECT_NAME}
-                          fcl
 	)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	target_link_libraries(${NODE_NAME3}
                           ${PROJECT_NAME}
-                          fcl
 	)
 endif()
