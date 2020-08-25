@@ -20,6 +20,9 @@ CitoControl::CitoControl(const mjModel* m_, CitoParams* cp_) : m(m_), cp(cp_), s
     // initialize Eigen variables
     h.resize(6*cp->nFree); hCon.resize(6*cp->nFree);
     x.resize(cp->n);
+    // set FCL distance request options
+    distReq.enable_nearest_points = false;
+    distReq.enable_signed_distance = true;
     // create collision geometries/objects
     fcl::Transform3d tf0;
     tf0.translation().setZero(); tf0.linear().setIdentity();
