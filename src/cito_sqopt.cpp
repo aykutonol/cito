@@ -383,21 +383,17 @@ void CitoSQOPT::moveColA(double *valA, int *indA, int *locA, int iMove)
 // moveRowBounds: moves row iMove in bounds to top
 void CitoSQOPT::moveRowBounds(double *bl, double *bu, int iMove)
 {
-    double *bLTemp = new double[iMove],
-           *bUTemp = new double[iMove];
-    bLTemp[0] = bl[iMove];
-    bUTemp[0] = bu[iMove];
+    double *bLTemp = new double[iMove+1], *bUTemp = new double[iMove+1];
+    bLTemp[0] = bl[iMove];  bUTemp[0] = bu[iMove];
     for( int i=0; i<iMove+1; i++ )
     {
         if( i<iMove )
         {
-            bLTemp[i+1] = bl[i];
-            bUTemp[i+1] = bu[i];
+            bLTemp[i+1] = bl[i];  bUTemp[i+1] = bu[i];
         }
-        bl[i] = bLTemp[i];
-        bu[i] = bUTemp[i];
+        bl[i] = bLTemp[i];  bu[i] = bUTemp[i];
     }
-    delete[] bLTemp;    delete[] bUTemp;
+    delete[] bLTemp;  delete[] bUTemp;
 }
 
 // sortX: sorts decision variables back to original order
