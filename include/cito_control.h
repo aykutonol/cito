@@ -41,11 +41,11 @@ public:
 
 private:
     /// This function returns contact wrench given current state and control input
-    eigMd contactModel(const mjData* d, const eigVd u);
+    eigVd contactModel(const mjData* d, const eigVd u);
     /// MuJoCo model
     const mjModel* m;
     /// Contact wrench
-    eigMd h, hCon;
+    eigVd h, hCon;
     /// Contact model variables
     double phiE, phiN, zeta, phiC, gamma, alpha, phiR;
     Eigen::Vector3d pSR, pSE, pBF, nCS, vRE, vEF, lambda;

@@ -18,7 +18,7 @@ CitoControl::CitoControl(const mjModel* m_, CitoParams* cp_) : m(m_), cp(cp_), s
     tauLB   = new double[m->nu];   tauUB   = new double[m->nu];
     isJFree = new int[m->nv];      isAFree = new int[m->nu];
     // initialize Eigen variables
-    h.resize(6*cp->nFree,1); hCon.resize(6*cp->nFree,1);
+    h.resize(6*cp->nFree); hCon.resize(6*cp->nFree);
     x.resize(cp->n);
     // create collision geometries/objects
     fcl::Transform3d tf0;
@@ -119,7 +119,7 @@ void CitoControl::setControl(mjData* d, const eigVd u, double compensateBias)
 }
 
 // contactModel: returns contact wrench given current state and control input
-eigMd CitoControl::contactModel(const mjData* d, const eigVd u)
+eigVd CitoControl::contactModel(const mjData* d, const eigVd u)
 {
     h.setZero();
     // update collision objects poses
