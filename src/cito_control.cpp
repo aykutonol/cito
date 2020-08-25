@@ -175,14 +175,13 @@ eigVd CitoControl::getState(const mjData* d)
         if( m->jnt_type[jID] == mjJNT_FREE )
         {
             jFreeQuat.setZero();
-            mju_copy3(x.segment(i,3).data(), d->qpos+i);
+            mju_copy3(x.segment(i, 3).data(), d->qpos+i);
             mju_copy4(jFreeQuat.data(), d->qpos+i+3);
-            // calculate the Euler angles from the quaternion
-            x(i+3) = atan2(2*(jFreeQuat[0]*jFreeQuat[1]+jFreeQuat[2]*jFreeQuat[3]), 1-2*(pow(jFreeQuat[1],2)+pow(jFreeQuat[2],2)));
-            x(i+4) =  asin(2*(jFreeQuat[0]*jFreeQuat[2]-jFreeQuat[3]*jFreeQuat[1]));
-            x(i+5) = atan2(2*(jFreeQuat[0]*jFreeQuat[3]+jFreeQuat[1]*jFreeQuat[2]), 1-2*(pow(jFreeQuat[2],2)+pow(jFreeQuat[3],2)));
-            i += 6;             // proceed to next joint
-            freeNo++;           // free joint counter
+            // convert quaternion into Euler angles
+            x.segment(i+3, 3) = cp->quat2Euler(jFreeQuat);
+            // count the free joint and proceed to next joint
+            freeNo++;
+            i += 6;
         }
         else
         {

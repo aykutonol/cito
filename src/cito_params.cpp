@@ -96,11 +96,22 @@ CitoParams::~CitoParams()
     delete[] bFree;     delete[] pFree;
     delete[] dAct;
 }
+
 // Utility functions
+// skewCross: performs and returns a x b using skew-symmetric transformation
 Eigen::Vector3d CitoParams::skewCross(const Eigen::Vector3d& a, const Eigen::Vector3d& b) {
     Eigen::Vector3d c;
     c[0] = -a[2]*b[1] + a[1]*b[2];
     c[1] =  a[2]*b[0] - a[0]*b[2];
     c[2] = -a[1]*b[0] + a[0]*b[1];
     return c;
+}
+
+// quat2Euler: converts a quaternion (w,x,y,z) into Euler angles
+Eigen::Vector3d CitoParams::quat2Euler(Eigen::Vector4d q) {
+    Eigen::Vector3d e;
+    e[0] = atan2(2*(q[0]*q[1]+q[2]*q[3]), 1-2*(pow(q[1],2)+pow(q[2],2)));
+    e[1] =  asin(2*(q[0]*q[2]-q[3]*q[1]));
+    e[2] = atan2(2*(q[0]*q[3]+q[1]*q[2]), 1-2*(pow(q[2],2)+pow(q[3],2)));
+    return e;
 }
