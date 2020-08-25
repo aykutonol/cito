@@ -96,3 +96,11 @@ CitoParams::~CitoParams()
     delete[] bFree;     delete[] pFree;
     delete[] dAct;
 }
+// Utility functions
+Eigen::Vector3d CitoParams::skewCross(const Eigen::Vector3d& a, const Eigen::Vector3d& b) {
+    Eigen::Vector3d c;
+    c[0] = -a[2]*b[1] + a[1]*b[2];
+    c[1] =  a[2]*b[0] - a[0]*b[2];
+    c[2] = -a[1]*b[0] + a[0]*b[1];
+    return c;
+}

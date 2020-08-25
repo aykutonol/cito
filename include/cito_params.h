@@ -59,6 +59,8 @@ public:
     eigVd desiredPos;
     int controlJointDOF0;
     double weight[4];
+    /// Utility functions
+    Eigen::Vector3d skewCross(const Eigen::Vector3d& a, const Eigen::Vector3d& b);
 };
 
 #endif //CITO_PARAMS_H
