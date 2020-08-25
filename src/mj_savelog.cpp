@@ -4,7 +4,7 @@
 #include "mj_savelog.h"
 
 // ***** CONSTRUCTOR & DESTRUCTOR **********************************************
-MjSaveLog::MjSaveLog(const mjModel* model) : m(model), cp(model)
+MjSaveLog::MjSaveLog(const mjModel* m_, CitoParams* cp_) : m(m_), cp(cp_)
 {
     // open the log file
     YAML::Node params = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/params.yaml");
@@ -66,15 +66,15 @@ void MjSaveLog::writeData(const mjData* d)
         trajFile << d->time << ",";
         for( int i=0; i<m->nu; i++ )
         {
-            trajFile << d->qpos[cp.dAct[i]] << ",";
+            trajFile << d->qpos[cp->dAct[i]] << ",";
         }
         for( int i=0; i<m->nu; i++ )
         {
-            trajFile << d->qvel[cp.dAct[i]] << ",";
+            trajFile << d->qvel[cp->dAct[i]] << ",";
         }
         for( int i=0; i<m->nu; i++ )
         {
-            trajFile << d->qacc[cp.dAct[i]] << ",";
+            trajFile << d->qacc[cp->dAct[i]] << ",";
         }
         for( int i=0; i<m->nu; i++ )
         {

@@ -7,7 +7,7 @@
 
 
 // ***** CONSTRUCTOR & DESTRUCTOR **********************************************
-CitoControl::CitoControl(const mjModel* m_, CitoParams* cp_) : m(m_), cp(cp_), sl(m_)
+CitoControl::CitoControl(const mjModel* m_, CitoParams* cp_) : m(m_), cp(cp_), sl(m_, cp_)
 {
     // read contact model parameters
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");

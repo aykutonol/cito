@@ -16,7 +16,7 @@
 class MjSaveLog{
 public:
     /// Constructor
-    MjSaveLog(const mjModel* model);
+    MjSaveLog(const mjModel* m_, CitoParams* cp_);
     /// Destructor
     ~MjSaveLog();
     /// writes simulation data to the print file
@@ -33,7 +33,7 @@ private:
     /// Trajectory file for execution
     std::ofstream trajFile;
     /// Objects
-    CitoParams cp;
+    CitoParams *cp;
 };
 
 #endif //MJ_SAVELOG_H
