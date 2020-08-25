@@ -142,8 +142,6 @@ eigVd CitoControl::contactModel(const mjData* d, const eigVd u)
         phiN = vRE.dot(nCS);                                    // normal distance between the end effector and the environment
         zeta  = tanh(phiR*phiE);                                // semi-sphere based on the Euclidean distance
         phiC = zeta*phiE + (1-zeta)*phiN;                       // combined distance
-        // compare distances
-        assert(floor(phiE*1e3)==floor(distRes.min_distance*1e3));
         // normal force in the contact frame
         gamma = u(m->nu+pI)*exp(-alpha*phiC);
         // contact generalized in the world frame
