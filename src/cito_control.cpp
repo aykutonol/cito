@@ -175,8 +175,8 @@ eigVd CitoControl::getState(const mjData* d)
         if( m->jnt_type[jID] == mjJNT_FREE )
         {
             jFreeQuat.setZero();
-            mju_copy(x.block<3,1>(i,0).data(), d->qpos+i, 3);
-            mju_copy(jFreeQuat.data(), d->qpos+i+3, 4);
+            mju_copy3(x.segment(i,3).data(), d->qpos+i);
+            mju_copy4(jFreeQuat.data(), d->qpos+i+3);
             // calculate the Euler angles from the quaternion
             x(i+3) = atan2(2*(jFreeQuat[0]*jFreeQuat[1]+jFreeQuat[2]*jFreeQuat[3]), 1-2*(pow(jFreeQuat[1],2)+pow(jFreeQuat[2],2)));
             x(i+4) =  asin(2*(jFreeQuat[0]*jFreeQuat[2]-jFreeQuat[3]*jFreeQuat[1]));
