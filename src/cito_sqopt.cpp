@@ -218,7 +218,7 @@ void CitoSQOPT::setBounds(double r, const eigMd X, const eigMd U,
             for( int j=0; j< cp->nPair; j++ )
             {
                 bl[dUOffset+i*cp->m+m->nu+j] = 0 - U.col(i)[m->nu+j];
-                bu[dUOffset+i*cp->m+m->nu+j] = kCon0 - U.col(i)[m->nu+j];
+                bu[dUOffset+i*cp->m+m->nu+j] = 1.5*kCon0 - U.col(i)[m->nu+j];
             }
         }
     }
