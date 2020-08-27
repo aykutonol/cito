@@ -47,8 +47,8 @@ private:
     /// Contact wrench
     eigVd h, hCon;
     /// Contact model variables
-    double phiE, phiN, zeta, phiC, gamma, alpha, phiR;
-    Eigen::Vector3d pSR, pSE, pBF, nCS, vRE, vEF, lambda;
+    double gamma, alpha;
+    Eigen::Vector3d nCS, lambda, pCoM, r;
     mjtNum unit_x[3] = {1., 0., 0.};    // unit-x vector
     /// getState variables
     eigVd x;

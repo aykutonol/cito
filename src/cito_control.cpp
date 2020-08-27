@@ -12,7 +12,6 @@ CitoControl::CitoControl(const mjModel* m_, CitoParams* cp_) : m(m_), cp(cp_), s
     // read contact model parameters
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
     alpha = vscm["alpha"].as<double>();
-    phiR  = vscm["phiR"].as<double>();
     // bound variables
     qposLB  = new double[m->nv];   qposUB  = new double[m->nv];
     tauLB   = new double[m->nu];   tauUB   = new double[m->nu];
@@ -21,7 +20,7 @@ CitoControl::CitoControl(const mjModel* m_, CitoParams* cp_) : m(m_), cp(cp_), s
     h.resize(6*cp->nFree); hCon.resize(6*cp->nFree);
     x.resize(cp->n);
     // set FCL distance request options
-    distReq.enable_nearest_points = false;
+    distReq.enable_nearest_points = true;
     distReq.enable_signed_distance = true;
     // create collision geometries/objects
     fcl::Transform3d tf0;
@@ -125,38 +124,31 @@ void CitoControl::setControl(mjData* d, const eigVd u, double compensateBias)
 eigVd CitoControl::contactModel(const mjData* d, const eigVd u)
 {
     h.setZero();
-    // update collision objects poses
+    // update collision objects' poses
     for(auto it : collObjs)
         it.second->setTransform(getSiteTransform(d, it.first));
     // loop for each contact pair
-    for( int pI=0; pI<cp->nPair; pI++ )
+    for( int pair=0; pair<cp->nPair; pair++ )
     {
+        // contact surface normal
+        mju_rotVecMat(nCS.data(), unit_x, d->site_xmat+9*cp->sites[pair][1]);
         // FCL distance calculation
         distRes.clear();
-        fcl::distance(collObjs[cp->sites[pI][0]], collObjs[cp->sites[pI][1]], distReq, distRes);
-        // vectors in the world frame
-        mju_copy3(pSR.data(), d->site_xpos+3*cp->sites[pI][0]); // position of the site on the robot
-        mju_copy3(pSE.data(), d->site_xpos+3*cp->sites[pI][1]); // position of the site in the environment
-        vRE  = pSE - pSR;                                       // vector from the robot (end effector) to the environment
-        // contact surface normal
-        mju_rotVecMat(nCS.data(), unit_x, d->site_xmat+9*cp->sites[pI][1]);
-        // distance
-        phiE = vRE.norm();                                      // Euclidean distance between the end effector and the environment
-        phiN = vRE.dot(nCS);                                    // normal distance between the end effector and the environment
-        zeta  = tanh(phiR*phiE);                                // semi-sphere based on the Euclidean distance
-        phiC = zeta*phiE + (1-zeta)*phiN;                       // combined distance
+        fcl::distance(collObjs[cp->sites[pair][0]], collObjs[cp->sites[pair][1]], distReq, distRes);
         // normal force in the contact frame
-        gamma = u(m->nu+pI)*exp(-alpha*phiC);
+        gamma = u(m->nu+pair)*exp(-alpha*distRes.min_distance);
         // contact generalized in the world frame
         lambda = gamma*nCS;
-        // loop for each free body
-        for( int fI=0; fI<cp->nFree; fI++ )
+        // map the force to the CoM of each free body
+        for( int free_body=0; free_body<cp->nFree; free_body++ )
         {
-            mju_copy3(pBF.data(), d->qpos+cp->pFree[fI]);       // position of the center of mass of the free body
-            vEF = pBF - pSR;                                    // vector from the end effector to the free body
-            // wrench on the free body due to the contact pI: [lambda; cross(vEF, lambda)]
-            h.segment(fI*6, 3) += lambda;
-            h.segment(fI*6+3, 3) += cp->skewCross(vEF, lambda);
+            // get the free body's CoM position, i.e., joint position for a free joint
+            mju_copy3(pCoM.data(), d->qpos+cp->pFree[free_body]);
+            // calculate the vector from the CoM to the contact point in the environment
+            r = distRes.nearest_points[1] - pCoM;
+            // calculate the wrench at the CoM: [lambda; cross(vEF, lambda)]
+            h.segment(free_body*6, 3) += lambda;
+            h.segment(free_body*6+3, 3) += cp->skewCross(r, lambda);
         }
     }
     return h;
