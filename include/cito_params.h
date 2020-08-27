@@ -60,7 +60,7 @@ public:
     int controlJointDOF0;
     double weight[4];
     /// Utility functions
-    /// This function returns the result of a x b using skew-symmetric transformation
+    /// This function performs and returns a x b using skew-symmetric transformation
     Eigen::Vector3d skewCross(const Eigen::Vector3d& a, const Eigen::Vector3d& b);
     /// This function converts a quaternion (w,x,y,z) into Euler angles
     Eigen::Vector3d quat2Euler(Eigen::Vector4d q);
