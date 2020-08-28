@@ -105,3 +105,9 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
                           ${PROJECT_NAME}
 	)
 endif()
+
+# Unit tests
+catkin_add_gtest(${PROJECT_NAME}-test test/test_cito.cpp)
+if(TARGET ${PROJECT_NAME}-test)
+    target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
+endif()
