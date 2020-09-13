@@ -120,24 +120,37 @@ void CitoControl::setControl(mjData* d, const eigVd u, double compensateBias)
     }
 }
 
+// calcDistance: returns FCL distance calculation result for each pair
+std::vector<fcl::DistanceResultd> CitoControl::calcDistance(const mjData* d)
+{
+    std::vector<fcl::DistanceResultd> distResults;
+    // update collision objects' poses
+    for(auto collObj : collObjs)
+        collObj.second->setTransform(getSiteTransform(d, collObj.first));
+    // FCL distance calculation
+    for( int pair=0; pair<cp->nPair; pair++ )
+    {
+        distRes.clear();
+        fcl::distance(collObjs[cp->sites[pair][0]], collObjs[cp->sites[pair][1]], distReq, distRes);
+        distResults.push_back(distRes);
+    }
+    return distResults;
+}
+
 // contactModel: returns contact wrench given current state and control input
 eigVd CitoControl::contactModel(const mjData* d, const eigVd u)
 {
     h.setZero();
-    // update collision objects' poses
-    for(auto it : collObjs)
-        it.second->setTransform(getSiteTransform(d, it.first));
+    // calculate min. distance and nearest points for all contact pairs
+    std::vector<fcl::DistanceResultd> distPairs = calcDistance(d);
     // loop for each contact pair
     for( int pair=0; pair<cp->nPair; pair++ )
     {
-        // contact surface normal
+        // update contact surface normal
         mju_rotVecMat(nCS.data(), unit_x, d->site_xmat+9*cp->sites[pair][1]);
-        // FCL distance calculation
-        distRes.clear();
-        fcl::distance(collObjs[cp->sites[pair][0]], collObjs[cp->sites[pair][1]], distReq, distRes);
-        // normal force in the contact frame
-        gamma = u(m->nu+pair)*exp(-alpha*distRes.min_distance);
-        // contact generalized in the world frame
+        // calculate the normal force in the contact frame
+        gamma = u(m->nu+pair)*exp(-alpha*distPairs[pair].min_distance);
+        // contact the linear force in the world frame
         lambda = gamma*nCS;
         // map the force to the CoM of each free body
         for( int free_body=0; free_body<cp->nFree; free_body++ )
@@ -145,7 +158,7 @@ eigVd CitoControl::contactModel(const mjData* d, const eigVd u)
             // get the free body's CoM position, i.e., joint position for a free joint
             mju_copy3(pCoM.data(), d->qpos+cp->pFree[free_body]);
             // calculate the vector from the CoM to the contact point in the environment
-            r = pCoM - distRes.nearest_points[1];
+            r = pCoM - distPairs[pair].nearest_points[1];
             // calculate the wrench at the CoM: [lambda; cross(vEF, lambda)]
             h.segment(free_body*6, 3) += lambda;
             h.segment(free_body*6+3, 3) += cp->skewCross(-r, lambda);

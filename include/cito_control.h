@@ -35,9 +35,12 @@ public:
     /// Position & torque limits
     double *qposLB, *qposUB, *tauLB, *tauUB;
     int    *isJFree, *isAFree;
-    /// FCL functions
+    /// This function returns the 3D transform of a desired site
     fcl::Transform3d getSiteTransform(const mjData* d, int site_id);
+    /// This function creates a collision geometry given a site ID
     std::shared_ptr<fcl::CollisionGeometryd> createCollGeom(const mjModel* m, int site_id);
+    /// This function returns FCL distance calculation results for all contact pairs
+    std::vector<fcl::DistanceResultd> calcDistance(const mjData* d);
 
 private:
     /// This function returns contact wrench given current state and control input
