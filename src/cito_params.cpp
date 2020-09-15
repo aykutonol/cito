@@ -98,6 +98,19 @@ CitoParams::~CitoParams()
 }
 
 // Utility functions
+// skew: returns the skew symmetric matrix representation of a 3D vector
+Eigen::Matrix3d CitoParams::skew(const Eigen::Vector3d& a) {
+    Eigen::Matrix3d Ahat;
+    Ahat.setZero();
+    Ahat(0,1) = -a[2];
+    Ahat(0,2) = a[1];
+    Ahat(1,2) = -a[0];
+    Ahat(1,0) = a[2];
+    Ahat(2,0) = -a[1];
+    Ahat(2,1) = a[0];
+    return Ahat;
+}
+
 // skewCross: performs and returns a x b using skew-symmetric transformation
 Eigen::Vector3d CitoParams::skewCross(const Eigen::Vector3d& a, const Eigen::Vector3d& b) {
     Eigen::Vector3d c;
@@ -108,7 +121,7 @@ Eigen::Vector3d CitoParams::skewCross(const Eigen::Vector3d& a, const Eigen::Vec
 }
 
 // quat2Euler: converts a quaternion (w,x,y,z) into Euler angles
-Eigen::Vector3d CitoParams::quat2Euler(Eigen::Vector4d q) {
+Eigen::Vector3d CitoParams::quat2Euler(const Eigen::Vector4d& q) {
     Eigen::Vector3d e;
     e[0] = atan2(2*(q[0]*q[1]+q[2]*q[3]), 1-2*(pow(q[1],2)+pow(q[2],2)));
     e[1] =  asin(2*(q[0]*q[2]-q[3]*q[1]));
