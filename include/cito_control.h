@@ -32,15 +32,17 @@ public:
     eigVd getState(const mjData* d);
     /// This function gets bounds on joint positions, actuator forces from the model
     void getBounds();
-    /// Position & torque limits
-    double *qposLB, *qposUB, *tauLB, *tauUB;
-    int    *isJFree, *isAFree;
     /// This function returns the 3D transform of a desired site
     fcl::Transform3d getSiteTransform(const mjData* d, int site_id);
     /// This function creates a collision geometry given a site ID
     std::shared_ptr<fcl::CollisionGeometryd> createCollGeom(const mjModel* m, int site_id);
     /// This function returns FCL distance calculation results for all contact pairs
     std::vector<fcl::DistanceResultd> calcDistance(const mjData* d);
+    /// Position & torque limits
+    double *qposLB, *qposUB, *tauLB, *tauUB;
+    int    *isJFree, *isAFree;
+    // Contact model curvature
+    double alpha;
 
 private:
     /// This function returns contact wrench given current state and control input
@@ -50,7 +52,7 @@ private:
     /// Contact wrench
     eigVd h, hCon;
     /// Contact model variables
-    double gamma, alpha;
+    double gamma;
     Eigen::Vector3d nCS, lambda, pCoM, r;
     mjtNum unit_x[3] = {1., 0., 0.};    // unit-x vector
     /// getState variables
