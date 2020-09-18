@@ -75,14 +75,14 @@ CitoParams::CitoParams(const mjModel* model_) : model(model_)
         Eigen::Vector2i site_pair(site_rbt[i], site_env[i]);
         sites.push_back(site_pair);
     }
-    // contact surface normals in the environment
-    nCS.resize(3, nPair);                   // contact surface normals
+    // default contact surface normals in the environment
+    nCS0.resize(3, nPair);                  // contact surface normals
     mjtNum surface_normal[3] = {1, 0, 0};
     mjtNum site_quat[4];
     for( int i=0; i<nPair; i++ )
     {
         mju_copy4(site_quat, model->site_quat+4*sites[i][1]);
-        mju_rotVecQuat(nCS.col(i).data(), surface_normal, site_quat);
+        mju_rotVecQuat(nCS0.col(i).data(), surface_normal, site_quat);
     }
     // dimensions
     n = 2*nv;               // dimensionality of states
@@ -102,12 +102,9 @@ CitoParams::~CitoParams()
 Eigen::Matrix3d CitoParams::skew(const Eigen::Vector3d& a) {
     Eigen::Matrix3d Ahat;
     Ahat.setZero();
-    Ahat(0,1) = -a[2];
-    Ahat(0,2) = a[1];
-    Ahat(1,2) = -a[0];
-    Ahat(1,0) = a[2];
-    Ahat(2,0) = -a[1];
-    Ahat(2,1) = a[0];
+    Ahat(0,1) = -a[2];  Ahat(0,2) = a[1];
+    Ahat(1,2) = -a[0];  Ahat(1,0) = a[2];
+    Ahat(2,0) = -a[1];  Ahat(2,1) = a[0];
     return Ahat;
 }
 
@@ -120,11 +117,40 @@ Eigen::Vector3d CitoParams::skewCross(const Eigen::Vector3d& a, const Eigen::Vec
     return c;
 }
 
-// quat2Euler: converts a quaternion (w,x,y,z) into Euler angles
+// quat2Euler: converts a quaternion (w,x,y,z) into ZYX Euler angles
 Eigen::Vector3d CitoParams::quat2Euler(const Eigen::Vector4d& q) {
     Eigen::Vector3d e;
-    e[0] = atan2(2*(q[0]*q[1]+q[2]*q[3]), 1-2*(pow(q[1],2)+pow(q[2],2)));
-    e[1] =  asin(2*(q[0]*q[2]-q[3]*q[1]));
-    e[2] = atan2(2*(q[0]*q[3]+q[1]*q[2]), 1-2*(pow(q[2],2)+pow(q[3],2)));
+    e[0] = atan2(2*(q[0]*q[1]+q[2]*q[3]), 1-2*(pow(q[1],2)+pow(q[2],2)));   // roll
+    e[1] =  asin(2*(q[0]*q[2]-q[3]*q[1]));                                  // pitch
+    e[2] = atan2(2*(q[0]*q[3]+q[1]*q[2]), 1-2*(pow(q[2],2)+pow(q[3],2)));   // yaw
     return e;
+}
+
+// diffRotx: calculates the contact surface normal Jacobian w.r.t. rotational DOF
+Eigen::Matrix3d CitoParams::evalNormalJac(const Eigen::Vector4d& q, int pair) {
+    Eigen::Vector3d e = quat2Euler(q);  // roll, pitch, yaw
+    Eigen::Matrix3d Rx, Ry, Rz, dRx, dR_dx, dR_dw;
+    dRx.setZero();
+    dRx(1,1) = -sin(e[0]);  dRx(1,2) = -cos(e[0]);
+    dRx(2,1) = cos(e[0]);   dRx(2,2) = -sin(e[0]);
+    Ry.setZero();
+    Ry(0,0) = cos(e[1]);    Ry(0,2) = sin(e[1]);
+    Ry(1,1) = 1.;
+    Ry(2,0) = -sin(e[1]);   Ry(2,2) = cos(e[1]);
+    Rz.setZero();
+    Rz(0,0) = cos(e[2]);    Rz(0,1) = -sin(e[2]);
+    Rz(1,0) = sin(e[2]);    Rz(1,1) = cos(e[2]);
+    Rz(2,2) = 1.;
+    // Calculate only the x component of the tensor since it's multiplied by ux
+    dR_dx = Rz*Ry*dRx;
+    // not sure why there is the negative sign but this matches the num. diff.
+    dR_dw.setZero();
+    dR_dw.col(2) = -dR_dx.col(2);
+    // This assumes site orientations align with a world axis in the model
+    // This is tested for only +/- x/y directions and not for z axis
+    if(abs(nCS0(0,pair))<1e-6)
+        dR_dw.col(0) = nCS0(1,pair)*dR_dx.col(1);
+    else
+        dR_dw.col(1) = -nCS0(0,pair)*dR_dx.col(1);
+    return dR_dw;
 }
