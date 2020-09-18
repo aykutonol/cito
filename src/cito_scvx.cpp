@@ -76,10 +76,10 @@ trajectory CitoSCVX::runSimulation(const eigMd U, bool linearize, bool save, dou
     mju_copy(d->qpos, m->key_qpos, m->nq);
     mj_forward(m, d);
     cc->setControl(d, U.col(0), compensateBias);
-    mj_forward(m, d);
     // rollout (and linearize) the dynamics
     for( int i=0; i<cp->N; i++ )
     {
+        mj_forward(m, d);
         // get the current state values
         XSucc.col(i).setZero();
         XSucc.col(i) = cc->getState(d);
