@@ -126,7 +126,7 @@ Eigen::Vector3d CitoParams::quat2Euler(const Eigen::Vector4d& q) {
     return e;
 }
 
-// diffRotx: calculates the contact surface normal Jacobian w.r.t. rotational DOF
+// evalNormalJac: calculates the contact normal Jacobian w.r.t. rotational DOF
 Eigen::Matrix3d CitoParams::evalNormalJac(const Eigen::Vector4d& q, int pair) {
     Eigen::Vector3d e = quat2Euler(q);  // roll, pitch, yaw
     Eigen::Matrix3d Rx, Ry, Rz, dRx, dR_dx, dR_dw;

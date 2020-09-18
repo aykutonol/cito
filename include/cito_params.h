@@ -66,7 +66,7 @@ public:
     Eigen::Vector3d skewCross(const Eigen::Vector3d& a, const Eigen::Vector3d& b);
     /// This function converts a quaternion (w,x,y,z) into Euler angles
     Eigen::Vector3d quat2Euler(const Eigen::Vector4d& q);
-    /// This function calculates the contact surface normal Jacobian w.r.t. rotational DOF
+    /// This function calculates the contact normal Jacobian w.r.t. rotational DOF
     Eigen::Matrix3d evalNormalJac(const Eigen::Vector4d& q, int pair);
 };
 
