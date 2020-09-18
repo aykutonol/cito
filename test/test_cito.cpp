@@ -21,8 +21,8 @@ TEST(CitoTests, test_params_load) {
     ASSERT_FALSE(params.IsNull());
 }
 
-// Assert util functions working properly
-TEST(CitoTests, test_utils) {
+// Assert skew-symmetric conversion working properly
+TEST(CitoTests, test_skew) {
     // Instantiate a CitoParams object
     CitoParams cp(m);
     // Create a test vector with an expected skew-symmetric representation
@@ -39,6 +39,64 @@ TEST(CitoTests, test_utils) {
     Eigen::Matrix3d Vhat = cp.skew(v);
     // Compare the resulting and expected matrices
     ASSERT_TRUE(Vhat.isApprox(Vhat_expect));
+}
+
+// Assert contact normal Jacobian calculation working properly
+TEST(CitoTests, test_evalNormalJac) {
+    // Instantiate a CitoParams object
+    CitoParams cp(m);
+    // Set the joint configuration and evaluate the forward dynamics
+    mju_copy(d->qpos, m->key_qpos, m->nq);
+    srand((unsigned int) time(0));
+    Eigen::Vector4d quat_rand = Eigen::MatrixXd::Random(4,1);
+    // quat_rand << 0.842, 0.408, 0.342, 0.092;
+    // quat_rand << .966, .0, .0, .259;
+    quat_rand = quat_rand/quat_rand.norm();
+    mju_copy4(d->qpos+3, quat_rand.data());
+    std::cout << "qrand: " << quat_rand.transpose() << ", norm: " << quat_rand.norm() <<
+                 "\nEuler: " << cp.quat2Euler(quat_rand).transpose() << "\n\n";
+    mj_forward(m, d);
+    // Evaluate the Jacobian numerically
+    mjtNum unit_x[3] = {1., 0., 0.};
+    Eigen::Vector3d n, np;
+    Eigen::MatrixXd dn_dw(3, m->nv);
+    double eps = 1e-6;
+    for(int pair=0; pair<cp.nPair; pair++) {
+        mju_rotVecMat(n.data(), unit_x, d->site_xmat+9*cp.sites[pair][1]);
+        for( int i=0; i<m->nv; i++ )
+        {
+            mjData *dCopy = mj_makeData(m);
+            mj_copyData(dCopy, m, d);
+            int jID = m->dof_jntid[i];
+            if( cp.quatAdr[i]>=0 )
+            {
+                mjtNum angvel[3] = {0,0,0};
+                angvel[cp.dofAdr[i]] = eps;
+                mju_quatIntegrate(dCopy->qpos+cp.quatAdr[i], angvel, 1);
+            }
+            else
+                dCopy->qpos[m->jnt_qposadr[jID] + i - m->jnt_dofadr[jID]] += eps;
+            // get the perturbed state
+            mj_forward(m, dCopy);
+            mju_rotVecMat(np.data(), unit_x, dCopy->site_xmat+9*cp.sites[pair][1]);
+            // undo perturbation
+            mju_copy(dCopy->qpos, d->qpos, m->nq);
+            // compute column i of dn/dq
+            dn_dw.col(i) = (np - n)/eps;
+            mj_deleteData(dCopy);
+        }
+        // Evaluate the analytic Jacobian
+        Eigen::Vector4d quat_site;
+        mju_mat2Quat(quat_site.data(), d->site_xmat+9*cp.sites[pair][1]);
+        Eigen::Matrix3d dn_dw_a = cp.evalNormalJac(quat_site, pair);
+        std::cout << "pair: " << pair << ", n: " << n.transpose() <<
+                     ", Euler: " << cp.quat2Euler(quat_site).transpose() <<
+                     "\n  numeric dn_dw:\n" << dn_dw.block(0,3,3,3) <<
+                     "\n  analytic dn_dw:\n" << dn_dw_a << 
+                     "\n\n";
+        // Compare the resulting and expected matrices
+        ASSERT_TRUE((dn_dw.block(0,3,3,3)-dn_dw_a).cwiseAbs().maxCoeff()<1e-3);
+    }
 }
 
 int main(int argc, char **argv) {
