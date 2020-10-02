@@ -1,28 +1,28 @@
 /*! Control and Contact Model */
 /**
- *  \brief CitoControl class consists of functions for control and contact model
+ *  \brief Control consists of methods for control and contact model
  *
  *  This class defines functions for calculating and setting control- and contact-
- *  related variables, i.e., joint torques and external forces on the free bodies.
+ *  related variables, e.g., joint torques and external forces on the free bodies.
  *
  *  \author Aykut Onol
  */
 
-#ifndef CITO_CONTROL_H
-#define CITO_CONTROL_H
+#ifndef CONTROL_H
+#define CONTROL_H
 
-#include "cito_params.h"
-#include "mj_savelog.h"
+#include "cito/params.h"
+#include "cito/savelog.h"
 
 #include <fcl/fcl.h>
 
-class CitoControl
+class Control
 {
 public:
     /// Constructor
-    CitoControl(const mjModel* m_, CitoParams* cp_);
+    Control(const mjModel* m_, Params* cp_);
     /// Destructor
-    ~CitoControl();
+    ~Control();
     /// This function returns the 3D transform of a desired site
     fcl::Transform3d getSiteTransform(const mjData* d, int site_id);
     /// This function creates a collision geometry given a site ID
@@ -59,8 +59,8 @@ private:
     eigVd x;
     Eigen::Matrix<mjtNum, 4, 1> jFreeQuat;
     /// Objects
-    CitoParams *cp;
-    MjSaveLog sl;
+    Params *cp;
+    SaveLog sl;
     /// FCL solver and variables
     fcl::DistanceRequestd distReq;
     fcl::DistanceResultd  distRes;
@@ -68,4 +68,4 @@ private:
     std::unordered_map<int, fcl::CollisionObjectd*> collObjs;
 };
 
-#endif //CITO_CONTROL_H
+#endif //CONTROL_H

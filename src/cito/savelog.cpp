@@ -1,10 +1,10 @@
 // ***** DESCRIPTION ***********************************************************
-// This class consists of functions for saving data from a MuJoCo simulation.
+// SaveLog consists of methods for saving data from a MuJoCo simulation.
 
-#include "mj_savelog.h"
+#include "cito/savelog.h"
 
 // ***** CONSTRUCTOR & DESTRUCTOR **********************************************
-MjSaveLog::MjSaveLog(const mjModel* m_, CitoParams* cp_) : m(m_), cp(cp_)
+SaveLog::SaveLog(const mjModel* m_, Params* cp_) : m(m_), cp(cp_)
 {
     // open the log file
     YAML::Node params = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/params.yaml");
@@ -34,7 +34,7 @@ MjSaveLog::MjSaveLog(const mjModel* m_, CitoParams* cp_) : m(m_), cp(cp_)
     }
     else {std::cout << "WARNING: Unable to open the trajectory file.\n"; }
 }
-MjSaveLog::~MjSaveLog()
+SaveLog::~SaveLog()
 {
     // close the log file
     fclose(logFile);
@@ -44,7 +44,7 @@ MjSaveLog::~MjSaveLog()
 
 // ***** FUNCTIONS *************************************************************
 // writeData: writes simulation data to logFile
-void MjSaveLog::writeData(const mjData* d)
+void SaveLog::writeData(const mjData* d)
 {
     /// logFile
     // create data for the record

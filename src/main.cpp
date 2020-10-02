@@ -8,7 +8,7 @@
  *  \author Aykut Onol
  */
 
-#include "cito_scvx.h"
+#include "cito/scvx.h"
 
 int main(int argc, char const *argv[]) {
     // ***** MuJoCo initialization ***********************************************/
@@ -27,9 +27,9 @@ int main(int argc, char const *argv[]) {
     else {  m = mj_loadXML(modelPath, NULL, NULL, 0); }
     if( !m ) { mju_error("Cannot load the model"); }
     // ***** Create objects for CITO *********************************************/
-    CitoParams  cp(m);
-    CitoControl cc(m, &cp);
-    CitoSCVX    scvx(m, &cp, &cc);
+    Params  cp(m);
+    Control cc(m, &cp);
+    SCVX    scvx(m, &cp, &cc);
     // ***** Trajectories ********************************************************/
     eigMd U0, U; U0.resize(cp.m,cp.N); U.resize(cp.m,cp.N);
     trajectory traj;

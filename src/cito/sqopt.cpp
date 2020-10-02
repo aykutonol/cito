@@ -1,11 +1,11 @@
 // ***** DESCRIPTION ***********************************************************
-// CitoSQOPT class consists of functions that are used to convert the convex
-// subproblems used in SCVX to the appropriate form for SQOPT.
+// SQOPT consists of functions that are used to convert the convex subproblems 
+// used in the SCVX method to the appropriate form for SQOPT.
 
-#include "cito_sqopt.h"
+#include "cito/sqopt.h"
 
 // ***** CONSTRUCTOR ***********************************************************
-CitoSQOPT::CitoSQOPT(const mjModel* m_, CitoParams* cp_) : m(m_), cp(cp_)
+SQOPT::SQOPT(const mjModel* m_, Params* cp_) : m(m_), cp(cp_)
 {
     // initialize Eigen variables
     deltaPos.resize(6);
@@ -67,7 +67,7 @@ CitoSQOPT::CitoSQOPT(const mjModel* m_, CitoParams* cp_) : m(m_), cp(cp_)
     cvxProb.setUserI(iu, leniu);
 }
 // ***** DESTRUCTOR ************************************************************
-CitoSQOPT::~CitoSQOPT()
+SQOPT::~SQOPT()
 {
     delete[] cObj;  delete[] indMove;
     delete[] ru;    delete[] iu;
@@ -75,7 +75,7 @@ CitoSQOPT::~CitoSQOPT()
 
 // ***** FUNCTIONS *************************************************************
 // qpHx: sets Hx to the H*x part of the quadratic cost to be multiplied by x'
-void CitoSQOPT::qpHx(int *nnH, double x[], double Hx[], int *nState,
+void SQOPT::qpHx(int *nnH, double x[], double Hx[], int *nState,
                      char cu[], int *lencu, int iu[], int *leniu,
                      double ru[], int *lenru)
 {
@@ -99,7 +99,7 @@ void CitoSQOPT::qpHx(int *nnH, double x[], double Hx[], int *nState,
 }
 
 // setCObj: sets linear and constant cost terms of the cost
-void CitoSQOPT::setCObj(const eigMd& X, const eigMd& U,
+void SQOPT::setCObj(const eigMd& X, const eigMd& U,
                         double *ru, double *cObj, double &ObjAdd)
 {
     // desired change in the final pose
@@ -135,7 +135,7 @@ void CitoSQOPT::setCObj(const eigMd& X, const eigMd& U,
 }
 
 // solveCvx: solves the convex subproblem
-void CitoSQOPT::solveCvx(double *xTraj, double r, const eigMd& X, const eigMd& U,
+void SQOPT::solveCvx(double *xTraj, double r, const eigMd& X, const eigMd& U,
                          const eigTd& Fx, const eigTd& Fu, int *isJFree, int *isAFree,
                          double *qposLB, double *qposUB, double *tauLB, double *tauUB)
 {
@@ -183,7 +183,7 @@ void CitoSQOPT::solveCvx(double *xTraj, double r, const eigMd& X, const eigMd& U
 }
 
 // setBounds: sets bounds of dX, dU, and constraints (dynamics, trust region, etc.)
-void CitoSQOPT::setBounds(double r, const eigMd& X, const eigMd& U,
+void SQOPT::setBounds(double r, const eigMd& X, const eigMd& U,
                           double *bl, double *bu, int *isJFree, int *isAFree,
                           double *qposLB, double *qposUB, double *tauLB, double *tauUB)
 {
@@ -246,7 +246,7 @@ void CitoSQOPT::setBounds(double r, const eigMd& X, const eigMd& U,
 
 // setA: creates the sparse A matrix for linearized dynamics, auxiliary
 // variables, and trust region constraints
-void CitoSQOPT::setA(double *valA, int *indA, int *locA, const eigTd& Fx, const eigTd& Fu)
+void SQOPT::setA(double *valA, int *indA, int *locA, const eigTd& Fx, const eigTd& Fu)
 {
     int colNo = 0, indNo = 0, indTS = 0;
 
@@ -336,7 +336,7 @@ void CitoSQOPT::setA(double *valA, int *indA, int *locA, const eigTd& Fx, const 
 }
 
 // sortToMatch: modifies A and the bounds such that non-zero elements in H come first
-void CitoSQOPT::sortToMatch(double *valA, int *indA, int *locA, int *moveIndices, double *bl, double *bu)
+void SQOPT::sortToMatch(double *valA, int *indA, int *locA, int *moveIndices, double *bl, double *bu)
 {
     int less_counter = 0, iMove = 0;
     for( int i=0; i<nMove; i++ )
@@ -349,7 +349,7 @@ void CitoSQOPT::sortToMatch(double *valA, int *indA, int *locA, int *moveIndices
 }
 
 // moveColA: moves column iMove in A to left
-void CitoSQOPT::moveColA(double *valA, int *indA, int *locA, int iMove)
+void SQOPT::moveColA(double *valA, int *indA, int *locA, int iMove)
 {
     int *indAtemp = new int[neA], *neCol = new int[n];
     double *valAtemp = new double[neA];
@@ -381,7 +381,7 @@ void CitoSQOPT::moveColA(double *valA, int *indA, int *locA, int iMove)
 }
 
 // moveRowBounds: moves row iMove in bounds to top
-void CitoSQOPT::moveRowBounds(double *bl, double *bu, int iMove)
+void SQOPT::moveRowBounds(double *bl, double *bu, int iMove)
 {
     double *bLTemp = new double[iMove+1], *bUTemp = new double[iMove+1];
     bLTemp[0] = bl[iMove];  bUTemp[0] = bu[iMove];
@@ -397,7 +397,7 @@ void CitoSQOPT::moveRowBounds(double *bl, double *bu, int iMove)
 }
 
 // sortX: sorts decision variables back to original order
-void CitoSQOPT::sortX(double *x, int *moveIndices)
+void SQOPT::sortX(double *x, int *moveIndices)
 {
     int k = 0;
     xTemp = new double[n];

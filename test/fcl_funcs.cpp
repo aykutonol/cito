@@ -1,4 +1,4 @@
-#include "cito_params.h"
+#include "cito/params.h"
 #include <fcl/fcl.h>
 
 // Get site pose from MuJoCo data
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
     // Evaluate the forward dynamics
     mj_forward(m, d);
     // Parse parameters from the model and the params file
-    CitoParams cp(m);
+    Params cp(m);
 
     // Create collision geometries and objects from the model
     std::unordered_map<int, fcl::CollisionObjectd*> fclObjects;

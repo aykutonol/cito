@@ -1,6 +1,6 @@
 /*! Numerical Differentiation */
 /**
- *  \brief CitoNumDiff class consists of functions for numerical differentiation.
+ *  \brief NumDiff consists of methods for numerical differentiation.
  *
  *  This class defines functions for numerical differentiation of the MuJoCo
  *  dynamics including the forces imposed by the contact model.
@@ -8,18 +8,18 @@
  *  \author Aykut Onol
  */
 
-#ifndef CITO_NUMDIFF_H
-#define CITO_NUMDIFF_H
+#ifndef NUMDIFF_H
+#define NUMDIFF_H
 
-#include "cito_control.h"
+#include "cito/control.h"
 
-class CitoNumDiff
+class NumDiff
 {
 public:
     /// Constructor
-    CitoNumDiff(const mjModel* m_, CitoParams* cp_, CitoControl* cc_);
+    NumDiff(const mjModel* m_, Params* cp_, Control* cc_);
     /// Destructor
-    ~CitoNumDiff() {}
+    ~NumDiff() {}
     /// This function calculates derivatives of the state and control trajectories
     void linDyn(const mjData* dMain, const eigVd& uMain, double* Fxd, double* Fud, double compensateBias);
 
@@ -36,8 +36,8 @@ private:
     eigVd xNewTemp, xNewP, xNewN;
     eigVd uTemp;
     /// Objects
-    CitoParams  *cp;
-    CitoControl *cc;
+    Params  *cp;
+    Control *cc;
 };
 
-#endif //CITO_NUMDIFF_H
+#endif //NUMDIFF_H

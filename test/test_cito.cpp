@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "cito_scvx.h"
+#include "cito/scvx.h"
 
 // MuJoCo model and data
 mjModel *m = NULL;
@@ -23,8 +23,8 @@ TEST(CitoTests, test_params_load) {
 
 // Assert skew-symmetric conversion working properly
 TEST(CitoTests, test_skew) {
-    // Instantiate a CitoParams object
-    CitoParams cp(m);
+    // Instantiate a Params object
+    Params cp(m);
     // Create a test vector with an expected skew-symmetric representation
     Eigen::Vector3d v(1., 2., 3.);
     Eigen::Matrix3d Vhat_expect;
@@ -43,8 +43,8 @@ TEST(CitoTests, test_skew) {
 
 // Assert contact normal Jacobian calculation working properly
 TEST(CitoTests, test_evalNormalJac) {
-    // Instantiate a CitoParams object
-    CitoParams cp(m);
+    // Instantiate a Params object
+    Params cp(m);
     // Set the joint configuration and evaluate the forward dynamics
     mju_copy(d->qpos, m->key_qpos, m->nq);
     srand((unsigned int) time(0));

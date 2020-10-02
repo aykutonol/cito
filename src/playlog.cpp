@@ -3,7 +3,7 @@
 #include "mujoco.h"
 #include "glfw3.h"
 
-#include "cito_params.h"
+#include "cito/params.h"
 
 /// global variables
 std::string modelName;

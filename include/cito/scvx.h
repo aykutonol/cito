@@ -1,6 +1,6 @@
 /*! Successive Convexification */
 /**
- *  \brief CitoSCVX class consists of functions to run the SCVX algorithm
+ *  \brief SCVX consists of methods to run the SCVX algorithm.
  *
  *  This class defines functions that are used to roll-out the dynamics,
  *  evaluate the cost, and execute the SCVX algorithm.
@@ -9,20 +9,20 @@
  */
 
 
-#ifndef CITO_SCVX_H
-#define CITO_SCVX_H
+#ifndef SCVX_H
+#define SCVX_H
 
-#include "cito_numdiff.h"
-#include "cito_sqopt.h"
+#include "cito/numdiff.h"
+#include "cito/sqopt.h"
 
 
-class CitoSCVX
+class SCVX
 {
 public:
     /// Constructor
-    CitoSCVX(const mjModel* m_, CitoParams* cp_, CitoControl* cc_);
+    SCVX(const mjModel* m_, Params* cp_, Control* cc_);
     /// Destructor
-    ~CitoSCVX();
+    ~SCVX();
     /// This function returns the nonlinear cost given control trajectory and final state
     double getCost(const eigMd& X, const eigMd& U);
     /// This function rolls-out and linearizes the dynamics given control trajectory
@@ -51,10 +51,10 @@ private:
     eigVd finalPos;
     double Jf, Ji, Jt;      // final, integrated, and total cost values
     /// Objects
-    CitoParams  *cp;
-    CitoControl *cc;
-    CitoNumDiff nd;
-    CitoSQOPT   sq;
+    Params  *cp;
+    Control *cc;
+    NumDiff nd;
+    SQOPT   sq;
 };
 
-#endif //CITO_SCVX_H
+#endif //SCVX_H

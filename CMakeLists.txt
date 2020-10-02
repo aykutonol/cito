@@ -32,12 +32,12 @@ include_directories(
 
 # Create the CITO library
 add_library(${PROJECT_NAME}
-	src/cito_params.cpp
-	src/cito_control.cpp
-	src/cito_numdiff.cpp
-	src/cito_scvx.cpp
-	src/cito_sqopt.cpp
-	src/mj_savelog.cpp
+	src/cito/params.cpp
+	src/cito/control.cpp
+	src/cito/numdiff.cpp
+	src/cito/scvx.cpp
+	src/cito/sqopt.cpp
+	src/cito/savelog.cpp
 )
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	target_link_libraries(${PROJECT_NAME}
@@ -77,7 +77,7 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif()
 
 # playlog: renders the generated motion
-add_executable(${NODE_NAME2} src/mj_playlog.cpp)
+add_executable(${NODE_NAME2} src/playlog.cpp)
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	target_link_libraries(${NODE_NAME2}
                           ${MUJOCO_DIR}/bin/libmujoco200.so

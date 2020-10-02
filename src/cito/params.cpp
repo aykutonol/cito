@@ -1,11 +1,11 @@
 // ***** DESCRIPTION ***********************************************************
-// CitoParams class parses the model and config files and defines parameters
-// that are used across classes.
+// Params parses the model and config files and defines parameters and utility
+// functions that are used across the CITO classes.
 
-#include "cito_params.h"
+#include "cito/params.h"
 
 // ***** CONSTRUCTOR ***********************************************************
-CitoParams::CitoParams(const mjModel* model_) : model(model_)
+Params::Params(const mjModel* model_) : model(model_)
 {
     // read config files
     YAML::Node params = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/params.yaml");
@@ -90,7 +90,7 @@ CitoParams::CitoParams(const mjModel* model_) : model(model_)
     nTraj = (N+1)*n + N*m;  // number of parameters in discretized trajectory
 }
 // ***** DESTRUCTOR ************************************************************
-CitoParams::~CitoParams()
+Params::~Params()
 {
     delete[] quatAdr;   delete[] dofAdr;
     delete[] bFree;     delete[] pFree;
@@ -99,7 +99,7 @@ CitoParams::~CitoParams()
 
 // Utility functions
 // skew: returns the skew symmetric matrix representation of a 3D vector
-Eigen::Matrix3d CitoParams::skew(const Eigen::Vector3d& a) {
+Eigen::Matrix3d Params::skew(const Eigen::Vector3d& a) {
     Eigen::Matrix3d Ahat;
     Ahat.setZero();
     Ahat(0,1) = -a[2];  Ahat(0,2) = a[1];
@@ -109,7 +109,7 @@ Eigen::Matrix3d CitoParams::skew(const Eigen::Vector3d& a) {
 }
 
 // skewCross: performs and returns a x b using skew-symmetric transformation
-Eigen::Vector3d CitoParams::skewCross(const Eigen::Vector3d& a, const Eigen::Vector3d& b) {
+Eigen::Vector3d Params::skewCross(const Eigen::Vector3d& a, const Eigen::Vector3d& b) {
     Eigen::Vector3d c;
     c[0] = -a[2]*b[1] + a[1]*b[2];
     c[1] =  a[2]*b[0] - a[0]*b[2];
@@ -118,7 +118,7 @@ Eigen::Vector3d CitoParams::skewCross(const Eigen::Vector3d& a, const Eigen::Vec
 }
 
 // quat2Euler: converts a quaternion (w,x,y,z) into ZYX Euler angles
-Eigen::Vector3d CitoParams::quat2Euler(const Eigen::Vector4d& q) {
+Eigen::Vector3d Params::quat2Euler(const Eigen::Vector4d& q) {
     Eigen::Vector3d e;
     e[0] = atan2(2*(q[0]*q[1]+q[2]*q[3]), 1-2*(pow(q[1],2)+pow(q[2],2)));   // roll
     e[1] =  asin(2*(q[0]*q[2]-q[3]*q[1]));                                  // pitch
@@ -127,7 +127,7 @@ Eigen::Vector3d CitoParams::quat2Euler(const Eigen::Vector4d& q) {
 }
 
 // evalNormalJac: calculates the contact normal Jacobian w.r.t. rotational DOF
-Eigen::Matrix3d CitoParams::evalNormalJac(const Eigen::Vector4d& q, int pair) {
+Eigen::Matrix3d Params::evalNormalJac(const Eigen::Vector4d& q, int pair) {
     Eigen::Vector3d e = quat2Euler(q);  // roll, pitch, yaw
     Eigen::Matrix3d Rx, Ry, Rz, dRx, dR_dx, dR_dw;
     dRx.setZero();

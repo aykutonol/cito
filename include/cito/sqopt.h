@@ -1,26 +1,26 @@
 /*! SQOPT Interface */
 /**
- *  \brief CitoSQOPT class consists of functions for using SQOPT
+ *  \brief SQOPT consists of methods for using SQOPT in CITO.
  *
- *  This class defines functions that are used to convert the convex subproblems
- *  used in SCVX to the appropriate form for SQOPT.
+ *  This class defines functions that are used to convert the convex subproblems 
+// used in the SCVX method to the appropriate form for SQOPT.
  *
  *  \author Aykut Onol
  */
 
-#ifndef CITO_SQOPT_H
-#define CITO_SQOPT_H
+#ifndef SQOPT_H
+#define SQOPT_H
 
-#include "cito_params.h"
+#include "cito/params.h"
 #include "snoptProblem.hpp"
 
-class CitoSQOPT
+class SQOPT
 {
 public:
     /// Constructor
-    CitoSQOPT(const mjModel* m_, CitoParams* cp_);
+    SQOPT(const mjModel* m_, Params* cp_);
     /// Destructor
-    ~CitoSQOPT();
+    ~SQOPT();
     /// This function solves the convex subproblem
     void solveCvx(double *xTraj, double r, const eigMd& X, const eigMd& U,
                   const eigTd& Fx, const eigTd& Fu, int *isJFree, int *isAFree,
@@ -67,8 +67,8 @@ private:
     int dUOffset, auxOffset;
     double kCon0;
     /// Objects
-    CitoParams *cp;
+    Params *cp;
     sqoptProblem cvxProb;
 };
 
-#endif //CITO_SQOPT_H
+#endif //SQOPT_H

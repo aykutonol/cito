@@ -1,16 +1,16 @@
 /*! Parameters */
 /**
- *  \brief CitoParams contains definitions that are used across classes.
+ *  \brief Params contains definitions that are used across CITO classes.
  *
  *  This header contains global types, structs, and paths as well as the
- *  CitoParams class that parses the model and config files and defines
- *  parameters that are used across classes.
+ *  Params class that parses the model and config files and defines
+ *  parameters and utility functions that are used across classes.
  *
  *  \author Aykut Onol
  */
 
-#ifndef CITO_PARAMS_H
-#define CITO_PARAMS_H
+#ifndef PARAMS_H
+#define PARAMS_H
 
 #include <iostream>
 #include <string>
@@ -41,13 +41,13 @@ namespace paths
     const std::string workspaceDir = std::getenv("CITO_WS");
 }
 
-/// CitoParams class
-class CitoParams{
+/// Params class
+class Params{
 public:
     /// Constructor
-    CitoParams(const mjModel *model_);
+    Params(const mjModel *model_);
     /// Destructor
-    ~CitoParams();
+    ~Params();
     /// Simulation and model parameters
     const mjModel *model;
     double tf, tc, dt;
@@ -71,4 +71,4 @@ public:
     Eigen::Matrix3d evalNormalJac(const Eigen::Vector4d& q, int pair);
 };
 
-#endif //CITO_PARAMS_H
+#endif //PARAMS_H

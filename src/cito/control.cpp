@@ -1,13 +1,13 @@
 // ***** DESCRIPTION ***********************************************************
-// CitoControl class defines functions for calculating and setting control- and
-// contact-related variables, i.e., joint torques and external forces on the free
+// Control defines functions for calculating and setting control- and contact-
+// related variables, e.g., joint torques and external forces on the free
 // bodies.
 
-#include "cito_control.h"
+#include "cito/control.h"
 
 
 // ***** CONSTRUCTOR & DESTRUCTOR **********************************************
-CitoControl::CitoControl(const mjModel* m_, CitoParams* cp_) : m(m_), cp(cp_), sl(m_, cp_)
+Control::Control(const mjModel* m_, Params* cp_) : m(m_), cp(cp_), sl(m_, cp_)
 {
     // read contact model parameters
     YAML::Node vscm = YAML::LoadFile(paths::workspaceDir+"/src/cito/config/vscm.yaml");
@@ -33,7 +33,7 @@ CitoControl::CitoControl(const mjModel* m_, CitoParams* cp_) : m(m_), cp(cp_), s
         }
     }
 }
-CitoControl::~CitoControl()
+Control::~Control()
 {
     // delete bound variables
     delete[] qposLB;        delete[] qposUB;
@@ -46,7 +46,7 @@ CitoControl::~CitoControl()
 
 // ***** FUNCTIONS *************************************************************
 // getSiteTransform: returns the site pose from MuJoCo data
-fcl::Transform3d CitoControl::getSiteTransform(const mjData* d, int site_id) {
+fcl::Transform3d Control::getSiteTransform(const mjData* d, int site_id) {
     fcl::Transform3d tf;
     // get the position
     mju_copy3(tf.translation().data(), d->site_xpos+3*site_id);
@@ -58,7 +58,7 @@ fcl::Transform3d CitoControl::getSiteTransform(const mjData* d, int site_id) {
 }
 
 // createCollGeom creates an FCL collision object given a MuJoCo model, site no, and transform
-std::shared_ptr<fcl::CollisionGeometryd> CitoControl::createCollGeom(const mjModel* m, int site_id) {
+std::shared_ptr<fcl::CollisionGeometryd> Control::createCollGeom(const mjModel* m, int site_id) {
     std::shared_ptr<fcl::CollisionGeometryd> geom = NULL;
     if( m->site_type[site_id]==mjGEOM_SPHERE )
     {
@@ -87,7 +87,7 @@ std::shared_ptr<fcl::CollisionGeometryd> CitoControl::createCollGeom(const mjMod
 }
 
 // calcDistance: returns FCL distance calculation result for each pair
-std::vector<fcl::DistanceResultd> CitoControl::calcDistance(const mjData* d)
+std::vector<fcl::DistanceResultd> Control::calcDistance(const mjData* d)
 {
     std::vector<fcl::DistanceResultd> distResults;
     // update collision objects' poses
@@ -104,7 +104,7 @@ std::vector<fcl::DistanceResultd> CitoControl::calcDistance(const mjData* d)
 }
 
 // takeStep: takes a full control step given a control input
-void CitoControl::takeStep(mjData* d, const eigVd& u, bool save, double compensateBias)
+void Control::takeStep(mjData* d, const eigVd& u, bool save, double compensateBias)
 {
     if( save ) { sl.writeData(d); }
     for( int i=0; i<cp->ndpc; i++ )
@@ -117,7 +117,7 @@ void CitoControl::takeStep(mjData* d, const eigVd& u, bool save, double compensa
 }
 
 // setControl: sets generalized forces on joints and free bodies
-void CitoControl::setControl(mjData* d, const eigVd& u, double compensateBias)
+void Control::setControl(mjData* d, const eigVd& u, double compensateBias)
 {
     // set control given the control input
     for( int i=0; i<m->nu; i++ )
@@ -138,7 +138,7 @@ void CitoControl::setControl(mjData* d, const eigVd& u, double compensateBias)
 }
 
 // contactModel: returns contact wrench given current state and control input
-eigVd CitoControl::contactModel(const mjData* d, const eigVd& u)
+eigVd Control::contactModel(const mjData* d, const eigVd& u)
 {
     h.setZero();
     // calculate min. distance and nearest points for all contact pairs
@@ -169,7 +169,7 @@ eigVd CitoControl::contactModel(const mjData* d, const eigVd& u)
 
 // getState: converts free joints' quaternions to Euler angles so that
 // the dimensionality of the state vector is 2*nv instead of nq+nv
-eigVd CitoControl::getState(const mjData* d)
+eigVd Control::getState(const mjData* d)
 {
     x.setZero();
     int freeNo = 0;
@@ -200,7 +200,7 @@ eigVd CitoControl::getState(const mjData* d)
 }
 
 // getBounds: gets bounds on joint positions, actuator forces from the model
-void CitoControl::getBounds()
+void Control::getBounds()
 {
     for( int i=0; i<m->nv; i++ )
     {

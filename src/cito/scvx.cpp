@@ -1,11 +1,11 @@
 // ***** DESCRIPTION ***********************************************************
-// CitoSCVX class defines functions that are used to roll-out the dynamics,
+// SCVX class defines functions that are used to roll-out the dynamics,
 // evaluate the cost, and execute the SCVX algorithm.
 
-#include "cito_scvx.h"
+#include "cito/scvx.h"
 
 // ***** CONSTRUCTOR ***********************************************************
-CitoSCVX::CitoSCVX(const mjModel* m_, CitoParams* cp_, CitoControl* cc_) : 
+SCVX::SCVX(const mjModel* m_, Params* cp_, Control* cc_) : 
                    m(m_), cp(cp_), cc(cc_), nd(m_, cp_, cc_), sq(m_, cp_)
 {
     // initialize Eigen variables
@@ -43,7 +43,7 @@ CitoSCVX::CitoSCVX(const mjModel* m_, CitoParams* cp_, CitoControl* cc_) :
     }
 }
 // ***** DESTRUCTOR ************************************************************
-CitoSCVX::~CitoSCVX()
+SCVX::~SCVX()
 {
     delete[] J;     delete[] JTemp;     delete[] JTilde;
     delete[] dJ;    delete[] dL;        delete[] rho;
@@ -52,7 +52,7 @@ CitoSCVX::~CitoSCVX()
 
 // ***** FUNCTIONS *************************************************************
 // getCost: returns the nonlinear cost given control trajectory and final state
-double CitoSCVX::getCost(const eigMd& X, const eigMd& U)
+double SCVX::getCost(const eigMd& X, const eigMd& U)
 {
     // final cost
     finalPos = X.col(cp->N).segment(cp->controlJointDOF0, 6);
@@ -67,7 +67,7 @@ double CitoSCVX::getCost(const eigMd& X, const eigMd& U)
 }
 
 // runSimulation: rolls-out and linearizes the dynamics given control trajectory
-trajectory CitoSCVX::runSimulation(const eigMd& U, bool linearize, bool save, double compensateBias)
+trajectory SCVX::runSimulation(const eigMd& U, bool linearize, bool save, double compensateBias)
 {
     // make mjData
     mjData* d = NULL;
@@ -106,7 +106,7 @@ trajectory CitoSCVX::runSimulation(const eigMd& U, bool linearize, bool save, do
 }
 
 // solveSCVX: executes the successive convexification algorithm
-eigMd CitoSCVX::solveSCVX(const eigMd& U0)
+eigMd SCVX::solveSCVX(const eigMd& U0)
 {
     // initialize USucc for the first succession
     USucc = U0;

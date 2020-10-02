@@ -1,24 +1,24 @@
 /*! Save Log */
 /**
- *  \brief MjSaveLog saves MuJoCo log
+ *  \brief SaveLog saves MuJoCo log
  *
- *  This class consists of functions for saving data from a MuJoCo simulation.
+ *  This class consists of methods for saving data from a MuJoCo simulation.
  *
  *  \author Aykut Onol
  */
 
-#ifndef MJ_SAVELOG_H
-#define MJ_SAVELOG_H
+#ifndef SAVELOG_H
+#define SAVELOG_H
 
-#include "cito_params.h"
+#include "cito/params.h"
 #include <fstream>
 
-class MjSaveLog{
+class SaveLog{
 public:
     /// Constructor
-    MjSaveLog(const mjModel* m_, CitoParams* cp_);
+    SaveLog(const mjModel* m_, Params* cp_);
     /// Destructor
-    ~MjSaveLog();
+    ~SaveLog();
     /// writes simulation data to the print file
     void writeData(const mjData *d);
 private:
@@ -33,7 +33,7 @@ private:
     /// Trajectory file for execution
     std::ofstream trajFile;
     /// Objects
-    CitoParams *cp;
+    Params *cp;
 };
 
 #endif //MJ_SAVELOG_H

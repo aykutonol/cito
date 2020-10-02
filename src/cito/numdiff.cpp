@@ -1,11 +1,11 @@
 // ***** DESCRIPTION ***********************************************************
-// CitoNumDiff class defines functions for numerical differentiation of MuJoCo
+// NumDiff defines methods for numerical differentiation of MuJoCo
 // dynamics including the forces imposed by the contact model.
 
-#include "cito_numdiff.h"
+#include "cito/numdiff.h"
 
 // ***** CONSTRUCTOR ***********************************************************
-CitoNumDiff::CitoNumDiff(const mjModel* m_, CitoParams* cp_, CitoControl* cc_) : 
+NumDiff::NumDiff(const mjModel* m_, Params* cp_, Control* cc_) : 
                          m(m_), cp(cp_), cc(cc_)
 {
     // initialize Eigen variables
@@ -13,7 +13,7 @@ CitoNumDiff::CitoNumDiff(const mjModel* m_, CitoParams* cp_, CitoControl* cc_) :
 }
 // ***** FUNCTIONS *************************************************************
 // copyTakeStep: sets xNew to the integration of data given a control input
-void CitoNumDiff::copyTakeStep(const mjData* dMain, const eigVd& u, double* xNew, double compensateBias)
+void NumDiff::copyTakeStep(const mjData* dMain, const eigVd& u, double* xNew, double compensateBias)
 {
     // create new data
     mjData* d;
@@ -41,7 +41,7 @@ void CitoNumDiff::copyTakeStep(const mjData* dMain, const eigVd& u, double* xNew
 }
 
 // hardWorker: for full, slow finite-difference computation
-void CitoNumDiff::hardWorker(const mjData* dMain, const eigVd& uMain, double* deriv, double compensateBias)
+void NumDiff::hardWorker(const mjData* dMain, const eigVd& uMain, double* deriv, double compensateBias)
 {
     // create data
     mjData* d;
@@ -145,7 +145,7 @@ void CitoNumDiff::hardWorker(const mjData* dMain, const eigVd& uMain, double* de
 }
 
 // linDyn: calculates derivatives of the state and control trajectories
-void CitoNumDiff::linDyn(const mjData* dMain, const eigVd& uMain, double* Fxd, double* Fud, double compensateBias)
+void NumDiff::linDyn(const mjData* dMain, const eigVd& uMain, double* Fxd, double* Fud, double compensateBias)
 {
     // TODO: consider doing the memory allocation/freeing in the constructor/destructor
     double* deriv = (double*) mju_malloc(sizeof(double)*cp->n*(cp->n+cp->m));
