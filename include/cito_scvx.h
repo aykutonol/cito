@@ -24,11 +24,11 @@ public:
     /// Destructor
     ~CitoSCVX();
     /// This function returns the nonlinear cost given control trajectory and final state
-    double getCost(const eigMd X, const eigMd U);
+    double getCost(const eigMd& X, const eigMd& U);
     /// This function rolls-out and linearizes the dynamics given control trajectory
-    trajectory runSimulation(const eigMd U0, bool linearize, bool save, double compensateBias);
+    trajectory runSimulation(const eigMd& U0, bool linearize, bool save, double compensateBias);
     /// This function executes the successive convexification algorithm
-    eigMd solveSCVX(const eigMd U);
+    eigMd solveSCVX(const eigMd& U);
 
 private:
     /// MuJoCo model

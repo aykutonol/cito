@@ -52,7 +52,7 @@ CitoSCVX::~CitoSCVX()
 
 // ***** FUNCTIONS *************************************************************
 // getCost: returns the nonlinear cost given control trajectory and final state
-double CitoSCVX::getCost(const eigMd X, const eigMd U)
+double CitoSCVX::getCost(const eigMd& X, const eigMd& U)
 {
     // final cost
     finalPos = X.col(cp->N).segment(cp->controlJointDOF0, 6);
@@ -67,7 +67,7 @@ double CitoSCVX::getCost(const eigMd X, const eigMd U)
 }
 
 // runSimulation: rolls-out and linearizes the dynamics given control trajectory
-trajectory CitoSCVX::runSimulation(const eigMd U, bool linearize, bool save, double compensateBias)
+trajectory CitoSCVX::runSimulation(const eigMd& U, bool linearize, bool save, double compensateBias)
 {
     // make mjData
     mjData* d = NULL;
@@ -106,7 +106,7 @@ trajectory CitoSCVX::runSimulation(const eigMd U, bool linearize, bool save, dou
 }
 
 // solveSCVX: executes the successive convexification algorithm
-eigMd CitoSCVX::solveSCVX(const eigMd U0)
+eigMd CitoSCVX::solveSCVX(const eigMd& U0)
 {
     // initialize USucc for the first succession
     USucc = U0;
