@@ -15,6 +15,7 @@
 #include <iostream>
 #include <string>
 #include <chrono>
+#include <ctime>
 
 #include <Eigen/Dense>
 #include <yaml-cpp/yaml.h>

@@ -45,7 +45,11 @@ int main(int argc, char const *argv[]) {
         }
     }
     // ***** Run successive convexification **************************************/
+    auto tPlanStart = std::chrono::system_clock::now();
+    auto cpuPlanStart = std::clock();
     U = scvx.solveSCVX(U0);
+    auto cpuPlanEnd = std::clock();
+    auto tPlanEnd = std::chrono::system_clock::now();
     // ***** Evaluate the optimal trajectory *************************************/
     traj = scvx.runSimulation(U, false, true, 1);
     // Print the trajectory
@@ -63,8 +67,10 @@ int main(int argc, char const *argv[]) {
     std::cout << "\t\t vel = " << traj.X.col(cp.N).tail(m->nv).transpose() << "\n";
     // ***** Evaluate the optimal const ******************************************/
     double J = scvx.getCost(traj.X, traj.U);
-    std::cout << "J = " << J << ", kmax = " << U.bottomRows(cp.nPair).maxCoeff() <<
-                 "\n\nINFO: Planning completed.\n\n";
+    std::cout << "\nJ = " << J << ", kmax = " << U.bottomRows(cp.nPair).maxCoeff() <<
+                 "\n\nINFO: Planning completed in " << 
+                 std::chrono::duration<double>(tPlanEnd-tPlanStart).count() << " wall-clock s and " << 
+                 1000.0*(cpuPlanEnd-cpuPlanStart)/CLOCKS_PER_SEC << " CPU ms.\n\n";
     // ***** MuJoCo shut down ****************************************************/
     mj_deleteModel(m);
     mj_deactivate();
