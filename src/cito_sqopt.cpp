@@ -99,7 +99,7 @@ void CitoSQOPT::qpHx(int *nnH, double x[], double Hx[], int *nState,
 }
 
 // setCObj: sets linear and constant cost terms of the cost
-void CitoSQOPT::setCObj(const eigMd X, const eigMd U,
+void CitoSQOPT::setCObj(const eigMd& X, const eigMd& U,
                         double *ru, double *cObj, double &ObjAdd)
 {
     // desired change in the final pose
@@ -135,8 +135,8 @@ void CitoSQOPT::setCObj(const eigMd X, const eigMd U,
 }
 
 // solveCvx: solves the convex subproblem
-void CitoSQOPT::solveCvx(double *xTraj, double r, const eigMd X, const eigMd U,
-                         const eigTd Fx, const eigTd Fu, int *isJFree, int *isAFree,
+void CitoSQOPT::solveCvx(double *xTraj, double r, const eigMd& X, const eigMd& U,
+                         const eigTd& Fx, const eigTd& Fu, int *isJFree, int *isAFree,
                          double *qposLB, double *qposUB, double *tauLB, double *tauUB)
 {
     // fresh start
@@ -183,7 +183,7 @@ void CitoSQOPT::solveCvx(double *xTraj, double r, const eigMd X, const eigMd U,
 }
 
 // setBounds: sets bounds of dX, dU, and constraints (dynamics, trust region, etc.)
-void CitoSQOPT::setBounds(double r, const eigMd X, const eigMd U,
+void CitoSQOPT::setBounds(double r, const eigMd& X, const eigMd& U,
                           double *bl, double *bu, int *isJFree, int *isAFree,
                           double *qposLB, double *qposUB, double *tauLB, double *tauUB)
 {
@@ -246,7 +246,7 @@ void CitoSQOPT::setBounds(double r, const eigMd X, const eigMd U,
 
 // setA: creates the sparse A matrix for linearized dynamics, auxiliary
 // variables, and trust region constraints
-void CitoSQOPT::setA(double *valA, int *indA, int *locA, const eigTd Fx, const eigTd Fu)
+void CitoSQOPT::setA(double *valA, int *indA, int *locA, const eigTd& Fx, const eigTd& Fu)
 {
     int colNo = 0, indNo = 0, indTS = 0;
 
