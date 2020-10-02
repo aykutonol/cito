@@ -23,21 +23,21 @@ public:
     CitoControl(const mjModel* m_, CitoParams* cp_);
     /// Destructor
     ~CitoControl();
-    /// This function takes a full control step given a control input
-    void takeStep(mjData* d, const eigVd u, bool save, double compensateBias);
-    /// This function sets generalized forces on joints and free bodies
-    void setControl(mjData* d, const eigVd u, double compensateBias);
-    /** This function converts free joints' quaternions to Euler angles so that
-     *  the dimensionality of the state vector is 2*nv instead of nq+nv */
-    eigVd getState(const mjData* d);
-    /// This function gets bounds on joint positions, actuator forces from the model
-    void getBounds();
     /// This function returns the 3D transform of a desired site
     fcl::Transform3d getSiteTransform(const mjData* d, int site_id);
     /// This function creates a collision geometry given a site ID
     std::shared_ptr<fcl::CollisionGeometryd> createCollGeom(const mjModel* m, int site_id);
     /// This function returns FCL distance calculation results for all contact pairs
     std::vector<fcl::DistanceResultd> calcDistance(const mjData* d);
+    /// This function takes a full control step given a control input
+    void takeStep(mjData* d, const eigVd& u, bool save, double compensateBias);
+    /// This function sets generalized forces on joints and free bodies
+    void setControl(mjData* d, const eigVd& u, double compensateBias);
+    /** This function converts free joints' quaternions to Euler angles so that
+     *  the dimensionality of the state vector is 2*nv instead of nq+nv */
+    eigVd getState(const mjData* d);
+    /// This function gets bounds on joint positions, actuator forces from the model
+    void getBounds();
     /// Position & torque limits
     double *qposLB, *qposUB, *tauLB, *tauUB;
     int    *isJFree, *isAFree;
@@ -46,7 +46,7 @@ public:
 
 private:
     /// This function returns contact wrench given current state and control input
-    eigVd contactModel(const mjData* d, const eigVd u);
+    eigVd contactModel(const mjData* d, const eigVd& u);
     /// MuJoCo model
     const mjModel* m;
     /// Contact wrench

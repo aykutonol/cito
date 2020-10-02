@@ -86,8 +86,25 @@ std::shared_ptr<fcl::CollisionGeometryd> CitoControl::createCollGeom(const mjMod
     return geom;
 }
 
+// calcDistance: returns FCL distance calculation result for each pair
+std::vector<fcl::DistanceResultd> CitoControl::calcDistance(const mjData* d)
+{
+    std::vector<fcl::DistanceResultd> distResults;
+    // update collision objects' poses
+    for(auto collObj : collObjs)
+        collObj.second->setTransform(getSiteTransform(d, collObj.first));
+    // FCL distance calculation
+    for( int pair=0; pair<cp->nPair; pair++ )
+    {
+        distRes.clear();
+        fcl::distance(collObjs[cp->sites[pair][0]], collObjs[cp->sites[pair][1]], distReq, distRes);
+        distResults.push_back(distRes);
+    }
+    return distResults;
+}
+
 // takeStep: takes a full control step given a control input
-void CitoControl::takeStep(mjData* d, const eigVd u, bool save, double compensateBias)
+void CitoControl::takeStep(mjData* d, const eigVd& u, bool save, double compensateBias)
 {
     if( save ) { sl.writeData(d); }
     for( int i=0; i<cp->ndpc; i++ )
@@ -100,7 +117,7 @@ void CitoControl::takeStep(mjData* d, const eigVd u, bool save, double compensat
 }
 
 // setControl: sets generalized forces on joints and free bodies
-void CitoControl::setControl(mjData* d, const eigVd u, double compensateBias)
+void CitoControl::setControl(mjData* d, const eigVd& u, double compensateBias)
 {
     // set control given the control input
     for( int i=0; i<m->nu; i++ )
@@ -120,25 +137,8 @@ void CitoControl::setControl(mjData* d, const eigVd u, double compensateBias)
     }
 }
 
-// calcDistance: returns FCL distance calculation result for each pair
-std::vector<fcl::DistanceResultd> CitoControl::calcDistance(const mjData* d)
-{
-    std::vector<fcl::DistanceResultd> distResults;
-    // update collision objects' poses
-    for(auto collObj : collObjs)
-        collObj.second->setTransform(getSiteTransform(d, collObj.first));
-    // FCL distance calculation
-    for( int pair=0; pair<cp->nPair; pair++ )
-    {
-        distRes.clear();
-        fcl::distance(collObjs[cp->sites[pair][0]], collObjs[cp->sites[pair][1]], distReq, distRes);
-        distResults.push_back(distRes);
-    }
-    return distResults;
-}
-
 // contactModel: returns contact wrench given current state and control input
-eigVd CitoControl::contactModel(const mjData* d, const eigVd u)
+eigVd CitoControl::contactModel(const mjData* d, const eigVd& u)
 {
     h.setZero();
     // calculate min. distance and nearest points for all contact pairs
