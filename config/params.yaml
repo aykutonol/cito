@@ -7,7 +7,7 @@ tc: 5e-2 	# [s] control sampling period
 
 # Contact pairs
 ## number of contact pairs
-npair: 1
+npair: 4
 ## indices of the sites on the robot
 spair1: [4,4,4,4]
 ## indices of the corresponding sites in the environment
@@ -15,12 +15,12 @@ spair2: [0,1,2,3]
 
 # Task
 ## desired final pose of the control joint
-desiredFinalPos: [1.25, 0.0, 0.0646922, 0.0, 0.0, 0.0]
+desiredFinalPos: [1.3, 0.0, 0.0646922, 0.0, 0.0, 0.0]
 ## initial index of the DOF associated with the control joint
 controlJointDOF0: 0
 
 # Weights
 w1: 1e4  	  # weight on deviations in x and y directions
 w2: 1e1  	  # weight on deviations in z and orientation
-w3: 1e-2  	# weight on final velocities
+w3: 0e-2  	# weight on final velocities
 w4: 2e-0  	# weight on virtual stiffness
