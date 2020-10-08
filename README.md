@@ -9,7 +9,7 @@ In this framework, MuJoCo is used to evaluate the nonlinear dynamics. The partia
 of the dynamics about the previous trajectory are obtained by numerical differentiation.
 The resulting convex subproblems are solved by SQOPT to exploit the sparsity.
 
-The code is implemented in C++. The package is built in a catkin workspace.
+The code is implemented using C++11 in a catkin build environment.
 
 _Please note that both the method and the code are currently under development._
 
@@ -18,16 +18,17 @@ _Please note that both the method and the code are currently under development._
 - [Eigen 3](https://eigen.tuxfamily.org/dox/GettingStarted.html)
 - [MuJoCo 2.00](http://www.mujoco.org/)
 - [SNOPT 7](https://ccom.ucsd.edu/~optimizers/solvers/snopt/)
+- [FCL](https://github.com/flexible-collision-library/fcl)
 - [YAML](https://github.com/jbeder/yaml-cpp)
 
 ## Installation
-1. Create a workspace and download the code:  
+1. Create a workspace and clone this repo:
     ```
     mkdir -p ~/cito_ws/src
     cd ~/cito_ws/src/
     git clone https://github.com/aykutonol/cito.git
     ```  
-2. Set the environment variables:  
+2. Set the following environment variables:
     ```
     export CITO_WS=~/cito_ws  
     export MJ_KEY=*path to the licence file for MuJoCo*
@@ -90,12 +91,11 @@ config/params_flymanoid.yaml. An example motion for moving the torso 1.2 m forwa
 
 
 ## Citing
-If you use this package, please cite the following paper:
+If you use this package, please consider citing following papers:
 
-[1] [Önol, A. Ö., Long, P., & Padır, T. (2019). Contact-Implicit Trajectory Optimization
+[1] [Önol, A. Ö., Long, P., & Padır, T. (2019, May). Contact-Implicit Trajectory Optimization
 Based on a Variable Smooth Contact Model and Successive Convexification.
-In _2019 IEEE International Conference on Robotics and Automation (ICRA)_. IEEE.](https://arxiv.org/abs/1810.10462
-) [Accepted]
+In _2019 IEEE International Conference on Robotics and Automation (ICRA)_. IEEE.](https://arxiv.org/abs/1810.10462)
 ```
 @inproceedings{onol2019contact,
   title={Contact-Implicit Trajectory Optimization Based on a Variable Smooth Contact Model and Successive Convexification},
@@ -105,10 +105,15 @@ In _2019 IEEE International Conference on Robotics and Automation (ICRA)_. IEEE.
   organization={IEEE}
 }
 ```
+[2] [Önol, A. Ö., Corcodel, R., Long, P., & Padır, T. (2020, May). Tuning-Free Contact-Implicit Trajectory Optimization
+In _2020 IEEE International Conference on Robotics and Automation (ICRA)_. IEEE.](https://arxiv.org/abs/2006.06176)
 
-## TODOS
-1. Integrate FCL for distance calculation
-2. Analytic derivatives
-3. Add alternative solver
-4. Virtual controls for successive convexification
-5. Interface for adding custom cost and constraint terms 
+```
+@inproceedings{onol2020tuning,
+  title={Tuning-Free Contact-Implicit Trajectory Optimization},
+  author={{\"{O}}nol, Aykut {\"{O}}zg{\"{u}}n and Corcodel, Radu and Long, Philip and Pad{\i}r, Ta{\c{s}}k{\i}n},
+  booktitle={2020 IEEE International Conference on Robotics and Automation (ICRA)},
+  year={2020},
+  organization={IEEE}
+}
+```
