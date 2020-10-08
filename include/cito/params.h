@@ -42,7 +42,8 @@ namespace paths
 }
 
 /// Params class
-class Params{
+class Params
+{
 public:
     /// Constructor
     Params(const mjModel *model_);
@@ -62,13 +63,13 @@ public:
     double weight[4];
     /// Utility functions
     /// This function returns the skew symmetric matrix representation of a 3D vector
-    Eigen::Matrix3d skew(const Eigen::Vector3d& a);
+    Eigen::Matrix3d skew(const Eigen::Vector3d &a);
     /// This function performs and returns a x b using skew-symmetric transformation
-    Eigen::Vector3d skewCross(const Eigen::Vector3d& a, const Eigen::Vector3d& b);
+    Eigen::Vector3d skewCross(const Eigen::Vector3d &a, const Eigen::Vector3d &b);
     /// This function converts a quaternion (w,x,y,z) into Euler angles
-    Eigen::Vector3d quat2Euler(const Eigen::Vector4d& q);
+    Eigen::Vector3d quat2Euler(const Eigen::Vector4d &q);
     /// This function calculates the contact normal Jacobian w.r.t. rotational DOF
-    Eigen::Matrix3d evalNormalJac(const Eigen::Vector4d& q, int pair);
+    Eigen::Matrix3d evalNormalJac(const Eigen::Vector4d &q, int pair);
 };
 
 #endif //PARAMS_H

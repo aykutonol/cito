@@ -13,19 +13,21 @@
 #include "cito/params.h"
 #include <fstream>
 
-class SaveLog{
+class SaveLog
+{
 public:
     /// Constructor
-    SaveLog(const mjModel* m_, Params* cp_);
+    SaveLog(const mjModel *m_, Params *cp_);
     /// Destructor
     ~SaveLog();
     /// writes simulation data to the print file
     void writeData(const mjData *d);
+
 private:
     /// MuJoCo model file
-    const mjModel* m;
+    const mjModel *m;
     /// Log file for playback
-    FILE* logFile;
+    FILE *logFile;
     /// Data header
     int header[6];
     /// Data size

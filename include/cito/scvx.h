@@ -8,39 +8,37 @@
  *  \author Aykut Onol
  */
 
-
 #ifndef SCVX_H
 #define SCVX_H
 
 #include "cito/numdiff.h"
 #include "cito/sqopt.h"
 
-
 class SCVX
 {
 public:
     /// Constructor
-    SCVX(const mjModel* m_, Params* cp_, Control* cc_);
+    SCVX(const mjModel *m_, Params *cp_, Control *cc_);
     /// Destructor
     ~SCVX();
     /// This function returns the nonlinear cost given control trajectory and final state
-    double getCost(const eigMd& X, const eigMd& U);
+    double getCost(const eigMd &X, const eigMd &U);
     /// This function rolls-out and linearizes the dynamics given control trajectory
-    trajectory runSimulation(const eigMd& U0, bool linearize, bool save, double compensateBias);
+    trajectory runSimulation(const eigMd &U0, bool linearize, bool save, double compensateBias);
     /// This function executes the successive convexification algorithm
-    eigMd solveSCVX(const eigMd& U);
+    eigMd solveSCVX(const eigMd &U);
 
 private:
     /// MuJoCo model
-    const mjModel* m;
+    const mjModel *m;
     /// SCVX parameters
-    int maxIter;                        // maximum number of iterations
-    double *J, *JTemp, *JTilde,         // cost terms
-           *r, *dJ, *dL, *rho,          // trust region radius, change, and similarity
-           dLTol,                       // stopping criteria in terms of dL
-           rho0, rho1, rho2,            // similarity thresholds
-           beta_expand, beta_shrink,    // trust-region expand and shrink factors
-           rMin, rMax;                  // trust-region radius limits
+    int maxIter;                  // maximum number of iterations
+    double *J, *JTemp, *JTilde,   // cost terms
+        *r, *dJ, *dL, *rho,       // trust region radius, change, and similarity
+        dLTol,                    // stopping criteria in terms of dL
+        rho0, rho1, rho2,         // similarity thresholds
+        beta_expand, beta_shrink, // trust-region expand and shrink factors
+        rMin, rMax;               // trust-region radius limits
     bool *accept, dLTolMet = false, stop = false;
     /// Trajectories
     eigMd XSucc, dX, XTilde;
@@ -49,12 +47,12 @@ private:
     trajectory traj, trajS, trajTemp;
     /// Cost function variables
     eigVd finalPos;
-    double Jf, Ji, Jt;      // final, integrated, and total cost values
+    double Jf, Ji, Jt; // final, integrated, and total cost values
     /// Objects
-    Params  *cp;
+    Params *cp;
     Control *cc;
     NumDiff nd;
-    SQOPT   sq;
+    SQOPT sq;
 };
 
 #endif //SCVX_H
