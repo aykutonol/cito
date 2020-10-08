@@ -173,8 +173,8 @@
   <contact>
     <pair geom1="right_l5" geom2="table" />
     <pair geom1="right_l6" geom2="table" />
-    <pair geom1="right_l6" geom2="object" />
-    <pair geom1="table"    geom2="object" />
+    <pair geom1="right_l6" geom2="object" friction="0.5 0.5" />
+    <pair geom1="table"    geom2="object" friction="0.5 0.5" />
   </contact>
 
   <!-- Key frames -->
