@@ -1,5 +1,5 @@
 # Model
-model: "sawyer_push.xml"
+model: "iiwa_workcell.xml"
 
 # Simulation
 tf: 1.00	# [s] final time
@@ -15,7 +15,7 @@ spair2: [0,1,2,3]
 
 # Task
 ## desired final pose of the control joint
-desiredFinalPos: [1.3, 0.0, 0.0646922, 0.0, 0.0, 0.0]
+desiredFinalPos: [0.85, 0.0, 0.8113, 0.0, 0.0, 0.0]
 ## initial index of the DOF associated with the control joint
 controlJointDOF0: 0
 
