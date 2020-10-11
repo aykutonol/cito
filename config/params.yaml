@@ -15,12 +15,12 @@ spair2: [0,1,2,3]
 
 # Task
 ## desired final pose of the control joint
-desiredFinalPos: [0.85, 0.0, 0.8113, 0.0, 0.0, 0.0]
+desiredFinalPos: [0.8, 0.0, 0.8113, 0.0, 0.0, 0.0]
 ## initial index of the DOF associated with the control joint
 controlJointDOF0: 0
 
 # Weights
 w1: 1e4  	  # weight on deviations in x and y directions
-w2: 1e1  	  # weight on deviations in z and orientation
+w2: 1e0  	  # weight on deviations in z and orientation
 w3: 0e-2  	# weight on final velocities
 w4: 2e-0  	# weight on virtual stiffness
