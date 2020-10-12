@@ -1,5 +1,5 @@
 <mujoco model="iiwa_workcell">
-    <compiler angle="radian" meshdir="/Users/aykut/Desktop/development/cito_ws/src/cito/model/mesh/iiwa/" />
+    <compiler angle="radian" meshdir="./mesh/iiwa/" />
     <option collision="predefined" timestep="0.005" integrator="RK4" />
     <asset>
         <mesh name="link_0" file="link_0.stl" />

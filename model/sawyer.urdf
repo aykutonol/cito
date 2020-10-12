@@ -5,7 +5,7 @@
 <!-- =================================================================================== -->
 <robot name="sawyer" xmlns:xacro="http://www.ros.org/wiki/xacro">
   <!-- <mujoco>
-      <compiler meshdir="/Users/aykut/Desktop/development/cito_ws/src/cito/model/mesh/sawyer/" balanceinertia="true"/>
+      <compiler meshdir="./mesh/sawyer/" balanceinertia="true"/>
   </mujoco> -->
   <material name="black">
     <color rgba="0 0 0 1"/>

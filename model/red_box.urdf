@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot name="red_box">
   <mujoco>
-      <compiler meshdir="/Users/aykut/Desktop/development/cito_ws/src/cito/model/mesh/" balanceinertia="false"/>
+      <compiler meshdir="./mesh" balanceinertia="false"/>
   </mujoco>
 
   <link name="object_link">
