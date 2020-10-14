@@ -157,13 +157,13 @@ Eigen::Matrix3d Params::evalNormalJac(const Eigen::Vector4d &q, int pair)
     Rz(1, 0) = sin(e[2]);
     Rz(1, 1) = cos(e[2]);
     Rz(2, 2) = 1.;
-    // Calculate only the x component of the tensor since it's multiplied by ux
+    // calculate only the x component of the tensor since it's multiplied by ux
     dR_dx = Rz * Ry * dRx;
     // not sure why there is the negative sign but this matches the num. diff.
     dR_dw.setZero();
     dR_dw.col(2) = -dR_dx.col(2);
     // This assumes site orientations align with a world axis in the model
-    // This is tested for only +/- x/y directions and not for z axis
+    // and is tested for only +/- x/y directions and not for z axis.
     if (abs(nCS0(0, pair)) < 1e-6)
         dR_dw.col(0) = nCS0(1, pair) * dR_dx.col(1);
     else
