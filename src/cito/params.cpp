@@ -62,10 +62,12 @@ Params::Params(const mjModel *model_) : model(model_)
         }
     }
     // get the indices of actuated DOF
-    dAct = new int[nu]; // addresses of actuated DOF
+    dAct = new int[nu]; // velocity addresses of actuated DOF
+    pAct = new int[nu]; // position addresses of actuated DOF
     for (int i = 0; i < nu; i++)
     {
         dAct[i] = model->jnt_dofadr[model->actuator_trnid[i * 2]];
+        pAct[i] = model->jnt_qposadr[model->actuator_trnid[i * 2]];
     }
     // contact model parameters
     nPair = params["npair"].as<int>(); // number of contact pairs

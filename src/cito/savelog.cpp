@@ -72,7 +72,7 @@ void SaveLog::writeData(const mjData *d)
         trajFile << d->time << ",";
         for (int i = 0; i < m->nu; i++)
         {
-            trajFile << d->qpos[cp->dAct[i]] << ",";
+            trajFile << d->qpos[cp->pAct[i]] << ",";
         }
         for (int i = 0; i < m->nu; i++)
         {

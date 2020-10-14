@@ -53,7 +53,7 @@ public:
     const mjModel *model;
     double tf, tc, dt;
     int N, ndpc, nu, nv, n, m, nTraj, nPair,
-        nFree, *pFree, *bFree, *dAct,
+        nFree, *pFree, *bFree, *dAct, *pAct,
         *quatAdr, *dofAdr;
     std::vector<Eigen::Vector2i> sites;
     eigMd nCS0;
