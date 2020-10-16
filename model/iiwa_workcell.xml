@@ -60,7 +60,7 @@
             <site name="obj_rear"  pos="+0.1 0 0" quat="0 0 0 1"          type="box" size="1e-5 0.08 0.08" group="2" rgba="0 1 0 .1" />
         </body> -->
         <!-- Robot: LWR iiwa 7 R820 -->
-        <body name="iiwa_base" pos="0 0 0" quat="0.707 0 0 -0.707">
+        <body name="iiwa_base" pos="0 0 -0.01" quat="0.707 0 0 -0.707">
             <inertial pos="0 0 0" mass="0" diaginertia="0 0 0" />
             <body name="iiwa_link_0" pos="0 0 0" quat="1 0 0 0">
                 <geom name="link0" pos="0 -0.0381 0.78106" quat="0.707105 0 0 0.707108" type="mesh" rgba="0.4 0.4 0.4 1" mesh="link_0" />
