@@ -11,7 +11,7 @@
         <mesh name="link_6" file="link_6.stl" />
         <mesh name="link_7" file="link_7.stl" />
         <texture name="texplane" type="2d" builtin="checker" rgb1=".2 .3 .4" rgb2=".1 0.15 0.2" width="512" height="512" />
-        <material name="MatPlane" reflectance="0.3" texture="texplane" texrepeat="1 1" texuniform="true" />
+        <material name="MatPlane" reflectance="0" texture="texplane" texrepeat="1 1" texuniform="true" />
     </asset>
     <worldbody>
         <!-- Lights -->
@@ -91,8 +91,11 @@
                                         <body name="iiwa_link_7" pos="0 0.081 0.0607" quat="0 0 0.707107 0.707107">
                                             <inertial pos="0 0 0.02" quat="0.923068 0 0 0.384636" mass="3.129" diaginertia="0.0152362 0.0140538 0.002872" />
                                             <joint name="iiwa_joint_6" pos="0 0 0" axis="0 0 1" limited="true" range="-3.05433 3.05433" damping="0.5" />
-                                            <geom name="link7" pos="0 0 -0.0005" type="mesh" rgba="0.4 0.4 0.4 1" mesh="link_7" />
-                                            <site name="end_effector" type="sphere" size="1e-3" pos="0 0 0.044" group="2" rgba="0 1 0 1" />
+                                            <!-- <geom name="link7" pos="0 0 -0.0005" type="mesh" rgba="0.4 0.4 0.4 1" mesh="link_7" /> -->
+                                            <geom name="link7"  pos="0 0 0.0235" type="cylinder" size="0.050 0.0235" rgba=".5 .5 .5 1" />
+                                            <geom name="flange" pos="0 0 0.0595" type="cylinder" size="0.032 0.0125" rgba=".5 .5 .5 1" />
+                                            <site name="end_effector" pos="0 0 0.072" type="sphere" size="1e-4" group="2" rgba="0 1 0 1" />
+                                            <!-- <site name="end_effector" pos="0 0 0.0645" type="cylinder" size="0.032 0.01" group="2" rgba="0 1 0 1" /> -->
                                         </body>
                                     </body>
                                 </body>
@@ -123,7 +126,8 @@
     <contact>
         <pair geom1="link6"  geom2="tplane" />
         <pair geom1="link7"  geom2="tplane" />
-        <pair geom1="link7"  geom2="object" friction=".5 .5" />
+        <pair geom1="flange" geom2="tplane" />
+        <pair geom1="flange" geom2="object" friction=".5 .5" />
         <pair geom1="tplane" geom2="object" friction=".5 .5" />
     </contact>
 
