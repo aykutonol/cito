@@ -127,8 +127,8 @@
         <pair geom1="link6"  geom2="tplane" />
         <pair geom1="link7"  geom2="tplane" />
         <pair geom1="flange" geom2="tplane" />
-        <pair geom1="flange" geom2="object" friction=".5 .5" />
-        <pair geom1="tplane" geom2="object" friction=".5 .5" />
+        <pair geom1="flange" geom2="object" friction="1 1" />
+        <pair geom1="tplane" geom2="object" friction="1 1" />
     </contact>
 
     <!-- Key frames -->
