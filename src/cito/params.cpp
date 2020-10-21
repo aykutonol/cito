@@ -14,6 +14,7 @@ Params::Params(const mjModel *model_) : model(model_)
     std::vector<double> desiredPosInput = {params["desiredFinalPos"].as<std::vector<double>>()};
     desiredPos = Eigen::Map<Eigen::VectorXd>(desiredPosInput.data(), desiredPosInput.size());
     controlJointDOF0 = params["controlJointDOF0"].as<int>();
+    weight = new double[4];
     weight[0] = params["w1"].as<double>();
     weight[1] = params["w2"].as<double>();
     weight[2] = params["w3"].as<double>();
@@ -95,6 +96,7 @@ Params::Params(const mjModel *model_) : model(model_)
 // ***** DESTRUCTOR ************************************************************
 Params::~Params()
 {
+    delete[] weight;
     delete[] quatAdr;
     delete[] dofAdr;
     delete[] bFree;
