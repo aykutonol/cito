@@ -30,8 +30,15 @@ private:
     Params *cp;
     SCVX *scvx;
     /// Variables
-    int iter, maxIter = 1;
-    bool *accepted, costTolMet = false, stop = false;
+    int iter = 0, maxIter = 2, lastAcceptedIter = 0;
+    bool *accepted, *poseTolMet, *kMaxTolMet, *costTolMet, stop = false;
+    double initPenalty = 0.1, reducePenaltyBy = 0.3, maxPenalty = 20.0,
+           *penalty, *deltaPenalty,
+           posTol = 0.3, rotTol = 1.0, kMaxTol = 0.1,
+           posError0, rotError0, *posError, *rotError,
+           *kAvg, *kMax;
+    eigMd UPre, USol, UOpt;
+    trajectory trajSol;
 };
 
 #endif //PENALTY_LOOP_H
