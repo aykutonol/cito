@@ -38,6 +38,7 @@ add_library(${PROJECT_NAME}
 	src/cito/scvx.cpp
 	src/cito/sqopt.cpp
 	src/cito/savelog.cpp
+	src/cito/penalty_loop.cpp
 )
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	target_link_libraries(${PROJECT_NAME}
