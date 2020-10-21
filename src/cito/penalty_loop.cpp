@@ -1,6 +1,6 @@
 // ***** DESCRIPTION ***********************************************************
 // PenaltyLoop class defines functions that are used to run the penalty loop
-// approach that is used to generalize CITO. 
+// approach that is used to generalize CITO.
 
 #include "cito/penalty_loop.h"
 
@@ -20,7 +20,7 @@ PenaltyLoop::~PenaltyLoop()
 eigMd PenaltyLoop::solve(const eigMd &U0)
 {
     eigMd Uopt;
-    for (int i=0; i<maxIter; i++)
+    for (int i = 0; i < maxIter; i++)
     {
         Uopt = scvx->solveSCVX(U0);
     }

@@ -8,7 +8,6 @@
  *  \author Aykut Onol
  */
 
-
 #ifndef PENALTY_LOOP_H
 #define PENALTY_LOOP_H
 
@@ -23,6 +22,7 @@ public:
     ~PenaltyLoop();
     // This function executes the penalty loop algorithm and returns the optimal control trajectory
     eigMd solve(const eigMd &U0);
+
 private:
     /// MuJoCo model
     const mjModel *m;
@@ -30,8 +30,8 @@ private:
     Params *cp;
     SCVX *scvx;
     /// Variables
-    int iter, maxIter=1;
-    bool *accepted, costTolMet=false, stop=false;
+    int iter, maxIter = 1;
+    bool *accepted, costTolMet = false, stop = false;
 };
 
 #endif //PENALTY_LOOP_H
