@@ -1,6 +1,9 @@
 # Model
 model: "iiwa_workcell.xml"
 
+# Optimization
+penaltyLoop: true
+
 # Simulation
 tf: 1.00	# [s] final time
 tc: 5e-2 	# [s] control sampling period
@@ -23,4 +26,4 @@ controlJointDOF0: 0
 w1: 1e4  	  # weight on deviations in x and y directions
 w2: 1e0  	  # weight on deviations in z and orientation
 w3: 0e-2  	# weight on final velocities
-w4: 2e-0  	# weight on virtual stiffness
+w4: 5e-1  	# weight on virtual stiffness

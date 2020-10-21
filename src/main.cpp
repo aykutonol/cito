@@ -8,7 +8,7 @@
  *  \author Aykut Onol
  */
 
-#include "cito/scvx.h"
+#include "cito/penalty_loop.h"
 
 int main(int argc, char const *argv[])
 {
@@ -39,6 +39,7 @@ int main(int argc, char const *argv[])
     Params cp(m);
     Control cc(m, &cp);
     SCVX scvx(m, &cp, &cc);
+    PenaltyLoop pl(m, &cp, &scvx);
     // ***** Trajectories ********************************************************/
     eigMd U0, U;
     U0.resize(cp.m, cp.N);
@@ -58,7 +59,10 @@ int main(int argc, char const *argv[])
     // ***** Run successive convexification **************************************/
     auto tPlanStart = std::chrono::system_clock::now();
     auto cpuPlanStart = std::clock();
-    U = scvx.solveSCVX(U0);
+    if (params["penaltyLoop"].as<bool>())
+        U = pl.solve(U0);
+    else
+        U = scvx.solveSCVX(U0);
     auto cpuPlanEnd = std::clock();
     auto tPlanEnd = std::chrono::system_clock::now();
     // ***** Evaluate the optimal trajectory *************************************/
