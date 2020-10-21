@@ -60,7 +60,7 @@ public:
     /// Task parameters
     eigVd desiredPos;
     int controlJointDOF0;
-    double *weight;
+    double weight[4];
     /// Utility functions
     /// This function returns the skew symmetric matrix representation of a 3D vector
     Eigen::Matrix3d skew(const Eigen::Vector3d &a);
