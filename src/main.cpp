@@ -56,7 +56,7 @@ int main(int argc, char const *argv[])
             U0.col(i)[m->nu + j] = kCon0;
         }
     }
-    // ***** Run successive convexification **************************************/
+    // ***** Run the planner *****************************************************/
     auto tPlanStart = std::chrono::system_clock::now();
     auto cpuPlanStart = std::clock();
     if (params["penaltyLoop"].as<bool>())
