@@ -27,6 +27,8 @@ public:
     trajectory runSimulation(const eigMd &U0, bool linearize, bool save, double compensateBias);
     /// This function executes the successive convexification algorithm
     eigMd solveSCVX(const eigMd &U);
+    // This function refreshes SCVX variables for a new run
+    void refresh();
 
 private:
     /// MuJoCo model
@@ -38,7 +40,7 @@ private:
         dLTol,                    // stopping criteria in terms of dL
         rho0, rho1, rho2,         // similarity thresholds
         beta_expand, beta_shrink, // trust-region expand and shrink factors
-        rMin, rMax;               // trust-region radius limits
+        r0, rMin, rMax;           // initial, min, and max trust-region radius
     bool *accept, dLTolMet = false, stop = false;
     /// Trajectories
     eigMd XSucc, dX, XTilde;

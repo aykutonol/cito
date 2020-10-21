@@ -20,6 +20,7 @@ SCVX::SCVX(const mjModel *m_, Params *cp_, Control *cc_) : m(m_), cp(cp_), cc(cc
     rho2 = paramSCVX["rho2"].as<double>();
     rMin = paramSCVX["rMin"].as<double>();
     rMax = paramSCVX["rMax"].as<double>();
+    r0 = paramSCVX["r0"].as<double>();
     J = new double[maxIter + 1];
     JTemp = new double[maxIter + 1];
     JTilde = new double[maxIter + 1];
@@ -28,7 +29,8 @@ SCVX::SCVX(const mjModel *m_, Params *cp_, Control *cc_) : m(m_), cp(cp_), cc(cc
     rho = new double[maxIter + 1];
     r = new double[maxIter + 1];
     accept = new bool[maxIter];
-    r[0] = paramSCVX["r0"].as<double>(); // initial trust-region radius
+    // set initial trust-region radius
+    r[0] = r0;
     // set bounds
     cc->getBounds();
     // resize trajectories
@@ -254,4 +256,32 @@ eigMd SCVX::solveSCVX(const eigMd &U0)
                i + 1, JTilde[i], JTemp[i], dL[i], dJ[i], rho[i], r[i], accept[i]);
     }
     return USucc;
+}
+
+// refresh: refreshes SCVX variables for a new run
+void SCVX::refresh()
+{
+    // delete old variables
+    delete[] J;
+    delete[] JTemp;
+    delete[] JTilde;
+    delete[] dJ;
+    delete[] dL;
+    delete[] rho;
+    delete[] r;
+    delete[] accept;
+    // create new variables
+    J = new double[maxIter + 1];
+    JTemp = new double[maxIter + 1];
+    JTilde = new double[maxIter + 1];
+    dJ = new double[maxIter + 1];
+    dL = new double[maxIter + 1];
+    rho = new double[maxIter + 1];
+    r = new double[maxIter + 1];
+    accept = new bool[maxIter];
+    // set initial trust-region radius
+    r[0] = r0;
+    // reset flags
+    stop = false;
+    dLTolMet = false;
 }
