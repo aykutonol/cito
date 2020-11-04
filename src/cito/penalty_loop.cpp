@@ -70,6 +70,7 @@ eigMd PenaltyLoop::solve(const eigMd &U0)
         if (posError[iter] <= posTol && rotError[iter] <= rotTol)
         {
             poseTolMet[iter] = true;
+            deltaPenalty[iter] = 0.;
             printf("\t\033[0;33mPose tolerance met: pos. error: %f <= %f, rot. error: %f <= %f. Penalty change: %.3f.\033[0m\n",
                    posError[iter], posTol, rotError[iter], rotTol, deltaPenalty[iter]);
         }
