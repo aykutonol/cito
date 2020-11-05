@@ -5,9 +5,10 @@
 #include "cito/penalty_loop.h"
 
 // ***** CONSTRUCTOR ***********************************************************
-PenaltyLoop::PenaltyLoop(const mjModel *m_, Params *cp_, SCVX *scvx_) : m(m_), cp(cp_), scvx(scvx_)
+PenaltyLoop::PenaltyLoop(const mjModel *m_, Params *cp_, Control *cc_, SCVX *scvx_) : m(m_), cp(cp_), cc(cc_), scvx(scvx_)
 {
     accepted = new bool[maxIter]();   // initialize with false
+    acceptPP = new bool[maxIter]();   // initialize with false
     poseTolMet = new bool[maxIter](); // initialize with false
     kMaxTolMet = new bool[maxIter](); // initialize with false
     costTolMet = new bool[maxIter](); // initialize with false
@@ -54,9 +55,9 @@ eigMd PenaltyLoop::solve(const eigMd &U0)
             scvx->refresh();
         // solve the SCVX problem
         USol = scvx->solveSCVX(UPre);
-        // roll-out the dynamics
+        // roll-out the dynamics and log the data
         trajSol = {};
-        trajSol = scvx->runSimulation(USol, false, false, 1);
+        trajSol = scvx->runSimulation(USol, false, true, 1.);
         // get the initial pose error for normalization
         if (iter == 0)
             posError0 = (cp->desiredPos.head(2) - trajSol.X.col(0).segment(cp->controlJointDOF0, 2)).norm();
@@ -113,6 +114,14 @@ eigMd PenaltyLoop::solve(const eigMd &U0)
             UPre = USol; // update the initial trajectory for next iteration
             UOpt = USol; // update the optimal solution
         }
+        // post-process
+        if (applyPP && accepted[iter] && kAvg[iter] <= kThresh)
+        {
+            eigMd UPost = postProcess(USol, trajSol.X);
+
+            UPre = UPost;
+            UOpt = UPost;
+        }
         // check stopping condition
         if (poseTolMet[iter] && kMaxTolMet[iter])
             stop = true;
@@ -124,4 +133,74 @@ eigMd PenaltyLoop::solve(const eigMd &U0)
         }
     }
     return UOpt;
+}
+
+// postProcess: performs the post-process and returns the modified control trajectory
+eigMd PenaltyLoop::postProcess(const eigMd &UPre, const eigMd &XPre)
+{
+    // apply the pulling controller
+    eigMd UPost = pullControl(UPre, XPre);
+    // apply the hill-climbing search
+    // return the post-processed trajectory
+    return UPost;
+}
+
+// pullControl: pulls virtually-active end effectors toward the corresponding contact geoms
+eigMd PenaltyLoop::pullControl(const eigMd &UIn, const eigMd &XIn)
+{
+    eigMd UOut = UIn;
+    // create & initialize MuJoCo data
+    mjData *d = mj_makeData(m);
+    mju_copy(d->qpos, m->key_qpos, m->nq);
+    mj_forward(m, d);
+    // intermediate variables
+    eigVd pullVec(3), pullDir(3), pullFext(3), pullTau(cp->nu), sRbtPos(3), sEnvPos(3), nCS(3),
+        qvelErr(cp->nv), qvelErrMass(cp->nv), dampTau(cp->nu);
+    eigMd XPull(cp->n, cp->N + 1);
+    XPull.setZero();
+    Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> JtSite(3, cp->nv), JtRbt(3, cp->nu);
+    // pass the trajectory through the pulling controller
+    for (int i = 0; i < cp->N; i++)
+    {
+        // get the current state
+        XPull.col(i) = cp->getState(d);
+        // set the pulling joint force to zero
+        pullTau.setZero();
+        // induce the pulling behavior
+        for (int pair = 0; pair < cp->nPair; pair++)
+        {
+            // get the site positions on the robot and in the environment
+            mju_copy3(sRbtPos.data(), d->site_xpos + 3 * cp->sites[pair][0]);
+            mju_copy3(sEnvPos.data(), d->site_xpos + 3 * cp->sites[pair][1]);
+            // update contact surface normal
+            mju_rotVecMat(nCS.data(), cp->unit_x, d->site_xmat + 9 * cp->sites[pair][1]);
+            // shift the pulling target out along the surface normal in the environment
+            // normal pointing outwards for locomotion and inwards for manipulation tasks
+            if (cp->taskType == 1)
+                pullVec = sEnvPos + nCS * (pullControlShift / ((double)lastAcceptedIter + 1.)) - sRbtPos;
+            else
+                pullVec = sEnvPos - nCS * (pullControlShift / ((double)lastAcceptedIter + 1.)) - sRbtPos;
+            pullDir = pullVec / pullVec.norm();
+            // calculate the external pulling force acting on the end effector
+            pullFext = pullControlKp * pullDir * UIn.col(i)(cp->nu + pair);
+            std::cout << "\nt: " << d->time << " s\n\tpull dir: " << pullDir.transpose() << ", pull f: " << pullFext.transpose() << "\n\n";
+            // get the translational Jacobian for the end-effector site
+            mj_jacSite(m, d, JtSite.data(), NULL, cp->sites[pair][0]);
+            JtRbt = JtSite.block(0, cp->dAct[0], 3, cp->nu);
+            // project the pulling force onto the joint space
+            pullTau += JtRbt.transpose() * pullFext;
+        }
+        // velocity tracking control
+        qvelErr = XIn.col(i).tail(cp->nv) - XPull.col(i).tail(cp->nv);
+        mj_mulM(m, d, qvelErrMass.data(), qvelErr.data());
+        dampTau = dampControlKv * qvelErrMass.tail(cp->nu); // this assumes the actuated DOF are at the tail
+        // apply the changes due to the pulling and velocity tracking controllers
+        UOut.topRows(cp->nu).col(i) += pullTau + dampTau;
+        // take a control step
+        cc->takeStep(d, UOut.col(i), true, 1.);
+    }
+    // delete MuJoCo data
+    mj_deleteData(d);
+    // return the trajectory processed by the pulling controller
+    return UOut;
 }

@@ -17,7 +17,7 @@ class PenaltyLoop
 {
 public:
     /// Constructor
-    PenaltyLoop(const mjModel *m_, Params *cp_, SCVX *scvx_);
+    PenaltyLoop(const mjModel *m_, Params *cp_, Control *cc_, SCVX *scvx_);
     /// Destructor
     ~PenaltyLoop();
     // This function executes the penalty loop algorithm and returns the optimal control trajectory
@@ -29,16 +29,23 @@ private:
     /// Objects
     Params *cp;
     SCVX *scvx;
+    Control *cc;
     /// Variables
-    int iter = 0, maxIter = 2, lastAcceptedIter = 0;
-    bool *accepted, *poseTolMet, *kMaxTolMet, *costTolMet, stop = false;
+    int iter = 0, maxIter = 10, lastAcceptedIter = 0;
+    bool stop = false, *accepted, *poseTolMet, *kMaxTolMet, *costTolMet,
+         applyPP = true, *acceptPP;
     double initPenalty = 0.1, reducePenaltyBy = 0.3, maxPenalty = 20.0,
            *penalty, *deltaPenalty,
-           posTol = 0.3, rotTol = 1.0, kMaxTol = 0.1,
+           posTol = 0.3, rotTol = 1.0, kMaxTol = 0.1, kThresh = 2.5,
            posError0, rotError0, *posError, *rotError,
-           *kAvg, *kMax;
+           *kAvg, *kMax,
+           pullControlShift = 0.1, pullControlKp = 5., dampControlKv = 2.5;
     eigMd UPre, USol, UOpt;
     trajectory trajSol;
+    // This function performs the post-process and returns the modified control trajectory
+    eigMd postProcess(const eigMd &UPre, const eigMd &XPre);
+    // This function pulls virtually-active end effectors toward the corresponding contact geoms
+    eigMd pullControl(const eigMd &UIn, const eigMd &XIn);
 };
 
 #endif //PENALTY_LOOP_H
