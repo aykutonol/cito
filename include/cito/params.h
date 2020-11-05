@@ -54,7 +54,8 @@ public:
     double tf, tc, dt;
     int N, ndpc, nu, nv, n, m, nTraj, nPair,
         nFree, *pFree, *bFree, *dAct, *pAct,
-        *quatAdr, *dofAdr;
+        *quatAdr, *dofAdr,
+        taskType;
     std::vector<Eigen::Vector2i> sites;
     eigMd nCS0;
     mjtNum unit_x[3] = {1., 0., 0.}; // unit-x vector

@@ -1,8 +1,9 @@
 # Model
 model: "iiwa_workcell.xml"
 
-# Optimization
+# Penalty loop
 penaltyLoop: true
+taskType: 0 # 0: manipulation, 1: locomotion
 
 # Simulation
 tf: 1.00	# [s] final time

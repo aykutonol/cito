@@ -10,6 +10,7 @@ Params::Params(const mjModel *model_) : model(model_)
     // read config files
     YAML::Node params = YAML::LoadFile(paths::workspaceDir + "/src/cito/config/params.yaml");
     // task parameters
+    taskType = params["taskType"].as<int>();
     desiredPos.resize(6);
     std::vector<double> desiredPosInput = {params["desiredFinalPos"].as<std::vector<double>>()};
     desiredPos = Eigen::Map<Eigen::VectorXd>(desiredPosInput.data(), desiredPosInput.size());
