@@ -172,3 +172,36 @@ Eigen::Matrix3d Params::evalNormalJac(const Eigen::Vector4d &q, int pair)
         dR_dw.col(1) = -nCS0(0, pair) * dR_dx.col(1);
     return dR_dw;
 }
+
+// getState: converts free joints' quaternions to Euler angles so that
+// the dimensionality of the state vector is 2*nv instead of nq+nv
+eigVd Params::getState(const mjData *d)
+{
+    // create the state and quaternion vectors
+    eigVd x(n), jFreeQuat(4);
+    x.setZero();
+    // get the positions
+    int freeNo = 0;
+    for (int i = 0; i < model->nq; i++)
+    {
+        int jID = model->dof_jntid[i - freeNo];
+        if (model->jnt_type[jID] == mjJNT_FREE)
+        {
+            mju_copy3(x.segment(i, 3).data(), d->qpos + i);
+            mju_copy4(jFreeQuat.data(), d->qpos + i + 3);
+            // convert quaternion into Euler angles
+            x.segment(i + 3, 3) = quat2Euler(jFreeQuat);
+            // count the free joint and proceed to next joint
+            freeNo++;
+            i += 6;
+        }
+        else
+        {
+            x(i - freeNo) = d->qpos[model->jnt_qposadr[jID]];
+        }
+    }
+    // get the velocities
+    mju_copy(x.data() + model->nv, d->qvel, model->nv);
+    // return the state w/ Euler angles
+    return x;
+}

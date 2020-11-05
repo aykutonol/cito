@@ -93,7 +93,7 @@ trajectory SCVX::runSimulation(const eigMd &U, bool linearize, bool save, double
         mj_forward(m, d);
         // get the current state values
         XSucc.col(i).setZero();
-        XSucc.col(i) = cc->getState(d);
+        XSucc.col(i) = cp->getState(d);
         // linearization
         if (linearize)
         {
@@ -105,7 +105,7 @@ trajectory SCVX::runSimulation(const eigMd &U, bool linearize, bool save, double
         cc->takeStep(d, U.col(i), save, compensateBias);
     }
     XSucc.col(cp->N).setZero();
-    XSucc.col(cp->N) = cc->getState(d);
+    XSucc.col(cp->N) = cp->getState(d);
     // delete data
     mj_deleteData(d);
     // build trajectory

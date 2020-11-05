@@ -70,6 +70,9 @@ public:
     Eigen::Vector3d quat2Euler(const Eigen::Vector4d &q);
     /// This function calculates the contact normal Jacobian w.r.t. rotational DOF
     Eigen::Matrix3d evalNormalJac(const Eigen::Vector4d &q, int pair);
+    /** This function converts free joints' quaternions to Euler angles so that
+     *  the dimensionality of the state vector is 2*nv instead of nq+nv */
+    eigVd getState(const mjData *d);
 };
 
 #endif //PARAMS_H

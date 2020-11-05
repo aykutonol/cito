@@ -33,9 +33,6 @@ public:
     void takeStep(mjData *d, const eigVd &u, bool save, double compensateBias);
     /// This function sets generalized forces on joints and free bodies
     void setControl(mjData *d, const eigVd &u, double compensateBias);
-    /** This function converts free joints' quaternions to Euler angles so that
-     *  the dimensionality of the state vector is 2*nv instead of nq+nv */
-    eigVd getState(const mjData *d);
     /// This function gets bounds on joint positions, actuator forces from the model
     void getBounds();
     /// Position & torque limits
@@ -55,9 +52,6 @@ private:
     double gamma;
     Eigen::Vector3d nCS, lambda, pCoM, r;
     mjtNum unit_x[3] = {1., 0., 0.}; // unit-x vector
-    /// getState variables
-    eigVd x;
-    Eigen::Matrix<mjtNum, 4, 1> jFreeQuat;
     /// Objects
     Params *cp;
     SaveLog sl;

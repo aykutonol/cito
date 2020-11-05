@@ -36,7 +36,7 @@ void NumDiff::copyTakeStep(const mjData *dMain, const eigVd &u, double *xNew, do
     cc->takeStep(d, u, false, compensateBias);
     // get new state
     xNewTemp.setZero();
-    xNewTemp = cc->getState(d);
+    xNewTemp = cp->getState(d);
     mju_copy(xNew, xNewTemp.data(), cp->n);
     // delete data
     mj_deleteData(d);

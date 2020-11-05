@@ -20,7 +20,6 @@ Control::Control(const mjModel *m_, Params *cp_) : m(m_), cp(cp_), sl(m_, cp_)
     // initialize Eigen variables
     h.resize(6 * cp->nFree);
     hCon.resize(6 * cp->nFree);
-    x.resize(cp->n);
     // set FCL distance request options
     distReq.enable_nearest_points = true;
     distReq.enable_signed_distance = true;
@@ -115,7 +114,7 @@ std::vector<fcl::DistanceResultd> Control::calcDistance(const mjData *d)
 // takeStep: takes a full control step given a control input
 void Control::takeStep(mjData *d, const eigVd &u, bool save, double compensateBias)
 {
-    if (save && d->time<=1e-6)
+    if (save && d->time <= 1e-6)
     {
         sl.writeData(d);
     }
@@ -180,38 +179,6 @@ eigVd Control::contactModel(const mjData *d, const eigVd &u)
         }
     }
     return h;
-}
-
-// getState: converts free joints' quaternions to Euler angles so that
-// the dimensionality of the state vector is 2*nv instead of nq+nv
-eigVd Control::getState(const mjData *d)
-{
-    x.setZero();
-    int freeNo = 0;
-    // get the positions
-    for (int i = 0; i < m->nq; i++)
-    {
-        int jID = m->dof_jntid[i - freeNo];
-        if (m->jnt_type[jID] == mjJNT_FREE)
-        {
-            jFreeQuat.setZero();
-            mju_copy3(x.segment(i, 3).data(), d->qpos + i);
-            mju_copy4(jFreeQuat.data(), d->qpos + i + 3);
-            // convert quaternion into Euler angles
-            x.segment(i + 3, 3) = cp->quat2Euler(jFreeQuat);
-            // count the free joint and proceed to next joint
-            freeNo++;
-            i += 6;
-        }
-        else
-        {
-            x(i - freeNo) = d->qpos[m->jnt_qposadr[jID]];
-        }
-    }
-    // get the velocities
-    mju_copy(x.data() + m->nv, d->qvel, m->nv);
-
-    return x;
 }
 
 // getBounds: gets bounds on joint positions, actuator forces from the model
