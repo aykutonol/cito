@@ -57,6 +57,7 @@ public:
         *quatAdr, *dofAdr;
     std::vector<Eigen::Vector2i> sites;
     eigMd nCS0;
+    mjtNum unit_x[3] = {1., 0., 0.}; // unit-x vector
     /// Task parameters
     eigVd desiredPos;
     int controlJointDOF0;

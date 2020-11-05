@@ -161,7 +161,7 @@ eigVd Control::contactModel(const mjData *d, const eigVd &u)
     for (int pair = 0; pair < cp->nPair; pair++)
     {
         // update contact surface normal
-        mju_rotVecMat(nCS.data(), unit_x, d->site_xmat + 9 * cp->sites[pair][1]);
+        mju_rotVecMat(nCS.data(), cp->unit_x, d->site_xmat + 9 * cp->sites[pair][1]);
         // calculate the normal force in the contact frame
         gamma = u(m->nu + pair) * exp(-alpha * distPairs[pair].min_distance);
         // contact the linear force in the world frame

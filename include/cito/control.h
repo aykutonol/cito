@@ -51,7 +51,6 @@ private:
     /// Contact model variables
     double gamma;
     Eigen::Vector3d nCS, lambda, pCoM, r;
-    mjtNum unit_x[3] = {1., 0., 0.}; // unit-x vector
     /// Objects
     Params *cp;
     SaveLog sl;
