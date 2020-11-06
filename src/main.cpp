@@ -39,7 +39,7 @@ int main(int argc, char const *argv[])
     Params cp(m);
     Control cc(m, &cp);
     SCVX scvx(m, &cp, &cc);
-    PenaltyLoop pl(m, &cp, &scvx);
+    PenaltyLoop pl(m, &cp, &cc, &scvx);
     // ***** Trajectories ********************************************************/
     eigMd U0, U;
     U0.resize(cp.m, cp.N);
