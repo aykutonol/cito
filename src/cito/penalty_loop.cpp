@@ -18,6 +18,9 @@ PenaltyLoop::PenaltyLoop(const mjModel *m_, Params *cp_, Control *cc_, SCVX *scv
     rotError = new double[maxIter];
     kAvg = new double[maxIter];
     kMax = new double[maxIter];
+    kAvgReduction = new double[maxIter];
+    kMaxReduction = new double[maxIter];
+    costHCS = new double[maxIterHCS];
     // initialize penalty
     penalty[0] = initPenalty;
 }
@@ -25,6 +28,7 @@ PenaltyLoop::PenaltyLoop(const mjModel *m_, Params *cp_, Control *cc_, SCVX *scv
 PenaltyLoop::~PenaltyLoop()
 {
     delete[] accepted;
+    delete[] acceptPP;
     delete[] poseTolMet;
     delete[] kMaxTolMet;
     delete[] costTolMet;
@@ -34,6 +38,9 @@ PenaltyLoop::~PenaltyLoop()
     delete[] rotError;
     delete[] kAvg;
     delete[] kMax;
+    delete[] kAvgReduction;
+    delete[] kMaxReduction;
+    delete[] costHCS;
 }
 
 // ***** FUNCTIONS *************************************************************
@@ -72,7 +79,7 @@ eigMd PenaltyLoop::solve(const eigMd &U0)
         {
             poseTolMet[iter] = true;
             deltaPenalty[iter] = 0.;
-            printf("\t\033[0;33mPose tolerance met: pos. error: %f <= %f, rot. error: %f <= %f. Penalty change: %.3f.\033[0m\n",
+            printf("\t\033[0;33mPose tolerance met: pos. error: %f <= %f and rot. error: %f <= %f. Penalty change: %.3f.\033[0m\n",
                    posError[iter], posTol, rotError[iter], rotTol, deltaPenalty[iter]);
         }
         else
@@ -81,7 +88,7 @@ eigMd PenaltyLoop::solve(const eigMd &U0)
                 deltaPenalty[iter] = -initPenalty / 2.;
             else
                 deltaPenalty[iter] = -fabs(deltaPenalty[iter - 1]) / 2.;
-            printf("\t\033[0;33mPose tolerance not met: pos. error: %f > %f, rot. error: %f > %f. Penalty change: %.3f.\033[0m\n",
+            printf("\t\033[0;33mPose tolerance not met: pos. error: %f > %f or rot. error: %f > %f. Penalty change: %.3f.\033[0m\n",
                    posError[iter], posTol, rotError[iter], rotTol, deltaPenalty[iter]);
         }
         // check if the maximum stiffness tolerance is satisfied
@@ -109,6 +116,7 @@ eigMd PenaltyLoop::solve(const eigMd &U0)
         // accept/reject the solution
         if (poseTolMet[iter] && (kAvg[iter] <= kAvg[lastAcceptedIter] || lastAcceptedIter == 0 || kAvg[iter] == 0))
         {
+            printf("\t\033[0;33mPenalty iteration %d accepted.\033[0m\n", iter);
             accepted[iter] = true;
             lastAcceptedIter = iter;
             UPre = USol; // update the initial trajectory for next iteration
@@ -117,8 +125,9 @@ eigMd PenaltyLoop::solve(const eigMd &U0)
         // post-process
         if (applyPP && accepted[iter] && kAvg[iter] <= kThresh)
         {
+            printf("\t\033[0;33mPerforming the post-process...\033[0m\n");
             eigMd UPost = postProcess(USol, trajSol.X);
-
+            trajectory trajPost = scvx->runSimulation(UPost, false, true, 1.);
             UPre = UPost;
             UOpt = UPost;
         }
@@ -139,23 +148,25 @@ eigMd PenaltyLoop::solve(const eigMd &U0)
 eigMd PenaltyLoop::postProcess(const eigMd &UPre, const eigMd &XPre)
 {
     // apply the pulling controller
-    eigMd UPost = pullControl(UPre, XPre);
+    trajectory trajPull = pullControl(UPre, XPre);
     // apply the hill-climbing search
+    eigMd UPost = hillClimbSearch(trajPull.U, trajPull.X);
     // return the post-processed trajectory
     return UPost;
 }
 
 // pullControl: pulls virtually-active end effectors toward the corresponding contact geoms
-eigMd PenaltyLoop::pullControl(const eigMd &UIn, const eigMd &XIn)
+trajectory PenaltyLoop::pullControl(const eigMd &UIn, const eigMd &XIn)
 {
-    eigMd UOut = UIn;
+    trajectory trajOut;
+    trajOut.U = UIn;
     // create & initialize MuJoCo data
     mjData *d = mj_makeData(m);
     mju_copy(d->qpos, m->key_qpos, m->nq);
     mj_forward(m, d);
     // intermediate variables
     eigVd pullVec(3), pullDir(3), pullFext(3), pullTau(cp->nu), sRbtPos(3), sEnvPos(3), nCS(3),
-        qvelErr(cp->nv), qvelErrMass(cp->nv), dampTau(cp->nu);
+        qvelError(cp->nv), qvelErrorMass(cp->nv), dampTau(cp->nu);
     eigMd XPull(cp->n, cp->N + 1);
     XPull.setZero();
     Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor> JtSite(3, cp->nv), JtRbt(3, cp->nu);
@@ -183,7 +194,8 @@ eigMd PenaltyLoop::pullControl(const eigMd &UIn, const eigMd &XIn)
             pullDir = pullVec / pullVec.norm();
             // calculate the external pulling force acting on the end effector
             pullFext = pullControlKp * pullDir * UIn.col(i)(cp->nu + pair);
-            std::cout << "\nt: " << d->time << " s\n\tpull dir: " << pullDir.transpose() << ", pull f: " << pullFext.transpose() << "\n\n";
+            std::cout << "\nt: " << d->time << " s\n\tpull dir: " << pullDir.transpose() << ", pull f: " << pullFext.transpose()
+                      << "\n\tsite rbt: " << sRbtPos.transpose() << ", site env: " << sEnvPos.transpose() << "\n\n";
             // get the translational Jacobian for the end-effector site
             mj_jacSite(m, d, JtSite.data(), NULL, cp->sites[pair][0]);
             JtRbt = JtSite.block(0, cp->dAct[0], 3, cp->nu);
@@ -191,16 +203,76 @@ eigMd PenaltyLoop::pullControl(const eigMd &UIn, const eigMd &XIn)
             pullTau += JtRbt.transpose() * pullFext;
         }
         // velocity tracking control
-        qvelErr = XIn.col(i).tail(cp->nv) - XPull.col(i).tail(cp->nv);
-        mj_mulM(m, d, qvelErrMass.data(), qvelErr.data());
-        dampTau = dampControlKv * qvelErrMass.tail(cp->nu); // this assumes the actuated DOF are at the tail
+        qvelError = XIn.col(i).tail(cp->nv) - XPull.col(i).tail(cp->nv);
+        mj_mulM(m, d, qvelErrorMass.data(), qvelError.data());
+        dampTau = dampControlKv * qvelErrorMass.tail(cp->nu); // this assumes the actuated DOF are at the tail
         // apply the changes due to the pulling and velocity tracking controllers
-        UOut.topRows(cp->nu).col(i) += pullTau + dampTau;
+        trajOut.U.topRows(cp->nu).col(i) += pullTau + dampTau;
         // take a control step
-        cc->takeStep(d, UOut.col(i), true, 1.);
+        cc->takeStep(d, trajOut.U.col(i), true, 1.);
     }
+    // get the final state
+    XPull.col(cp->N) = cp->getState(d);
+    trajOut.X = XPull;
     // delete MuJoCo data
     mj_deleteData(d);
     // return the trajectory processed by the pulling controller
+    return trajOut;
+}
+
+// hillClimbSearch reduces the excessive virtual stiffness values after applying the pull control
+eigMd PenaltyLoop::hillClimbSearch(eigMd &UIn, const eigMd &XIn)
+{
+    eigMd UOut = UIn;
+    // get the initial cost, avg. and max. stiffness values
+    costHCS[0] = (cp->desiredPos.head(3) - XIn.col(cp->N).segment(cp->controlJointDOF0, 3)).norm() +
+                 (cp->weight[1] / cp->weight[0]) * (cp->desiredPos.tail(3) - XIn.col(cp->N).segment(cp->controlJointDOF0 + 3, 3)).norm();
+    lastCostHCS = costHCS[0];
+    kAvgBeforeHCS = UIn.bottomRows(cp->nPair).sum() / (cp->nPair * cp->N);
+    kMaxBeforeHCS = UIn.bottomRows(cp->nPair).maxCoeff();
+    // run the hill-climbing search
+    iterHCS = 0;
+    std::cout << "Initial cost: " << costHCS[0]
+              << ", stiffness trajectory:\n"
+              << UIn.bottomRows(cp->nPair) << "\n";
+    printf("\033[0;33mStarting hill-climbing search\033[0m\n");
+    for (int pair = 0; pair < cp->nPair; pair++)
+    {
+        for (int i = 0; i < cp->N; i++)
+        {
+            if (UIn(cp->nu + pair, i) > 0.)
+            {
+                dCostHCS = 1e-2;
+                UOut = UIn;
+                while (dCostHCS > 1e-4 && iterHCS < maxIterHCS && costHCS[iterHCS] > 1e-2)
+                {
+                    iterHCS++;
+                    UOut(cp->nu + pair, i) -= alphaHCS * dCostHCS;
+                    // UOut(cp->nu + pair, i) -= 0.1;
+                    UOut(cp->nu + pair, i) = std::max(0., UOut(cp->nu + pair, i));
+                    std::cout << "\tApplied change: " << -alphaHCS * dCostHCS
+                              << " on pair " << pair
+                              << " at time step " << i
+                              << "\nStiffness values:\n"
+                              << UOut.bottomRows(cp->nPair) << "\n";
+                    trajHCS = scvx->runSimulation(UOut, false, false, 1.);
+                    costHCS[iterHCS] = (cp->desiredPos.head(3) - trajHCS.X.col(cp->N).segment(cp->controlJointDOF0, 3)).norm() +
+                                       (cp->weight[1] / cp->weight[0]) * (cp->desiredPos.tail(3) - trajHCS.X.col(cp->N).segment(cp->controlJointDOF0 + 3, 3)).norm();
+                    dCostHCS = lastCostHCS - costHCS[iterHCS];
+                    if (dCostHCS > 0.)
+                    {
+                        UIn = UOut;
+                        lastCostHCS = costHCS[iterHCS];
+                    }
+                    printf("\tHCS iter: %d, cost: %f, dcost: %f, alpha: %f\n\n",
+                           iterHCS, costHCS[iterHCS], dCostHCS, alphaHCS);
+                }
+            }
+        }
+    }
+    // calculate the reduction of avg. and max. stiffness
+    kAvgReduction[iter] = kAvgBeforeHCS - UIn.bottomRows(cp->nPair).sum() / (cp->nPair * cp->N);
+    kMaxReduction[iter] = kMaxBeforeHCS - UIn.bottomRows(cp->nPair).maxCoeff();
+    // return the output of the hill-climbing search
     return UOut;
 }
