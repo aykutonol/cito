@@ -209,7 +209,7 @@ trajectory PenaltyLoop::pullControl(const eigMd &UIn, const eigMd &XIn)
         // apply the changes due to the pulling and velocity tracking controllers
         trajOut.U.topRows(cp->nu).col(i) += pullTau + dampTau;
         // take a control step
-        cc->takeStep(d, trajOut.U.col(i), true, 1.);
+        cc->takeStep(d, trajOut.U.col(i), false, 1.);
     }
     // get the final state
     XPull.col(cp->N) = cp->getState(d);
@@ -221,47 +221,47 @@ trajectory PenaltyLoop::pullControl(const eigMd &UIn, const eigMd &XIn)
 }
 
 // hillClimbSearch reduces the excessive virtual stiffness values after applying the pull control
-eigMd PenaltyLoop::hillClimbSearch(eigMd &UIn, const eigMd &XIn)
+eigMd PenaltyLoop::hillClimbSearch(eigMd &UPulled, const eigMd &XPulled)
 {
-    eigMd UOut = UIn;
+    eigMd UHCS = UPulled;
     // get the initial cost, avg. and max. stiffness values
-    costHCS[0] = (cp->desiredPos.head(3) - XIn.col(cp->N).segment(cp->controlJointDOF0, 3)).norm() +
-                 (cp->weight[1] / cp->weight[0]) * (cp->desiredPos.tail(3) - XIn.col(cp->N).segment(cp->controlJointDOF0 + 3, 3)).norm();
+    costHCS[0] = (cp->desiredPos.head(3) - XPulled.col(cp->N).segment(cp->controlJointDOF0, 3)).norm() +
+                 (cp->weight[1] / cp->weight[0]) * (cp->desiredPos.tail(3) - XPulled.col(cp->N).segment(cp->controlJointDOF0 + 3, 3)).norm();
     lastCostHCS = costHCS[0];
-    kAvgBeforeHCS = UIn.bottomRows(cp->nPair).sum() / (cp->nPair * cp->N);
-    kMaxBeforeHCS = UIn.bottomRows(cp->nPair).maxCoeff();
+    kAvgBeforeHCS = UPulled.bottomRows(cp->nPair).sum() / (cp->nPair * cp->N);
+    kMaxBeforeHCS = UPulled.bottomRows(cp->nPair).maxCoeff();
     // run the hill-climbing search
     iterHCS = 0;
     std::cout << "Initial cost: " << costHCS[0]
               << ", stiffness trajectory:\n"
-              << UIn.bottomRows(cp->nPair) << "\n";
+              << UPulled.bottomRows(cp->nPair) << "\n";
     printf("\033[0;33mStarting hill-climbing search\033[0m\n");
     for (int pair = 0; pair < cp->nPair; pair++)
     {
         for (int i = 0; i < cp->N; i++)
         {
-            if (UIn(cp->nu + pair, i) > 0.)
+            if (UPulled(cp->nu + pair, i) > 0.)
             {
                 dCostHCS = 1e-2;
-                UOut = UIn;
+                UHCS = UPulled;
                 while (dCostHCS > 1e-4 && iterHCS < maxIterHCS && costHCS[iterHCS] > 1e-2)
                 {
                     iterHCS++;
-                    UOut(cp->nu + pair, i) -= alphaHCS * dCostHCS;
-                    // UOut(cp->nu + pair, i) -= 0.1;
-                    UOut(cp->nu + pair, i) = std::max(0., UOut(cp->nu + pair, i));
+                    UHCS(cp->nu + pair, i) -= alphaHCS * dCostHCS;
+                    // UHCS(cp->nu + pair, i) -= 0.1;
+                    UHCS(cp->nu + pair, i) = std::max(0., UHCS(cp->nu + pair, i));
                     std::cout << "\tApplied change: " << -alphaHCS * dCostHCS
                               << " on pair " << pair
                               << " at time step " << i
                               << "\nStiffness values:\n"
-                              << UOut.bottomRows(cp->nPair) << "\n";
-                    trajHCS = scvx->runSimulation(UOut, false, false, 1.);
+                              << UHCS.bottomRows(cp->nPair) << "\n";
+                    trajHCS = scvx->runSimulation(UHCS, false, false, 1.);
                     costHCS[iterHCS] = (cp->desiredPos.head(3) - trajHCS.X.col(cp->N).segment(cp->controlJointDOF0, 3)).norm() +
                                        (cp->weight[1] / cp->weight[0]) * (cp->desiredPos.tail(3) - trajHCS.X.col(cp->N).segment(cp->controlJointDOF0 + 3, 3)).norm();
                     dCostHCS = lastCostHCS - costHCS[iterHCS];
                     if (dCostHCS > 0.)
                     {
-                        UIn = UOut;
+                        UPulled = UHCS;
                         lastCostHCS = costHCS[iterHCS];
                     }
                     printf("\tHCS iter: %d, cost: %f, dcost: %f, alpha: %f\n\n",
@@ -271,8 +271,8 @@ eigMd PenaltyLoop::hillClimbSearch(eigMd &UIn, const eigMd &XIn)
         }
     }
     // calculate the reduction of avg. and max. stiffness
-    kAvgReduction[iter] = kAvgBeforeHCS - UIn.bottomRows(cp->nPair).sum() / (cp->nPair * cp->N);
-    kMaxReduction[iter] = kMaxBeforeHCS - UIn.bottomRows(cp->nPair).maxCoeff();
+    kAvgReduction[iter] = kAvgBeforeHCS - UPulled.bottomRows(cp->nPair).sum() / (cp->nPair * cp->N);
+    kMaxReduction[iter] = kMaxBeforeHCS - UPulled.bottomRows(cp->nPair).maxCoeff();
     // return the output of the hill-climbing search
-    return UOut;
+    return UPulled;
 }

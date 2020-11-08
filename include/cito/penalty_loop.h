@@ -37,10 +37,10 @@ private:
          applyPP = true, *acceptPP;
     double initPenalty = 0.1, reducePenaltyBy = 0.3, maxPenalty = 20.0,
            *penalty, *deltaPenalty,
-           posTol = 0.3, rotTol = 1.25, kMaxTol = 0.1, kThresh = 2.5,
+           posTol = 0.3, rotTol = 1., kMaxTol = 0.1, kThresh = 2.5,
            posError0, rotError0, *posError, *rotError,
            *kAvg, *kMax,
-           pullControlShift = 0.05, pullControlKp = 2.5, dampControlKv = 1.,
+           pullControlShift = 0.05, pullControlKp = 5., dampControlKv = 1.,
            *costHCS, alphaHCS = 10., dCostHCS, lastCostHCS,
            kAvgBeforeHCS, kMaxBeforeHCS, *kAvgReduction, *kMaxReduction;
     eigMd UPre, USol, UOpt;
@@ -50,7 +50,7 @@ private:
     // This function pulls virtually-active end effectors toward the corresponding contact geoms
     trajectory pullControl(const eigMd &UIn, const eigMd &XIn);
     // This function reduces the excessive virtual stiffness values after applying the pull control
-    eigMd hillClimbSearch(eigMd &UIn, const eigMd &XIn);
+    eigMd hillClimbSearch(eigMd &UPulled, const eigMd &XPulled);
 };
 
 #endif //PENALTY_LOOP_H
