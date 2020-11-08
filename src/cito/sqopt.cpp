@@ -52,11 +52,7 @@ SQOPT::SQOPT(const mjModel *m_, Params *cp_) : m(m_), cp(cp_)
     cvxProb.setIntParameter("Print level", 0);
     // set the weights
     lenru = 4; // number of weights
-    ru = new double[lenru];
-    for (int i = 0; i < lenru; i++)
-    {
-        ru[i] = cp->weight[i];
-    }
+    ru = cp->weight;
     cvxProb.setUserR(ru, lenru);
     // set parameters that are dependent on simulation and model
     leniu = 3; // number of parameters
@@ -71,7 +67,6 @@ SQOPT::~SQOPT()
 {
     delete[] cObj;
     delete[] indMove;
-    delete[] ru;
     delete[] iu;
 }
 
