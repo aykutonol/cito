@@ -1,7 +1,7 @@
 # maximum number of iterations
-maxIter: 25
+maxIter: 50
 # initial trust region radius
-r0: 5e1
+r0: 1e2
 # stopping tolerance for the change of the convex cost
 dLTol: 1e-2
 # similarity metric thresholds
