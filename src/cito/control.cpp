@@ -172,7 +172,9 @@ eigVd Control::contactModel(const mjData *d, const eigVd &u)
             // get the free body's CoM position, i.e., joint position for a free joint
             mju_copy3(pCoM.data(), d->qpos + cp->pFree[free_body]);
             // calculate the vector from the CoM to the contact point in the environment
-            r = distPairs[pair].nearest_points[1] - pCoM;
+            // r = distPairs[pair].nearest_points[1] - pCoM;
+            mju_copy3(sEnvPos.data(), d->site_xpos + 3 * cp->sites[pair][1]);
+            r = sEnvPos - pCoM;
             // calculate the wrench at the CoM: [lambda; cross(vEF, lambda)]
             h.segment(free_body * 6, 3) += lambda;
             h.segment(free_body * 6 + 3, 3) += cp->skewCross(r, lambda);
