@@ -50,7 +50,7 @@ private:
     eigVd h, hCon;
     /// Contact model variables
     double gamma;
-    Eigen::Vector3d nCS, lambda, pCoM, r;
+    Eigen::Vector3d nCS, lambda, pCoM, r, sEnvPos;
     /// Objects
     Params *cp;
     SaveLog sl;
