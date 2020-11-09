@@ -1,0 +1,18 @@
+# penalty loop parameters
+maxIter: 10
+maxPenalty: 20.
+initPenalty: 0.1
+incPenaltyFixed: 1.5
+decPenaltyRatio: 0.5
+# constraint tolerances
+posTol: 0.3   # position error normalized by initial error
+rotTol: 1.    # [rad] rotation error
+kMaxTol: 0.1  # max. stiffness
+kThresh: 2.5  # avg. stiffness threshold for post-process
+# pulling controller parameters
+Kp: 2.
+Kv: 1.
+shift: 0.05
+# hill-climbing search parameters
+alpha: 10.
+maxIterHCS: 100

@@ -31,18 +31,18 @@ private:
     SCVX *scvx;
     Control *cc;
     /// Variables
-    int iter = 0, maxIter = 10, lastAcceptedIter = 0,
-        iterHCS, maxIterHCS = 100;
+    int iter = 0, lastAcceptedIter = 0, maxIter,
+        iterHCS, maxIterHCS;
     bool stop = false, *accepted, *poseTolMet, *kMaxTolMet, *costTolMet,
          applyPP = true, *acceptPP;
-    double initPenalty = 0.1, reducePenaltyBy = 0.3, maxPenalty = 20.0,
-           *penalty, *deltaPenalty,
-           posTol = 0.3, rotTol = 1., kMaxTol = 0.1, kThresh = 2.5,
-           posError0, rotError0, *posError, *rotError,
-           *kAvg, *kMax,
-           pullControlShift = 0.05, pullControlKp = 5., dampControlKv = 1.,
-           *costHCS, alphaHCS = 10., dCostHCS, lastCostHCS,
-           kAvgBeforeHCS, kMaxBeforeHCS, *kAvgReduction, *kMaxReduction;
+    double initPenalty, incPenaltyFixed, decPenaltyRatio, maxPenalty,
+        *penalty, *deltaPenalty,
+        posTol, rotTol, kMaxTol, kThresh,
+        posError0, rotError0, *posError, *rotError,
+        *kAvg, *kMax,
+        pullControlShift, reducedShift, pullControlKp, dampControlKv,
+        *costHCS, alphaHCS, dCostHCS, lastCostHCS,
+        kAvgBeforeHCS, kMaxBeforeHCS, *kAvgReduction, *kMaxReduction;
     eigMd UPre, USol, UOpt;
     trajectory trajSol, trajHCS;
     // This function performs the post-process and returns the modified control trajectory
