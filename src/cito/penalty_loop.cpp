@@ -215,8 +215,8 @@ trajectory PenaltyLoop::pullControl(const eigMd &UIn, const eigMd &XIn)
             // calculate the external pulling force acting on the end effector
             pullFext = pullControlKp * pullDir * UIn.col(i)(cp->nu + pair);
             if (UIn.col(i)(cp->nu + pair) > 1e-3)
-                std::cout << "\nt: " << d->time << ", pair: " << pair
-                          << " s\n\tpull dir: " << pullDir.transpose() << ", pull f: " << pullFext.transpose()
+                std::cout << "\nt: " << d->time << " s, pair: " << pair
+                          << "\n\tpull dir: " << pullDir.transpose() << ", pull f: " << pullFext.transpose()
                           << "\n\tsite rbt: " << sRbtPos.transpose() << ", site env: " << sEnvPos.transpose() << "\n\n";
             // get the translational Jacobian for the end-effector site
             mj_jacSite(m, d, JtSite.data(), NULL, cp->sites[pair][0]);
@@ -269,8 +269,8 @@ eigMd PenaltyLoop::hillClimbSearch(eigMd &UPulled, const eigMd &XPulled)
                 while (dCostHCS > 1e-4 && iterHCS < maxIterHCS && costHCS[iterHCS] > 1e-2)
                 {
                     iterHCS++;
-                    UHCS(cp->nu + pair, i) -= alphaHCS * dCostHCS;
-                    // UHCS(cp->nu + pair, i) -= 0.1;
+                    // UHCS(cp->nu + pair, i) -= alphaHCS * dCostHCS;
+                    UHCS(cp->nu + pair, i) -= 0.1;
                     UHCS(cp->nu + pair, i) = std::max(0., UHCS(cp->nu + pair, i));
                     std::cout << "\tApplied change: " << -alphaHCS * dCostHCS
                               << " on pair " << pair
