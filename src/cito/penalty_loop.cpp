@@ -105,7 +105,7 @@ eigMd PenaltyLoop::solve(const eigMd &U0)
                 deltaPenalty[iter] = -initPenalty / 2.;
             else
                 deltaPenalty[iter] = -fabs(deltaPenalty[iter - 1]) * decPenaltyRatio;
-            printf("\t\033[0;33mPose tolerance not met: pos. error: %f > %f or rot. error: %f > %f. Penalty change: %.3f.\033[0m\n",
+            printf("\n\t\033[0;33mPose tolerance not met: pos. error: %f > %f or rot. error: %f > %f. Penalty change: %.3f.\033[0m\n",
                    posError[iter], posTol, rotError[iter], rotTol, deltaPenalty[iter]);
         }
         // check if the maximum stiffness tolerance is satisfied
@@ -129,16 +129,18 @@ eigMd PenaltyLoop::solve(const eigMd &U0)
         // bound the penalty
         penalty[iter + 1] = std::max(penalty[iter + 1], 0.0);
         penalty[iter + 1] = std::min(penalty[iter + 1], maxPenalty);
-        printf("\n\t\033[0;33mNext penalty value: %f.\033[0m\n\n", penalty[iter + 1]);
+        printf("\t\033[0;33mNext penalty value: %f.\033[0m\n\n", penalty[iter + 1]);
         // accept/reject the solution
         if (poseTolMet[iter] && (kAvg[iter] <= kAvg[lastAcceptedIter] || lastAcceptedIter == 0 || kAvg[iter] == 0))
         {
-            printf("\t\033[0;33mPenalty iteration %d accepted.\033[0m\n", iter + 1);
+            printf("\t\033[0;32mPenalty iteration %d accepted.\033[0m\n", iter + 1);
             accepted[iter] = true;
             lastAcceptedIter = iter;
             UPre = USol; // update the initial trajectory for next iteration
             UOpt = USol; // update the optimal solution
         }
+        else
+            printf("\t\033[0;31mPenalty iteration %d rejected.\033[0m\n", iter + 1);
         // post-process
         if (applyPP && accepted[iter] && kAvg[iter] <= kThresh)
         {
