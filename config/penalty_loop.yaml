@@ -12,7 +12,7 @@ kThresh: 2.5  # avg. stiffness threshold for post-process
 # pulling controller parameters
 Kp: 2.
 Kv: 1.
-shift: 0.05
+shift: 0.02
 # hill-climbing search parameters
 alpha: 10.
 maxIterHCS: 100
