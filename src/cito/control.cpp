@@ -136,7 +136,7 @@ void Control::setControl(mjData *d, const eigVd &u, double compensateBias)
     // set control given the control input
     for (int i = 0; i < m->nu; i++)
     {
-        d->ctrl[i] = u(i) + compensateBias * d->qfrc_bias[cp->dAct[i]] - 1. * d->qfrc_constraint[cp->dAct[i]];
+        d->ctrl[i] = u(i) + compensateBias * d->qfrc_bias[cp->dAct[i]] - 0. * d->qfrc_constraint[cp->dAct[i]];
     }
     // contact model
     hCon.setZero();
