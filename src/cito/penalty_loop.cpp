@@ -7,22 +7,6 @@
 // ***** CONSTRUCTOR ***********************************************************
 PenaltyLoop::PenaltyLoop(const mjModel *m_, Params *cp_, Control *cc_, SCVX *scvx_) : m(m_), cp(cp_), cc(cc_), scvx(scvx_)
 {
-    accepted = new bool[maxIter]();   // initialize with false
-    acceptPP = new bool[maxIter]();   // initialize with false
-    poseTolMet = new bool[maxIter](); // initialize with false
-    kMaxTolMet = new bool[maxIter](); // initialize with false
-    costTolMet = new bool[maxIter](); // initialize with false
-    penalty = new double[maxIter + 1];
-    deltaPenalty = new double[maxIter];
-    posError = new double[maxIter];
-    rotError = new double[maxIter];
-    kAvg = new double[maxIter];
-    kMax = new double[maxIter];
-    kAvgReduction = new double[maxIter];
-    kMaxReduction = new double[maxIter];
-    costHCS = new double[maxIterHCS];
-    // initialize penalty
-    penalty[0] = initPenalty;
     // get penalty loop parameters
     YAML::Node paramPenalty = YAML::LoadFile(paths::workspaceDir + "/src/cito/config/penalty_loop.yaml");
     maxIter = paramPenalty["maxIter"].as<int>();
@@ -39,6 +23,23 @@ PenaltyLoop::PenaltyLoop(const mjModel *m_, Params *cp_, Control *cc_, SCVX *scv
     pullControlShift = paramPenalty["shift"].as<double>();
     alphaHCS = paramPenalty["alpha"].as<double>();
     maxIterHCS = paramPenalty["maxIterHCS"].as<int>();
+    // create dynamic arrays
+    accepted = new bool[maxIter]();   // initialize with false
+    acceptPP = new bool[maxIter]();   // initialize with false
+    poseTolMet = new bool[maxIter](); // initialize with false
+    kMaxTolMet = new bool[maxIter](); // initialize with false
+    costTolMet = new bool[maxIter](); // initialize with false
+    penalty = new double[maxIter + 1];
+    deltaPenalty = new double[maxIter];
+    posError = new double[maxIter];
+    rotError = new double[maxIter];
+    kAvg = new double[maxIter];
+    kMax = new double[maxIter];
+    kAvgReduction = new double[maxIter];
+    kMaxReduction = new double[maxIter];
+    costHCS = new double[maxIterHCS];
+    // initialize penalty
+    penalty[0] = initPenalty;
 }
 // ***** DESTRUCTOR ************************************************************
 PenaltyLoop::~PenaltyLoop()
