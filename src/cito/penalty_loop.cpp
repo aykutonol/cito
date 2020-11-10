@@ -84,7 +84,7 @@ eigMd PenaltyLoop::solve(const eigMd &U0)
         trajSol = scvx->runSimulation(USol, false, true, 1.);
         // get the initial pose error for normalization
         if (iter == 0)
-            posError0 = std::max(5e-2, (cp->desiredPos.head(2) - trajSol.X.col(0).segment(cp->controlJointDOF0, 2)).norm());
+            posError0 = std::max(1e-3, (cp->desiredPos.head(2) - trajSol.X.col(0).segment(cp->controlJointDOF0, 2)).norm());
         // get average and maximum stiffness
         kAvg[iter] = USol.bottomRows(cp->nPair).sum() / (cp->nPair * cp->N);
         kMax[iter] = USol.bottomRows(cp->nPair).maxCoeff();
