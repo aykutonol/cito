@@ -39,7 +39,6 @@
             <!-- <geom name="shelf3" size="0.29845 0.1524 0.0127" pos="-0.0063 0.8636 1.53036" type="box" /> -->
         </body>
         <!-- Object: Red cardboard -->
-        
         <body name="object" pos="0.5 0 0.815" quat="1 0 0 0" >
             <inertial pos="0 0 0" mass=".155" diaginertia="0.0003686049833333333 0.001255996129167 0.001460916979167" />
             <joint name="object" type="free" limited="false" />
@@ -51,13 +50,13 @@
         </body>
         <!-- Object: imaginary blue cube -->
         <!-- <body name="object" pos="0.5 0 0.875" quat="1 0 0 0" >
-            <inertial pos="0 0 0" mass=".2" diaginertia="0.00033333 0.00033333 0.00033333" />
+            <inertial pos="0 0 0" mass="2." diaginertia="0.00750000000 0.00750000000 0.00750000000" />
             <joint name="object" type="free" limited="false" />
-            <geom name="object" type="box" size="0.1 0.1 0.1" group="1" rgba="0 0 .8 1" />
-            <site name="obj_front" pos="-0.1 0 0" quat="1 0 0 0"          type="box" size="1e-5 0.08 0.08" group="2" rgba="0 1 0 .1" />
-            <site name="obj_right" pos="0 -0.1 0" quat="0.707 0 0 0.707"  type="box" size="1e-5 0.08 0.08" group="2" rgba="0 1 0 .1" />
-            <site name="obj_left"  pos="0 +0.1 0" quat="0.707 0 0 -0.707" type="box" size="1e-5 0.08 0.08" group="2" rgba="0 1 0 .1" />
-            <site name="obj_rear"  pos="+0.1 0 0" quat="0 0 0 1"          type="box" size="1e-5 0.08 0.08" group="2" rgba="0 1 0 .1" />
+            <geom name="object" type="box" size="0.075 0.075 0.075" group="1" rgba="0 0 .8 1" />
+            <site name="obj_front" pos="-0.075 0 0" quat="1 0 0 0"          type="box" size="1e-5 0.02 0.02" group="2" rgba="0 1 0 .1" />
+            <site name="obj_right" pos="0 -0.075 0" quat="0.707 0 0 0.707"  type="box" size="1e-5 0.02 0.02" group="2" rgba="0 1 0 .1" />
+            <site name="obj_left"  pos="0 +0.075 0" quat="0.707 0 0 -0.707" type="box" size="1e-5 0.02 0.02" group="2" rgba="0 1 0 .1" />
+            <site name="obj_rear"  pos="+0.075 0 0" quat="0 0 0 1"          type="box" size="1e-5 0.02 0.02" group="2" rgba="0 1 0 .1" />
         </body> -->
         <!-- Robot: LWR iiwa 7 R820 -->
         <body name="iiwa_base" pos="0 0 -0.01" quat="0.707 0 0 -0.707">
@@ -90,7 +89,7 @@
                                         <geom name="link6" type="mesh" rgba="1 0.423529 0.0392157 1" mesh="link_6" />
                                         <body name="iiwa_link_7" pos="0 0.081 0.0607" quat="0 0 0.707107 0.707107">
                                             <inertial pos="0 0 0.02" quat="0.923068 0 0 0.384636" mass="3.129" diaginertia="0.0152362 0.0140538 0.002872" />
-                                            <joint name="iiwa_joint_6" pos="0 0 0" axis="0 0 1" limited="true" range="-3.05433 3.05433" damping="0.5" />
+                                            <!-- <joint name="iiwa_joint_6" pos="0 0 0" axis="0 0 1" limited="true" range="-3.05433 3.05433" damping="0.5" /> -->
                                             <!-- <geom name="link7" pos="0 0 -0.0005" type="mesh" rgba="0.4 0.4 0.4 1" mesh="link_7" /> -->
                                             <geom name="link7"  pos="0 0 0.0235" type="cylinder" size="0.050 0.0235" rgba=".5 .5 .5 1" />
                                             <geom name="flange" pos="0 0 0.0595" type="cylinder" size="0.032 0.0125" rgba=".5 .5 .5 1" />
@@ -119,7 +118,7 @@
         <motor name="joint3" joint="iiwa_joint_3" ctrllimited="true" ctrlrange="-110 110" />
         <motor name="joint4" joint="iiwa_joint_4" ctrllimited="true" ctrlrange="-110 110" />
         <motor name="joint5" joint="iiwa_joint_5" ctrllimited="true" ctrlrange="-40 40" />
-        <motor name="joint6" joint="iiwa_joint_6" ctrllimited="true" ctrlrange="-40 40" />
+        <!-- <motor name="joint6" joint="iiwa_joint_6" ctrllimited="true" ctrlrange="-40 40" /> -->
     </actuator>
 
     <!-- Contacts -->
@@ -127,12 +126,18 @@
         <pair geom1="link6"  geom2="tplane" />
         <pair geom1="link7"  geom2="tplane" />
         <pair geom1="flange" geom2="tplane" />
-        <pair geom1="flange" geom2="object" friction="1 1" />
-        <pair geom1="tplane" geom2="object" friction="1 1" />
+        <pair geom1="link6"  geom2="object" friction=".6 .6" />
+        <pair geom1="link7"  geom2="object" friction=".6 .6" />
+        <pair geom1="flange" geom2="object" friction=".6 .6" />
+        <pair geom1="tplane" geom2="object" friction="1. 1." />
     </contact>
 
     <!-- Key frames -->
     <keyframe>
-        <key name="init_pose" qpos="0.7 0 0.8125 1 0 0 0 0 1.1 0 -2 0 -1.25 0" />
+        <!-- <key name="init_pose" qpos="0.5 0 0.8125 1 0 0 0 0 0.86 0 -2.05 0 -1.1" /> -->
+        <!-- <key name="init_pose" qpos="0.5 0 0.8125 1 0 0 0 0 0.8 0 -2.05 0 -0.85" /> -->
+        <!-- <key name="init_pose" qpos="0.5 0 0.8125 1 0 0 0 0 0.7 0 -2.05 0 -0.75" /> -->
+        <!-- <key name="init_pose" qpos="0.5 0 0.8125 1 0 0 0 0 0.7 0 -1.75 0 0.65" /> -->
+        <key name="init_pose" qpos="0.7 0 0.8125 1 0 0 0 0 0.95 0 -2.05 0 -1" />
     </keyframe>
 </mujoco>
