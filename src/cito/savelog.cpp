@@ -50,7 +50,7 @@ SaveLog::~SaveLog()
 
 // ***** FUNCTIONS *************************************************************
 // writeData: writes simulation data to logFile
-void SaveLog::writeData(const mjData *d)
+void SaveLog::writeData(const mjData *d, int save)
 {
     /// logFile
     // create data for the record
@@ -67,7 +67,7 @@ void SaveLog::writeData(const mjData *d)
     size_t nn = fwrite(data, this->dataSize * sizeof(float), 1, logFile);
     /// trajFile
     // write to trajectory file
-    if (trajFile.is_open())
+    if (trajFile.is_open() && save > 1)
     {
         trajFile << d->time << ",";
         for (int i = 0; i < m->nu; i++)

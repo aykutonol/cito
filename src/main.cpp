@@ -66,7 +66,7 @@ int main(int argc, char const *argv[])
     auto cpuPlanEnd = std::clock();
     auto tPlanEnd = std::chrono::system_clock::now();
     // ***** Evaluate the optimal trajectory *************************************/
-    traj = scvx.runSimulation(U, false, true, 1);
+    traj = scvx.runSimulation(U, false, 2, 1);
     // Print the trajectory
     std::cout << "\n\nOptimal trajectory:\n";
     for (int i = 0; i < cp.N; i++)

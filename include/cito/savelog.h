@@ -21,7 +21,7 @@ public:
     /// Destructor
     ~SaveLog();
     /// writes simulation data to the print file
-    void writeData(const mjData *d);
+    void writeData(const mjData *d, int save);
 
 private:
     /// MuJoCo model file

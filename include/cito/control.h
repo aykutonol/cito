@@ -30,7 +30,7 @@ public:
     /// This function returns FCL distance calculation results for all contact pairs
     std::vector<fcl::DistanceResultd> calcDistance(const mjData *d);
     /// This function takes a full control step given a control input
-    void takeStep(mjData *d, const eigVd &u, bool save, double compensateBias);
+    void takeStep(mjData *d, const eigVd &u, int save, double compensateBias);
     /// This function sets generalized forces on joints and free bodies
     void setControl(mjData *d, const eigVd &u, double compensateBias);
     /// This function gets bounds on joint positions, actuator forces from the model

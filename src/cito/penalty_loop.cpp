@@ -81,7 +81,7 @@ eigMd PenaltyLoop::solve(const eigMd &U0)
         USol = scvx->solveSCVX(UPre);
         // roll-out the dynamics and log the data
         trajSol = {};
-        trajSol = scvx->runSimulation(USol, false, true, 1.);
+        trajSol = scvx->runSimulation(USol, false, 1, 1.);
         // get the initial pose error for normalization
         if (iter == 0)
             posError0 = std::max(1e-3, (cp->desiredPos.head(2) - trajSol.X.col(0).segment(cp->controlJointDOF0, 2)).norm());
@@ -146,7 +146,7 @@ eigMd PenaltyLoop::solve(const eigMd &U0)
         {
             printf("\t\033[0;33mPerforming the post-process...\033[0m\n");
             eigMd UPost = postProcess(USol, trajSol.X);
-            trajectory trajPost = scvx->runSimulation(UPost, false, true, 1.);
+            trajectory trajPost = scvx->runSimulation(UPost, false, 1, 1.);
             UPre = UPost;
             UOpt = UPost;
         }
@@ -231,7 +231,7 @@ trajectory PenaltyLoop::pullControl(const eigMd &UIn, const eigMd &XIn)
         // apply the changes due to the pulling and velocity tracking controllers
         trajOut.U.topRows(cp->nu).col(i) += pullTau + dampTau;
         // take a control step
-        cc->takeStep(d, trajOut.U.col(i), false, 1.);
+        cc->takeStep(d, trajOut.U.col(i), 0, 1.);
     }
     // get the final state
     XPull.col(cp->N) = cp->getState(d);
@@ -277,7 +277,7 @@ eigMd PenaltyLoop::hillClimbSearch(eigMd &UPulled, const eigMd &XPulled)
                               << " at time step " << i
                               << "\nStiffness values:\n"
                               << UHCS.bottomRows(cp->nPair) << "\n";
-                    trajHCS = scvx->runSimulation(UHCS, false, false, 1.);
+                    trajHCS = scvx->runSimulation(UHCS, false, 0, 1.);
                     costHCS[iterHCS] = (cp->desiredPos.head(3) - trajHCS.X.col(cp->N).segment(cp->controlJointDOF0, 3)).norm() +
                                        (cp->weight[1] / cp->weight[0]) * (cp->desiredPos.tail(3) - trajHCS.X.col(cp->N).segment(cp->controlJointDOF0 + 3, 3)).norm();
                     dCostHCS = lastCostHCS - costHCS[iterHCS];

@@ -78,7 +78,7 @@ double SCVX::getCost(const eigMd &X, const eigMd &U)
 }
 
 // runSimulation: rolls-out and linearizes the dynamics given control trajectory
-trajectory SCVX::runSimulation(const eigMd &U, bool linearize, bool save, double compensateBias)
+trajectory SCVX::runSimulation(const eigMd &U, bool linearize, int save, double compensateBias)
 {
     // make mjData
     mjData *d = NULL;
@@ -135,7 +135,7 @@ eigMd SCVX::solveSCVX(const eigMd &U0)
             std::cout << "INFO: convexification in progress\n";
             auto tDiffStart = std::chrono::system_clock::now();
             trajS = {};
-            trajS = this->runSimulation(USucc, true, false, 1);
+            trajS = this->runSimulation(USucc, true, 0, 1);
             auto tDiffEnd = std::chrono::system_clock::now();
             std::cout << "INFO: convexification took " << std::chrono::duration<double>(tDiffEnd - tDiffStart).count() << " s \n";
         }
@@ -177,7 +177,7 @@ eigMd SCVX::solveSCVX(const eigMd &U0)
         }
         // evaluate the dynamics for the change and get the cost values ========
         trajTemp = {};
-        trajTemp = this->runSimulation(UTemp, false, false, 1);
+        trajTemp = this->runSimulation(UTemp, false, 0, 1);
         // get the linear and nonlinear costs
         JTilde[iter] = this->getCost(XTilde, UTemp);
         JTemp[iter] = this->getCost(trajTemp.X, UTemp);

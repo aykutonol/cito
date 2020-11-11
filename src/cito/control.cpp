@@ -112,20 +112,20 @@ std::vector<fcl::DistanceResultd> Control::calcDistance(const mjData *d)
 }
 
 // takeStep: takes a full control step given a control input
-void Control::takeStep(mjData *d, const eigVd &u, bool save, double compensateBias)
+void Control::takeStep(mjData *d, const eigVd &u, int save, double compensateBias)
 {
-    if (save && d->time <= 1e-6)
+    if (save > 0 && d->time <= 1e-6)
     {
-        sl.writeData(d);
+        sl.writeData(d, save);
     }
     for (int i = 0; i < cp->ndpc; i++)
     {
         mj_step1(m, d);
         this->setControl(d, u, compensateBias);
         mj_step2(m, d);
-        if (save)
+        if (save > 0)
         {
-            sl.writeData(d);
+            sl.writeData(d, save);
         }
     }
 }

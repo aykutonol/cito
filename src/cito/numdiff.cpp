@@ -33,7 +33,7 @@ void NumDiff::copyTakeStep(const mjData *dMain, const eigVd &u, double *xNew, do
     mj_forward(m, d);
     cc->setControl(d, u, compensateBias);
     // take a full control step (i.e., tc/dt steps)
-    cc->takeStep(d, u, false, compensateBias);
+    cc->takeStep(d, u, 0, compensateBias);
     // get new state
     xNewTemp.setZero();
     xNewTemp = cp->getState(d);
