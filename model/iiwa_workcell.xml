@@ -59,7 +59,7 @@
             <site name="obj_rear"  pos="+0.075 0 0" quat="0 0 0 1"          type="box" size="1e-5 0.02 0.02" group="2" rgba="0 1 0 .1" />
         </body> -->
         <!-- Robot: LWR iiwa 7 R820 -->
-        <body name="iiwa_base" pos="0 0 -0.01" quat="0.707 0 0 -0.707">
+        <body name="iiwa_base" pos="0 0 0.0" quat="0.707 0 0 -0.707">
             <inertial pos="0 0 0" mass="0" diaginertia="0 0 0" />
             <body name="iiwa_link_0" pos="0 0 0" quat="1 0 0 0">
                 <geom name="link0" pos="0 -0.0381 0.78106" quat="0.707105 0 0 0.707108" type="mesh" rgba="0.4 0.4 0.4 1" mesh="link_0" />
@@ -112,12 +112,12 @@
 
     <!-- Actuators -->
     <actuator>
-        <motor name="joint0" joint="iiwa_joint_0" ctrllimited="true" ctrlrange="-176 176" />
-        <motor name="joint1" joint="iiwa_joint_1" ctrllimited="true" ctrlrange="-176 176" />
-        <motor name="joint2" joint="iiwa_joint_2" ctrllimited="true" ctrlrange="-110 110" />
-        <motor name="joint3" joint="iiwa_joint_3" ctrllimited="true" ctrlrange="-110 110" />
-        <motor name="joint4" joint="iiwa_joint_4" ctrllimited="true" ctrlrange="-110 110" />
-        <motor name="joint5" joint="iiwa_joint_5" ctrllimited="true" ctrlrange="-40 40" />
+        <motor name="joint0" joint="iiwa_joint_0" ctrllimited="true" ctrlrange="-80 80" />
+        <motor name="joint1" joint="iiwa_joint_1" ctrllimited="true" ctrlrange="-80 80" />
+        <motor name="joint2" joint="iiwa_joint_2" ctrllimited="true" ctrlrange="-60 60" />
+        <motor name="joint3" joint="iiwa_joint_3" ctrllimited="true" ctrlrange="-50 50" />
+        <motor name="joint4" joint="iiwa_joint_4" ctrllimited="true" ctrlrange="-40 40" />
+        <motor name="joint5" joint="iiwa_joint_5" ctrllimited="true" ctrlrange="-5 5" />
         <!-- <motor name="joint6" joint="iiwa_joint_6" ctrllimited="true" ctrlrange="-40 40" /> -->
     </actuator>
 
@@ -129,7 +129,7 @@
         <pair geom1="link6"  geom2="object" friction=".6 .6" />
         <pair geom1="link7"  geom2="object" friction=".6 .6" />
         <pair geom1="flange" geom2="object" friction=".6 .6" />
-        <pair geom1="tplane" geom2="object" friction="1. 1." />
+        <pair geom1="tplane" geom2="object" friction="1.2 1.2" />
     </contact>
 
     <!-- Key frames -->
@@ -138,6 +138,6 @@
         <!-- <key name="init_pose" qpos="0.5 0 0.8125 1 0 0 0 0 0.8 0 -2.05 0 -0.85" /> -->
         <!-- <key name="init_pose" qpos="0.5 0 0.8125 1 0 0 0 0 0.7 0 -2.05 0 -0.75" /> -->
         <!-- <key name="init_pose" qpos="0.5 0 0.8125 1 0 0 0 0 0.7 0 -1.75 0 0.65" /> -->
-        <key name="init_pose" qpos="0.7 0 0.8125 1 0 0 0 0 0.95 0 -2.05 0 -1" />
+        <key name="init_pose" qpos="0.7 0 0.8125 1 0 0 0 0 1 0 -2.05 0 -1.0" />
     </keyframe>
 </mujoco>
