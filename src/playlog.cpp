@@ -865,19 +865,13 @@ int main(int argc, const char **argv)
     /// check arguments
     if (argc != 1 && argc != 2)
     {
-        printf("USAGE: playlog [fontscale]\n");
+        printf("USAGE: playlog [logpath]\n");
         return 1;
     }
     /// parse fontscale
     if (argc == 2)
     {
-        sscanf(argv[2], "%lf", &fontscale);
-        if (fontscale < 1.25)
-            fontscale = 1;
-        else if (fontscale > 1.75)
-            fontscale = 2;
-        else
-            fontscale = 1.5;
+        logPath = argv[1];
     }
     /// parse file names
     params = YAML::LoadFile(paths::workspaceDir + "/src/cito/config/params.yaml");
@@ -887,7 +881,9 @@ int main(int argc, const char **argv)
     std::string modelPathStr = paths::workspaceDir + "/src/cito/model/" + modelFile;
     std::string logPathStr = paths::workspaceDir + "/logs/mjLog_" + modelName + ".log";
     modelPath = modelPathStr.c_str();
-    logPath = logPathStr.c_str();
+    if (argc < 2)
+        logPath = logPathStr.c_str();
+    std::cout << "\n\tLog path: " << logPath << "\n\n";
     /// initialize OpenGL and MuJoCo
     initOpenGL(modelPath, logPath);
     initMuJoCo(modelPath, logPath);
