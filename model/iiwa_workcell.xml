@@ -112,12 +112,20 @@
 
     <!-- Actuators -->
     <actuator>
+        <!-- Reduced torque limits for hardware experiments -->
         <motor name="joint0" joint="iiwa_joint_0" ctrllimited="true" ctrlrange="-80 80" />
         <motor name="joint1" joint="iiwa_joint_1" ctrllimited="true" ctrlrange="-80 80" />
         <motor name="joint2" joint="iiwa_joint_2" ctrllimited="true" ctrlrange="-60 60" />
         <motor name="joint3" joint="iiwa_joint_3" ctrllimited="true" ctrlrange="-50 50" />
         <motor name="joint4" joint="iiwa_joint_4" ctrllimited="true" ctrlrange="-40 40" />
         <motor name="joint5" joint="iiwa_joint_5" ctrllimited="true" ctrlrange="-5 5" />
+        <!-- Original torque limits -->
+        <!-- <motor name="joint0" joint="iiwa_joint_0" ctrllimited="true" ctrlrange="-176 176" />
+        <motor name="joint1" joint="iiwa_joint_1" ctrllimited="true" ctrlrange="-176 176" />
+        <motor name="joint2" joint="iiwa_joint_2" ctrllimited="true" ctrlrange="-110 110" />
+        <motor name="joint3" joint="iiwa_joint_3" ctrllimited="true" ctrlrange="-110 110" />
+        <motor name="joint4" joint="iiwa_joint_4" ctrllimited="true" ctrlrange="-110 110" />
+        <motor name="joint5" joint="iiwa_joint_5" ctrllimited="true" ctrlrange="-40 40" /> -->
         <!-- <motor name="joint6" joint="iiwa_joint_6" ctrllimited="true" ctrlrange="-40 40" /> -->
     </actuator>
 
@@ -138,6 +146,6 @@
         <!-- <key name="init_pose" qpos="0.5 0 0.8125 1 0 0 0 0 0.8 0 -2.05 0 -0.85" /> -->
         <!-- <key name="init_pose" qpos="0.5 0 0.8125 1 0 0 0 0 0.7 0 -2.05 0 -0.75" /> -->
         <!-- <key name="init_pose" qpos="0.5 0 0.8125 1 0 0 0 0 0.7 0 -1.75 0 0.65" /> -->
-        <key name="init_pose" qpos="0.7 0 0.8125 1 0 0 0 0 1 0 -2.05 0 -1.0" />
+        <key name="init_pose" qpos="0.7 0 0.8125 1 0 0 0 0 1 0 -2.05 0 -1.05" />
     </keyframe>
 </mujoco>
