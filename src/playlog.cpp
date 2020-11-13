@@ -731,6 +731,14 @@ void render(GLFWwindow *window)
             mjFRAMESTRING[vopt.frame],
             mjLABELSTRING[vopt.label]);
 
+    // print the current state
+    std::cout << "t: " << d->time << " s\n\tqpos: ";
+    for (int i = 0; i < m->nq; i++)
+    {
+        std::cout << d->qpos[i] << " ";
+    }
+    std::cout << std::endl;
+
     // get current framebuffer rectangle
     mjrRect rectfull = {0, 0, 0, 0};
     glfwGetFramebufferSize(window, &rectfull.width, &rectfull.height);
