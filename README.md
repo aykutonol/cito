@@ -88,8 +88,8 @@ Using the same framework, it is possible to generate pushing motions for various
 
 **Simple humanoid locomotion in zero gravity (_Flymanoid_)**  
 The goal in this application is to plan a locomotion behavior for a planar human-like robot in zero gravity. 
-The model file is model/flymanoid.xml. This example can be used by replacing config/params.yaml by 
-config/params_flymanoid.yaml. Example motions for moving the torso to desired positions are shown below.
+The model file is `model/flymanoid.xml`. This example can be used by replacing `config/params.yaml` by 
+`config/params_flymanoid.yaml`. Example motions for moving the torso to desired positions are shown below.
 
 <p align="middle">
   <img src="extra/example_flymanoid.gif" width="600"/>
