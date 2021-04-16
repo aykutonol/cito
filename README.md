@@ -70,16 +70,20 @@ The successive convexification parameters and the variable smooth contact model 
 In this application, the task is to push a box on a table with a 7-DOF robot arm, Sawyer. The model file 
 is `model/sawyer_push.xml`. For this example, `config/params_sawyer.yaml` needs to be copied and pasted into `config/params.yaml`. Example motions for pushing the box 5 and 30 cm forward, 10 cm left, and 10 cm right are shown below.
 
-<img src="extra/icra20_task_b1.gif" width="300"/>
-<img src="extra/icra20_task_b3.gif" width="300"/>
-<img src="extra/icra20_task_b4.gif" width="300"/>
-<img src="extra/icra20_task_b5.gif" width="300"/>
+<p align="middle">
+  <img src="extra/icra20_task_b1.gif" width="300"/>
+  <img src="extra/icra20_task_b3.gif" width="300"/>
+  <img src="extra/icra20_task_b4.gif" width="300"/>
+  <img src="extra/icra20_task_b5.gif" width="300"/>
+</p>
 
 **Pushing with a mobile robot**
 Using the same framework, it is possible to generate pushing motions for various pusher-slider systems. As an example, we consider Human Support Robot (HSR) by Toyota pushing a box on the floor using its velocity controlled, holonomic base, as demonstrated in the following. Here, the friction coefficient is 1 for the first result and 0.1 for the second.
 
-<img src="extra/icra20_task_c4.gif" width="300"/>
-<img src="extra/icra20_task_c5.gif" width="300"/>
+<p align="middle">
+  <img src="extra/icra20_task_c4.gif" width="300"/>
+  <img src="extra/icra20_task_c5.gif" width="300"/>
+</p>
 
 
 **Simple humanoid locomotion in zero gravity (_Flymanoid_)**  
@@ -87,9 +91,11 @@ The goal in this application is to plan a locomotion behavior for a planar human
 The model file is model/flymanoid.xml. This example can be used by replacing config/params.yaml by 
 config/params_flymanoid.yaml. Example motions for moving the torso to desired positions are shown below.
 
-<img src="extra/example_flymanoid.gif" width="600"/>
-<img src="extra/icra20_task_d1.gif" width="300"/>
-<img src="extra/icra20_task_d5.gif" width="300"/>
+<p align="middle">
+  <img src="extra/example_flymanoid.gif" width="600"/>
+  <img src="extra/icra20_task_d1.gif" width="300"/>
+  <img src="extra/icra20_task_d5.gif" width="300"/>
+</p>
 
 
 ## Citing
