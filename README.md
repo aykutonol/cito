@@ -1,9 +1,6 @@
 # Contact-Implicit Trajectory Optimization (CITO)
 
-This package is developed for planning non-prehensile manipulation and locomotion
-motions without a predefined contact schedule. The planning algorithm 
-is based on a variable smooth contact model and successive convexification. 
-Please see [1] for a detailed description of the algorithm.
+This package provides a contact-implicit trajectory optimization (CITO) framework for planning non-prehensile manipulation and locomotion trajectories without a predefined contact schedule. The planning algorithm  is based on a variable smooth contact model and successive convexification. Please see the [references](##Citing) for a detailed description of the algorithm.
 
 In this framework, MuJoCo is used to evaluate the nonlinear dynamics. The partial derivatives
 of the dynamics about the previous trajectory are obtained by numerical differentiation.
@@ -53,47 +50,63 @@ install_name_tool -id "$MJ_HOME/bin/libglfw.3.dylib" $MJ_HOME/bin/libglfw.3.dyli
 
 ## Usage
 The parameters related to the model (i.e., model file and contact pairs), the task (i.e., desired final
-pose and velocity), and the simulation (i.e., time horizon length and control sampling period) are defined 
-in config/params.yaml.
+pose and velocity), and the simulation (i.e., time horizon length and control sampling period) are defined in `config/params.yaml`.
 
 The contact pairs are defined in terms of sites that are defined in the model file. A site can be defined
-in the model file such that it is positioned at the center of the contact surface and its +x axis is aligned 
-with the direction of the virtual force that will be generated on the control joint (e.g., an object or the 
-torso of an under-actuated robot). 
+in the model file such that it is positioned at the center of the contact surface and its +x axis is aligned with the direction of the virtual force that will be generated on the control joint (e.g., an object or the torso of an under-actuated robot).
 
 A motion can be planned by running the main:  
 `rosrun cito main`  
-which will record the optimal trajectory into cito_ws/logs/mjLog_model_name (a binary file) for rendering
-as well as the joint position, velocity, acceleration, and force trajectories into cito_ws/logs/traj_model_name 
-(a readable file) so that they can be sent to the robot. 
+which will record the optimal trajectory into `cito_ws/logs/mjLog_model_name` (a binary file) for rendering as well as the joint position, velocity, acceleration, and force trajectories into `cito_ws/logs/traj_model_name ` (a readable file) so that they can be sent to the robot.
 
 The planned motion can be played back by:  
 `rosrun cito playlog`
 
-The successive convexification parameters and the variable smooth contact model parameters can be 
-changed through config/scvx.yaml and config/vscm.yaml.
+The successive convexification parameters and the variable smooth contact model parameters can be changed through `config/scvx.yaml` and `config/vscm.yaml`.
 
 
 ## Examples
-**Sawyer tabletop pushing**  
-In this application, the task is to push a box on a table with a 7 DOF robot arm, Sawyer. The model file 
-is model/sawyer_push.xml. For this example, config/params_sawyer.yaml needs to be copied and pasted into 
-config/params.yaml. An example motion for pushing the box 20 cm forward is shown below.
+**Tabletop pushing with a 7-DOF arm**
+In this application, the task is to push a box on a table with a 7-DOF robot arm, Sawyer. The model file 
+is `model/sawyer_push.xml`. For this example, `config/params_sawyer.yaml` needs to be copied and pasted into `config/params.yaml`. Example motions for pushing the box 5 and 30 cm forward, 10 cm left, and 10 cm right are shown below.
 
-![](extra/example_sawyer_push.gif)
+<img src="extra/icra20_task_b1.gif" width="300"/>
+<img src="extra/icra20_task_b3.gif" width="300"/>
+<img src="extra/icra20_task_b4.gif" width="300"/>
+<img src="extra/icra20_task_b5.gif" width="300"/>
+
+**Pushing with a mobile robot**
+Using the same framework, it is possible to generate pushing motions for various pusher-slider systems. As an example, we consider Human Support Robot (HSR) by Toyota pushing a box on the floor using its velocity controlled, holonomic base, as demonstrated in the following. Here, the friction coefficient is 1 for the first result and 0.1 for the second.
+
+<img src="extra/icra20_task_c4.gif" width="300"/>
+<img src="extra/icra20_task_c5.gif" width="300"/>
+
 
 **Simple humanoid locomotion in zero gravity (_Flymanoid_)**  
 The goal in this application is to plan a locomotion behavior for a planar human-like robot in zero gravity. 
 The model file is model/flymanoid.xml. This example can be used by replacing config/params.yaml by 
-config/params_flymanoid.yaml. An example motion for moving the torso 1.2 m forward is shown below.
+config/params_flymanoid.yaml. Example motions for moving the torso to desired positions are shown below.
 
-![](extra/example_flymanoid.gif)
+<img src="extra/example_flymanoid.gif" width="600"/>
+<img src="extra/icra20_task_d1.gif" width="300"/>
+<img src="extra/icra20_task_d5.gif" width="300"/>
 
 
 ## Citing
 If you use this package, please consider citing the following papers:
 
-[1] [Önol, A. Ö., Long, P., & Padır, T. (2019, May). Contact-Implicit Trajectory Optimization
+[1] [Önol, A. Ö., Corcodel, R., Long, P., & Padır, T. (2020, May). Tuning-Free Contact-Implicit Trajectory Optimization.
+In _2020 IEEE International Conference on Robotics and Automation (ICRA)_. IEEE.](https://arxiv.org/abs/2006.06176)
+```
+@inproceedings{onol2020tuning,
+  title={Tuning-Free Contact-Implicit Trajectory Optimization},
+  author={{\"{O}}nol, Aykut {\"{O}}zg{\"{u}}n and R. {Corcodel} and P. {Long} and Pad{\i}r, Ta{\c{s}}k{\i}n}},
+  booktitle={2020 IEEE International Conference on Robotics and Automation (ICRA)},
+  year={2020},
+  doi={10.1109/ICRA40945.2020.9196805},
+  organization={IEEE}}
+```
+[2] [Önol, A. Ö., Long, P., & Padır, T. (2019, May). Contact-Implicit Trajectory Optimization
 Based on a Variable Smooth Contact Model and Successive Convexification.
 In _2019 IEEE International Conference on Robotics and Automation (ICRA)_. IEEE.](https://arxiv.org/abs/1810.10462)
 ```
@@ -102,18 +115,18 @@ In _2019 IEEE International Conference on Robotics and Automation (ICRA)_. IEEE.
   author={{\"{O}}nol, Aykut {\"{O}}zg{\"{u}}n and Long, Philip and Pad{\i}r, Ta{\c{s}}k{\i}n},
   booktitle={2019 IEEE International Conference on Robotics and Automation (ICRA)},
   year={2019},
-  organization={IEEE}
-}
+  doi={10.1109/ICRA.2019.8794250},
+  organization={IEEE}}
 ```
-[2] [Önol, A. Ö., Corcodel, R., Long, P., & Padır, T. (2020, May). Tuning-Free Contact-Implicit Trajectory Optimization
-In _2020 IEEE International Conference on Robotics and Automation (ICRA)_. IEEE.](https://arxiv.org/abs/2006.06176)
+[3] [Önol, A. Ö., Corcodel, R., Long, P., & Padır, T. (2018, Oct.). A Comparative Analysis of Contact Models in Trajectory Optimization for Manipulation.
+In _2018 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)_. IEEE.](https://arxiv.org/abs/1806.01425)
 
 ```
-@inproceedings{onol2020tuning,
-  title={Tuning-Free Contact-Implicit Trajectory Optimization},
-  author={{\"{O}}nol, Aykut {\"{O}}zg{\"{u}}n and Corcodel, Radu and Long, Philip and Pad{\i}r, Ta{\c{s}}k{\i}n},
-  booktitle={2020 IEEE International Conference on Robotics and Automation (ICRA)},
-  year={2020},
-  organization={IEEE}
-}
+@inproceedings{onol2018comparative,
+  title={A Comparative Analysis of Contact Models in Trajectory Optimization for Manipulation},
+  author={{\"{O}}nol, Aykut {\"{O}}zg{\"{u}}n and Long, Philip and Pad{\i}r, Ta{\c{s}}k{\i}n},
+  booktitle={2018 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)},
+  year={2018},
+  doi={10.1109/IROS.2018.8594284},
+  organization={IEEE}}
 ```
