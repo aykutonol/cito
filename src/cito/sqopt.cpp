@@ -218,7 +218,7 @@ void SQOPT::setBounds(double r, const eigMd &X, const eigMd &U,
             // change in joint torques
             for (int j = 0; j < m->nu; j++)
             {
-                if (isAFree == 0)
+                if (isAFree[j] == 0)
                 {
                     bl[dUOffset + i * cp->m + j] = tauLB[j] - U.col(i)[j];
                     bu[dUOffset + i * cp->m + j] = tauUB[j] - U.col(i)[j];
