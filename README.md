@@ -124,7 +124,7 @@ In _2019 IEEE International Conference on Robotics and Automation (ICRA)_. IEEE.
   doi={10.1109/ICRA.2019.8794250},
   organization={IEEE}}
 ```
-[3] [Önol, A. Ö., Corcodel, R., Long, P., & Padır, T. (2018, Oct.). A Comparative Analysis of Contact Models in Trajectory Optimization for Manipulation.
+[3] [Önol, A. Ö., Long, P., & Padır, T. (2018, Oct.). A Comparative Analysis of Contact Models in Trajectory Optimization for Manipulation.
 In _2018 IEEE/RSJ International Conference on Intelligent Robots and Systems (IROS)_. IEEE.](https://arxiv.org/abs/1806.01425)
 
 ```
