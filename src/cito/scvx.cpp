@@ -29,6 +29,9 @@ SCVX::SCVX(const mjModel *m_, Params *cp_, Control *cc_) : m(m_), cp(cp_), cc(cc
     rho = new double[maxIter + 1];
     r = new double[maxIter + 1];
     accept = new bool[maxIter];
+    time_derivs = new double[maxIter];
+    time_qp = new double[maxIter];
+    time_fp = new double[maxIter];
     // set initial trust-region radius
     r[0] = r0;
     // set bounds
@@ -122,6 +125,7 @@ trajectory SCVX::runSimulation(const eigMd &U, bool linearize, int save, double 
 // solveSCVX: executes the successive convexification algorithm
 eigMd SCVX::solveSCVX(const eigMd &U0)
 {
+    auto optStart = std::chrono::system_clock::now();
     // initialize USucc for the first succession
     USucc = U0;
     // start the SCVX algorithm
@@ -137,7 +141,12 @@ eigMd SCVX::solveSCVX(const eigMd &U0)
             trajS = {};
             trajS = this->runSimulation(USucc, true, 0, 1);
             auto tDiffEnd = std::chrono::system_clock::now();
-            std::cout << "INFO: convexification took " << std::chrono::duration<double>(tDiffEnd - tDiffStart).count() << " s \n";
+            auto tDiff = std::chrono::duration<double>(tDiffEnd - tDiffStart).count();
+            time_derivs[iter] = tDiff;
+            std::cout << "INFO: convexification took " << tDiff << " s \n";
+        }
+        else{
+            time_derivs[iter] = 0.0f;
         }
         // get the nonlinear cost if the first iteration
         if (iter == 0)
@@ -151,7 +160,10 @@ eigMd SCVX::solveSCVX(const eigMd &U0)
         sq.solveCvx(dTraj, r[iter], trajS.X, USucc, trajS.Fx, trajS.Fu, cc->isJFree, cc->isAFree,
                     cc->qposLB, cc->qposUB, cc->tauLB, cc->tauUB);
         auto tQPEnd = std::chrono::system_clock::now();
-        std::cout << "\nINFO: QP solver took " << std::chrono::duration<double>(tQPEnd - tQPStart).count() << " s \n\n";
+        auto tQP = std::chrono::duration<double>(tQPEnd - tQPStart).count();
+        std::cout << "\nINFO: QP solver took " << tQP << " s \n\n";
+        time_qp[iter] = tQP;
+
         // apply the change
         for (int i = 0; i < cp->N + 1; i++)
         {
@@ -177,7 +189,11 @@ eigMd SCVX::solveSCVX(const eigMd &U0)
         }
         // evaluate the dynamics for the change and get the cost values ========
         trajTemp = {};
+        auto fp_start = std::chrono::system_clock::now();
         trajTemp = this->runSimulation(UTemp, false, 0, 1);
+        auto fp_end = std::chrono::system_clock::now();
+        auto fp_dur = std::chrono::duration<double>(fp_end - fp_start).count();
+        time_fp[iter] = fp_dur;
         // get the linear and nonlinear costs
         JTilde[iter] = this->getCost(XTilde, UTemp);
         JTemp[iter] = this->getCost(trajTemp.X, UTemp);
@@ -249,12 +265,17 @@ eigMd SCVX::solveSCVX(const eigMd &U0)
     {
         if (i % 10 == 0)
         {
-            printf("%-12s%-12s%-12s%-12s%-12s%-12s%-12s%-12s\n",
-                   "Iteration", "L", "J", "dL", "dJ", "rho", "r", "accept");
+            printf("%-12s%-12s%-12s%-12s%-12s%-12s%-12s%-12s%-12s%-12s%-12s\n",
+                   "Iteration", "L", "J", "dL", "dJ", "rho", "r", "accept", "derivs time", "qp time", "fp time");
         }
-        printf("%-12d%-12.6g%-12.6g%-12.3g%-12.3g%-12.3g%-12.3g%-12d\n",
-               i + 1, JTilde[i], JTemp[i], dL[i], dJ[i], rho[i], r[i], accept[i]);
+        printf("%-12d%-12.6g%-12.6g%-12.3g%-12.3g%-12.3g%-12.3g%-12d%-12.6g%-12.6g%-12.6g\n",
+               i + 1, JTilde[i], JTemp[i], dL[i], dJ[i], rho[i], r[i], accept[i], time_derivs[i], time_qp[i], time_fp[i]);
     }
+    double opt_time = 0.0f;
+    for(int i = 0; i < iter; i++){
+        opt_time += time_derivs[i] + time_qp[i] + time_fp[i];
+    }
+    std::cout << "\n\nOptimization time: " << opt_time << " seconds\n\n";
     return USucc;
 }
 
@@ -270,6 +291,9 @@ void SCVX::refresh()
     delete[] rho;
     delete[] r;
     delete[] accept;
+    delete[] time_derivs;
+    delete[] time_qp;
+    delete[] time_fp;
     // create new variables
     J = new double[maxIter + 1];
     JTemp = new double[maxIter + 1];

@@ -42,7 +42,7 @@ add_library(${PROJECT_NAME}
 )
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	target_link_libraries(${PROJECT_NAME}
-                          ${MUJOCO_DIR}/bin/libmujoco200nogl.so
+                          ${MUJOCO_DIR}/bin/libmujoco210nogl.so
                           ${SNOPT_DIR}/lib/libsnopt7_cpp.so
                           pthread
                           yaml-cpp
@@ -81,7 +81,7 @@ endif()
 add_executable(${NODE_NAME2} src/playlog.cpp)
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	target_link_libraries(${NODE_NAME2}
-                          ${MUJOCO_DIR}/bin/libmujoco200.so
+                          ${MUJOCO_DIR}/bin/libmujoco210.so
                           ${MUJOCO_DIR}/bin/libglew.so
                           ${MUJOCO_DIR}/bin/libglfw.so.3
                           GL

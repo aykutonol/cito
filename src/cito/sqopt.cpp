@@ -50,6 +50,8 @@ SQOPT::SQOPT(const mjModel *m_, Params *cp_) : m(m_), cp(cp_)
     cvxProb.initialize("", 1);
     cvxProb.setProbName("SubQP");
     cvxProb.setIntParameter("Print level", 0);
+    cvxProb.setIntParameter("Major Print level", 0);
+    cvxProb.setIntParameter("Minor Print level", 0);
     // set the weights
     lenru = 4; // number of weights
     ru = cp->weight;

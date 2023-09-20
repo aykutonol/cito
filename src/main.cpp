@@ -68,18 +68,18 @@ int main(int argc, char const *argv[])
     // ***** Evaluate the optimal trajectory *************************************/
     traj = scvx.runSimulation(U, false, 2, 1);
     // Print the trajectory
-    std::cout << "\n\nOptimal trajectory:\n";
-    for (int i = 0; i < cp.N; i++)
-    {
-        std::cout << "time step " << i << ":\n\t\tpos = " << traj.X.col(i).head(m->nv).transpose() << "\n";
-        std::cout << "\t\t vel = " << traj.X.col(i).tail(m->nv).transpose() << "\n";
-        std::cout << "\t\t tau = ";
-        std::cout << traj.U.col(i).head(m->nu).transpose() << "\n";
-        std::cout << "\t\t KCon = ";
-        std::cout << traj.U.col(i).tail(cp.nPair).transpose() << "\n\n";
-    }
-    std::cout << "time step " << cp.N << ":\n\t\tpos = " << traj.X.col(cp.N).head(m->nv).transpose() << "\n";
-    std::cout << "\t\t vel = " << traj.X.col(cp.N).tail(m->nv).transpose() << "\n";
+//    std::cout << "\n\nOptimal trajectory:\n";
+//    for (int i = 0; i < cp.N; i++)
+//    {
+//        std::cout << "time step " << i << ":\n\t\tpos = " << traj.X.col(i).head(m->nv).transpose() << "\n";
+//        std::cout << "\t\t vel = " << traj.X.col(i).tail(m->nv).transpose() << "\n";
+//        std::cout << "\t\t tau = ";
+//        std::cout << traj.U.col(i).head(m->nu).transpose() << "\n";
+//        std::cout << "\t\t KCon = ";
+//        std::cout << traj.U.col(i).tail(cp.nPair).transpose() << "\n\n";
+//    }
+//    std::cout << "time step " << cp.N << ":\n\t\tpos = " << traj.X.col(cp.N).head(m->nv).transpose() << "\n";
+//    std::cout << "\t\t vel = " << traj.X.col(cp.N).tail(m->nv).transpose() << "\n";
     // ***** Evaluate the optimal const ******************************************/
     double J = scvx.getCost(traj.X, traj.U);
     std::cout << "\nJ = " << J << ", kmax = " << U.bottomRows(cp.nPair).maxCoeff() << "\n\nINFO: Planning completed in " << std::chrono::duration<double>(tPlanEnd - tPlanStart).count() << " wall-clock s and " << 1000.0 * (cpuPlanEnd - cpuPlanStart) / CLOCKS_PER_SEC << " CPU ms.\n\n";
