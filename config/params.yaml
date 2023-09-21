@@ -1,11 +1,11 @@
 # Model
 model: "sawyer_push.xml"
 
-penaltyLoop: false
+penaltyLoop: true
 taskType: 0 # 0: manipulation, 1: locomotion
 
 # Simulation
-tf: 1.00	# [s] final time
+tf: 1.0	# [s] final time
 tc: 5e-2 	# [s] control sampling period
 
 # Contact pairs
@@ -26,8 +26,8 @@ controlJointDOF0: 0
 w1: 1e4  	  # weight on deviations in x and y directions
 w2: 1e1  	  # weight on deviations in z and orientation
 w3: 0e-2  	# weight on final velocities
-#w4: 2e-0  	# weight on virtual stiffness
-w4: 1e-1
+w4: 4.0  	# weight on virtual stiffness
+#w4: 0.5
 
 
 ## Model

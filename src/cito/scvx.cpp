@@ -271,11 +271,17 @@ eigMd SCVX::solveSCVX(const eigMd &U0)
         printf("%-12d%-12.6g%-12.6g%-12.3g%-12.3g%-12.3g%-12.3g%-12d%-12.6g%-12.6g%-12.6g\n",
                i + 1, JTilde[i], JTemp[i], dL[i], dJ[i], rho[i], r[i], accept[i], time_derivs[i], time_qp[i], time_fp[i]);
     }
+    double derivsTime = 0.0f;
+    double qpTime = 0.0f;
     double opt_time = 0.0f;
     for(int i = 0; i < iter; i++){
+        derivsTime += time_derivs[i];
+        qpTime += time_qp[i];
         opt_time += time_derivs[i] + time_qp[i] + time_fp[i];
     }
     std::cout << "\n\nOptimization time: " << opt_time << " seconds\n\n";
+    std::cout << "Derivatives time: " << derivsTime << " seconds\n\n";
+    std::cout << "QP time: " << qpTime << " seconds\n\n";
     return USucc;
 }
 
@@ -303,6 +309,9 @@ void SCVX::refresh()
     rho = new double[maxIter + 1];
     r = new double[maxIter + 1];
     accept = new bool[maxIter];
+    time_derivs = new double[maxIter];
+    time_qp = new double[maxIter];
+    time_fp = new double[maxIter];
     // set initial trust-region radius
     r[0] = r0;
     // reset flags

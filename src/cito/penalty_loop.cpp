@@ -157,7 +157,7 @@ eigMd PenaltyLoop::solve(const eigMd &U0)
         {
             iter++;
             std::cout << "\n\tPenalty iteration " << iter << " completed. Press any key to continue...\n";
-            std::cin.ignore();
+//            std::cin.ignore();
         }
     }
     return UOpt;
