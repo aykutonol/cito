@@ -107,6 +107,11 @@ trajectory SCVX::runSimulation(const eigMd &U, bool linearize, int save, double 
         // take tc/dt steps
         cc->takeStep(d, U.col(i), save, compensateBias);
     }
+    // Save the linearisation
+    if (linearize)
+    {
+        nd.save_linearisation("temp", Fx, Fu, cp->N);
+    }
     XSucc.col(cp->N).setZero();
     XSucc.col(cp->N) = cp->getState(d);
     // delete data

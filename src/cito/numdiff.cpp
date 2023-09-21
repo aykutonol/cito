@@ -58,6 +58,9 @@ void NumDiff::hardWorker(const mjData *dMain, const eigVd &uMain, double *deriv,
     mju_copy(d->xfrc_applied, dMain->xfrc_applied, 6 * m->nbody);
     mju_copy(d->ctrl, dMain->ctrl, m->nu);
     // finite-difference over positions
+    std::cout << "model nv: " << m->nv << std::endl;
+    std::cout << "model nq: " << m->nq << std::endl;
+    std::cout << "model nu: " << m->nu << std::endl;
     for (int i = 0; i < m->nv; i++)
     {
         // get joint id for this dof
@@ -155,4 +158,37 @@ void NumDiff::linDyn(const mjData *dMain, const eigVd &uMain, double *Fxd, doubl
     mju_copy(Fxd, deriv, cp->n * cp->n);
     mju_copy(Fud, deriv + cp->n * cp->n, cp->n * cp->m);
     mju_free(deriv);
+}
+
+void NumDiff::save_linearisation(const std::string file_prefix, eigTd Fxd, eigTd Fud, int horizon){
+    std::string projectParentPath = __FILE__;
+    projectParentPath = projectParentPath.substr(0, projectParentPath.find_last_of("/\\"));
+    projectParentPath = projectParentPath.substr(0, projectParentPath.find_last_of("/\\"));
+    projectParentPath = projectParentPath.substr(0, projectParentPath.find_last_of("/\\"));
+    std::string rootPath = projectParentPath + "/savedTrajecInfo/" + file_prefix + "/";
+
+    std::string filename = rootPath + "/A_matrices.csv";
+    std::cout << "filename: " << filename << std::endl;
+    std::ofstream fileOutput;
+    fileOutput.open(filename);
+
+    int dof = Fxd[0].rows() / 2;
+    int num_ctrl = Fud[0].cols();
+
+    // trajectory length
+    for(int i = 0; i < horizon - 1; i++){
+        // Row
+        for(int j = 0; j < (dof); j++){
+            // Column
+            for(int k = 0; k < (2 * dof); k++){
+//                std::cout << Fxd[i](j, k) << ",";
+                fileOutput << Fxd[i](j + dof, k) << ",";
+            }
+
+        }
+        fileOutput << std::endl;
+    }
+
+    fileOutput.close();
+
 }

@@ -23,6 +23,8 @@ public:
     /// This function calculates derivatives of the state and control trajectories
     void linDyn(const mjData *dMain, const eigVd &uMain, double *Fxd, double *Fud, double compensateBias);
 
+    void save_linearisation(const std::string file_name, eigTd Fxd, eigTd Fud, int horizon);
+
 private:
     /// This function sets xNew to the integration of data given a control input
     void copyTakeStep(const mjData *dMain, const eigVd &u, double *xNew, double compensateBias);
