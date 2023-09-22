@@ -26,6 +26,7 @@ Params::Params(const mjModel *model_) : model(model_)
     N = (int)floor(tf / tc);
     ndpc = (int)floor(tc / dt);
     // read model parameters
+    // read model parameters
     nu = model->nu;
     nv = model->nv;
     quatAdr = new int[nv];

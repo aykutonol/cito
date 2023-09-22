@@ -90,6 +90,12 @@ trajectory SCVX::runSimulation(const eigMd &U, bool linearize, int save, double 
     mju_copy(d->qpos, m->key_qpos, m->nq);
     mj_forward(m, d);
     cc->setControl(d, U.col(0), compensateBias);
+
+    std::vector<double> jerkThresholds = {0.1, 0.1};
+    std::vector<double> velChange_thresholds = {0.1, 0.1};
+    derivative_interpolator interpolator = {"set_interval", 1, 0, jerkThresholds, velChange_thresholds, 0};
+    std::vector<int> keypoints = nd.generateKeypoints(interpolator, XSucc, cp->N);
+    int keypoint_counter = 0;
     // rollout (and linearize) the dynamics
     for (int i = 0; i < cp->N; i++)
     {
@@ -102,16 +108,27 @@ trajectory SCVX::runSimulation(const eigMd &U, bool linearize, int save, double 
         {
             Fx[i].setZero();
             Fu[i].setZero();
-            nd.linDyn(d, U.col(i), Fx[i].data(), Fu[i].data(), compensateBias);
+            // Only linearize the dynamics when a keypoint is reached
+            if(i == keypoints[keypoint_counter]){
+                keypoint_counter++;
+                nd.linDyn(d, U.col(i), Fx[i].data(), Fu[i].data(), compensateBias);
+            }
         }
         // take tc/dt steps
         cc->takeStep(d, U.col(i), save, compensateBias);
     }
+
+    // Interpolate the derivatives - unless the baseline case is used
+    if(!(interpolator.keyPoint_method == "set_interval" && interpolator.min_n == 1)){
+        nd.interpolateDerivs(keypoints, Fx, Fu, cp->N);
+    }
+
     // Save the linearisation
     if (linearize)
     {
-        nd.save_linearisation("temp", Fx, Fu, cp->N);
+        nd.saveLinearisation("temp", Fx, Fu, cp->N);
     }
+
     XSucc.col(cp->N).setZero();
     XSucc.col(cp->N) = cp->getState(d);
     // delete data

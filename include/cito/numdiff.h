@@ -13,6 +13,15 @@
 
 #include "cito/control.h"
 
+struct derivative_interpolator{
+    std::string keyPoint_method;
+    int min_n;
+    int max_n;
+    std::vector<double> jerk_thresholds;
+    std::vector<double> velChange_thresholds;
+    double error_threshold;
+};
+
 class NumDiff
 {
 public:
@@ -23,7 +32,11 @@ public:
     /// This function calculates derivatives of the state and control trajectories
     void linDyn(const mjData *dMain, const eigVd &uMain, double *Fxd, double *Fud, double compensateBias);
 
-    void save_linearisation(const std::string file_name, eigTd Fxd, eigTd Fud, int horizon);
+    void saveLinearisation(const std::string file_name, eigTd Fxd, eigTd Fud, int horizon);
+
+    std::vector<int> generateKeypoints(derivative_interpolator di, const eigMd X, int horizon);
+
+    void interpolateDerivs(std::vector<int> keypoints, eigTd &Fxd, eigTd &Fud, int horizon);
 
 private:
     /// This function sets xNew to the integration of data given a control input

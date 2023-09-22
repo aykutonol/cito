@@ -58,9 +58,9 @@ void NumDiff::hardWorker(const mjData *dMain, const eigVd &uMain, double *deriv,
     mju_copy(d->xfrc_applied, dMain->xfrc_applied, 6 * m->nbody);
     mju_copy(d->ctrl, dMain->ctrl, m->nu);
     // finite-difference over positions
-    std::cout << "model nv: " << m->nv << std::endl;
-    std::cout << "model nq: " << m->nq << std::endl;
-    std::cout << "model nu: " << m->nu << std::endl;
+//    std::cout << "model nv: " << m->nv << std::endl;
+//    std::cout << "model nq: " << m->nq << std::endl;
+//    std::cout << "model nu: " << m->nu << std::endl;
     for (int i = 0; i < m->nv; i++)
     {
         // get joint id for this dof
@@ -160,7 +160,87 @@ void NumDiff::linDyn(const mjData *dMain, const eigVd &uMain, double *Fxd, doubl
     mju_free(deriv);
 }
 
-void NumDiff::save_linearisation(const std::string file_prefix, eigTd Fxd, eigTd Fud, int horizon){
+std::vector<int> NumDiff::generateKeypoints(derivative_interpolator di, const eigMd X, int horizon){
+    std::vector<int> keypoints;
+    keypoints.push_back(0);
+
+    if(di.keyPoint_method == "set_interval"){
+        for(int i = 1; i < horizon; i++){
+            if(i % di.min_n == 0){
+                keypoints.push_back(i);
+            }
+        }
+
+    }
+    else if(di.keyPoint_method == "adaptive_jerk"){
+
+    }
+    else if(di.keyPoint_method == "magvel_change"){
+
+    }
+    else if(di.keyPoint_method == "iterative_error"){
+
+    }
+    else{
+        std::cout << "keyPoint_method not recognized" << std::endl;
+    }
+
+    // Check if last keypoint is the horizon
+    if(keypoints.back() != horizon){
+        keypoints.push_back(horizon);
+    }
+
+    return keypoints;
+}
+
+void NumDiff::interpolateDerivs(std::vector<int> keypoints, eigTd &Fxd, eigTd &Fud, int horizon){
+    int num_keypoints = keypoints.size();
+    int dof = Fxd[0].rows() / 2;
+    int num_ctrl = Fud[0].cols();
+
+    // Loop over the keypoints
+    for(int i = 0; i < num_keypoints - 1; i++){
+        int start_index = keypoints[i];
+        int end_index = keypoints[i+1];
+        int interval = end_index - start_index;
+
+        eigMd Fxd_start = Fxd[start_index];
+        eigMd Fxd_end = Fxd[end_index];
+        eigMd Fxd_add = (Fxd_end - Fxd_start) / interval;
+
+        eigMd Fud_start = Fud[start_index];
+        eigMd Fud_end = Fud[end_index];
+        eigMd Fud_add = (Fud_end - Fud_start) / interval;
+
+        for(int j = 1; j < interval; j++){
+            Fxd[start_index + j] = Fxd_start + Fxd_add * j;
+            Fud[start_index + j] = Fud_start + Fud_add * j;
+        }
+    }
+
+//    // Interpolate Fud
+//    for(int i = 0; i < num_keypoints - 1; i++){
+//        int start = keypoints[i];
+//        int end = keypoints[i+1];
+//        int num_intervals = end - start;
+//        for(int j = 0; j < num_intervals; j++){
+//            double alpha = (double)j / (double)num_intervals;
+//            Fud[start + j] = (1 - alpha) * Fud[start] + alpha * Fud[end];
+//        }
+//    }
+//
+//    // Fill in the rest of the trajectory
+//    for(int i = 0; i < horizon; i++){
+//        if(Fxd[i].isZero()){
+//            Fxd[i] = Fxd[i-1];
+//        }
+//        if(Fud[i].isZero()){
+//            Fud[i] = Fud[i-1];
+//        }
+//    }
+}
+
+void NumDiff::saveLinearisation(const std::string file_prefix, eigTd Fxd, eigTd Fud, int horizon){
     std::string projectParentPath = __FILE__;
     projectParentPath = projectParentPath.substr(0, projectParentPath.find_last_of("/\\"));
     projectParentPath = projectParentPath.substr(0, projectParentPath.find_last_of("/\\"));
@@ -190,5 +270,4 @@ void NumDiff::save_linearisation(const std::string file_prefix, eigTd Fxd, eigTd
     }
 
     fileOutput.close();
-
 }
