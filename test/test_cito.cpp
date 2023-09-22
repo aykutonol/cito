@@ -4,7 +4,6 @@
 // MuJoCo model and data
 mjModel *m = NULL;
 mjData *d = NULL;
-int mj_activated = 0;
 
 // YAML file for parameters
 YAML::Node params;
@@ -12,7 +11,6 @@ YAML::Node params;
 // Assert model and data are not empty
 TEST(CitoTests, test_mujoco_init)
 {
-    ASSERT_TRUE(mj_activated > 0);
     ASSERT_TRUE(m != NULL);
     ASSERT_TRUE(d != NULL);
 }
@@ -111,9 +109,6 @@ int main(int argc, char **argv)
     const char *modelPath = modelPathStr.c_str();
     std::cout << "\n\nModel path: " << modelPath << "\n\n\n";
 
-    // Activate MuJoCo
-    const char *mjKeyPath = std::getenv("MJ_KEY");
-    mj_activated = mj_activate(mjKeyPath);
     // Load the model
     if (strlen(modelPath) > 4 && !strcmp(modelPath + strlen(modelPath) - 4, ".mjb"))
     {

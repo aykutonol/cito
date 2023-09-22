@@ -64,9 +64,6 @@ int main(int argc, char* argv[])
                  "\tabs error: " << distReq.abs_err << "\n" <<
                  "\trel error: " << distReq.rel_err << "\n\n";
 
-    // Activate MuJoCo
-    char* mjKeyPath = std::getenv("MJ_KEY");
-    mj_activate(mjKeyPath);
     // MuJoCo model and data
     mjModel *m = NULL;
     mjData  *d = NULL;
@@ -179,5 +176,4 @@ int main(int argc, char* argv[])
         delete coll_objs[i];
     mj_deleteData(d);
     mj_deleteModel(m);
-    mj_deactivate();
 }

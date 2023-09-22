@@ -1,7 +1,7 @@
 #include <stdio.h>
 
-#include "mujoco.h"
-#include "glfw3.h"
+#include "mujoco/mujoco.h"
+#include "GLFW/glfw3.h"
 
 #include "cito/params.h"
 
@@ -176,9 +176,6 @@ void setFrame(void)
 /// load model, init simulation and rendering
 void initMuJoCo(const char *modelFilePath, const char *logFilePath)
 {
-    // activate MuJoCo license
-    const char *mjKeyPath = std::getenv("MJ_KEY");
-    mj_activate(mjKeyPath);
     // load and compile model
     if (strlen(modelFilePath) > 4 && !strcmp(modelFilePath + strlen(modelFilePath) - 4, ".mjb"))
         m = mj_loadModel(modelFilePath, NULL);

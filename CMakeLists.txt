@@ -3,7 +3,7 @@ project(cito)
 
 add_compile_options(-std=c++11)
 
-find_package(catkin REQUIRED)
+# find_package(catkin REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(yaml-cpp 0.6 REQUIRED)
 find_package(fcl REQUIRED)
@@ -21,13 +21,13 @@ endif()
 set(CMAKE_BUILD_TYPE Release)
 # set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wpedantic")
 
-catkin_package()
+# catkin_package()
 
 include_directories(
  include
  ${EIGEN3_INCLUDE_DIR}
  ${MUJOCO_DIR}/include
- ${SNOPT_DIR}/include
+ ${SNOPT_DIR}/interfaces/include
 )
 
 # Create the CITO library
@@ -42,8 +42,8 @@ add_library(${PROJECT_NAME}
 )
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	target_link_libraries(${PROJECT_NAME}
-                          ${MUJOCO_DIR}/bin/libmujoco210nogl.so
-                          ${SNOPT_DIR}/lib/libsnopt7_cpp.so
+                          ${MUJOCO_DIR}/lib/libmujoco.so
+                          ${SNOPT_DIR}/lib/.libs/libsnopt7_cpp.so
                           pthread
                           yaml-cpp
                           fcl
@@ -81,14 +81,16 @@ endif()
 add_executable(${NODE_NAME2} src/playlog.cpp)
 if (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 	target_link_libraries(${NODE_NAME2}
-                          ${MUJOCO_DIR}/bin/libmujoco210.so
-                          ${MUJOCO_DIR}/bin/libglew.so
-                          ${MUJOCO_DIR}/bin/libglfw.so.3
-                          GL
-                          yaml-cpp
+						  ${PROJECT_NAME}
+                        #   ${MUJOCO_DIR}/bin/libmujoco.so
+                        #   ${MUJOCO_DIR}/bin/libglew.so
+                        #   ${MUJOCO_DIR}/bin/libglfw.so.3
+                          glfw
+                        #   yaml-cpp
 	)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	target_link_libraries(${NODE_NAME2}
+						  ${PROJECT_NAME}
                           ${MUJOCO_DIR}/bin/libmujoco200.dylib
                           ${MUJOCO_DIR}/bin/libglfw.3.dylib
                           yaml-cpp
@@ -107,8 +109,8 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 	)
 endif()
 
-# Unit tests
-catkin_add_gtest(${PROJECT_NAME}-test test/test_cito.cpp)
-if(TARGET ${PROJECT_NAME}-test)
-    target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
-endif()
+# # Unit tests
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_cito.cpp)
+# if(TARGET ${PROJECT_NAME}-test)
+#     target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
+# endif()

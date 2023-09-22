@@ -20,9 +20,6 @@ int main(int argc, char const *argv[])
     std::cout << "test number: " << testNumber << "\n";
 
     // ***** MuJoCo initialization ***********************************************/
-    // Activate MuJoCo
-    const char *mjKeyPath = std::getenv("MJ_KEY");
-    mj_activate(mjKeyPath);
     // Model file
     YAML::Node params = YAML::LoadFile(paths::workspaceDir + "/src/cito/config/params.yaml");
     std::string modelPathStr = paths::workspaceDir + "/src/cito/model/" + params["model"].as<std::string>();
@@ -92,7 +89,6 @@ int main(int argc, char const *argv[])
     std::cout << "\nJ = " << J << ", kmax = " << U.bottomRows(cp.nPair).maxCoeff() << "\n\nINFO: Planning completed in " << std::chrono::duration<double>(tPlanEnd - tPlanStart).count() << " wall-clock s and " << 1000.0 * (cpuPlanEnd - cpuPlanStart) / CLOCKS_PER_SEC << " CPU ms.\n\n";
     // ***** MuJoCo shut down ****************************************************/
     mj_deleteModel(m);
-    mj_deactivate();
 
     // Save the testing data to the correct folder
     double costReduction = scvx.costReduction;

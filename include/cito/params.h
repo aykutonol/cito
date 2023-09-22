@@ -19,7 +19,7 @@
 
 #include <Eigen/Dense>
 #include <yaml-cpp/yaml.h>
-#include "mujoco.h"
+#include "mujoco/mujoco.h"
 
 /// Types
 typedef Eigen::VectorXd eigVd;
