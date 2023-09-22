@@ -732,12 +732,12 @@ void render(GLFWwindow *window)
             mjLABELSTRING[vopt.label]);
 
     // print the current state
-    std::cout << "t: " << d->time << " s\n\tqpos: ";
-    for (int i = 0; i < m->nq; i++)
-    {
-        std::cout << d->qpos[i] << " ";
-    }
-    std::cout << std::endl;
+//    std::cout << "t: " << d->time << " s\n\tqpos: ";
+//    for (int i = 0; i < m->nq; i++)
+//    {
+//        std::cout << d->qpos[i] << " ";
+//    }
+//    std::cout << std::endl;
 
     // get current framebuffer rectangle
     mjrRect rectfull = {0, 0, 0, 0};

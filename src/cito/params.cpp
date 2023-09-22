@@ -5,7 +5,7 @@
 #include "cito/params.h"
 
 // ***** CONSTRUCTOR ***********************************************************
-Params::Params(const mjModel *model_) : model(model_)
+Params::Params(const mjModel *model_, int testNumber) : model(model_)
 {
     // read config files
     YAML::Node params = YAML::LoadFile(paths::workspaceDir + "/src/cito/config/params.yaml");
@@ -14,6 +14,18 @@ Params::Params(const mjModel *model_) : model(model_)
     desiredPos.resize(6);
     std::vector<double> desiredPosInput = {params["desiredFinalPos"].as<std::vector<double>>()};
     desiredPos = Eigen::Map<Eigen::VectorXd>(desiredPosInput.data(), desiredPosInput.size());
+
+    if(testNumber != -1){
+        // load data from testingData/scenes
+        YAML::Node sceneParams = YAML::LoadFile(paths::workspaceDir + "/src/cito/testingData/scenes/" + std::to_string(testNumber) + ".yaml");
+
+        desiredPosInput = {sceneParams["desiredFinalPos"].as<std::vector<double>>()};
+        desiredPos = Eigen::Map<Eigen::VectorXd>(desiredPosInput.data(), desiredPosInput.size());
+    }
+
+    std::cout << "desired pos: " << desiredPos << std::endl;
+
+
     controlJointDOF0 = params["controlJointDOF0"].as<int>();
     weight[0] = params["w1"].as<double>();
     weight[1] = params["w2"].as<double>();

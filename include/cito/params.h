@@ -46,7 +46,7 @@ class Params
 {
 public:
     /// Constructor
-    Params(const mjModel *model_);
+    Params(const mjModel *model_, int testNumber);
     /// Destructor
     ~Params();
     /// Simulation and model parameters

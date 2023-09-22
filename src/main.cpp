@@ -12,6 +12,13 @@
 
 int main(int argc, char const *argv[])
 {
+    int testNumber = -1;
+    std::string keypoint_method = "SI2";
+    for(int i = 1; i < argc; i++){
+        testNumber = std::stoi(argv[i]);
+    }
+    std::cout << "test number: " << testNumber << "\n";
+
     // ***** MuJoCo initialization ***********************************************/
     // Activate MuJoCo
     const char *mjKeyPath = std::getenv("MJ_KEY");
@@ -36,7 +43,7 @@ int main(int argc, char const *argv[])
         mju_error("Cannot load the model");
     }
     // ***** Create objects for CITO *********************************************/
-    Params cp(m);
+    Params cp(m, testNumber);
     Control cc(m, &cp);
     SCVX scvx(m, &cp, &cc);
     PenaltyLoop pl(m, &cp, &cc, &scvx);
@@ -86,6 +93,30 @@ int main(int argc, char const *argv[])
     // ***** MuJoCo shut down ****************************************************/
     mj_deleteModel(m);
     mj_deactivate();
+
+    // Save the testing data to the correct folder
+    double costReduction = scvx.costReduction;
+    double optTime = scvx.optTime;
+    double derivsTime = scvx.derivsTime;
+    double qpTime = scvx.qpTime;
+
+    if(testNumber != -1){
+        std::string testDir = paths::workspaceDir + "/src/cito/testingData/data/" + keypoint_method + "/";
+
+        // Open a csv file and save the data
+        std::ofstream csvFile;
+        std::string file_name = testDir + std::to_string(testNumber) + ".csv";
+        std::cout << "filename: " << file_name << "\n";
+        csvFile.open(testDir + std::to_string(testNumber) + ".csv");
+
+        // Save the data - cost reduction, opt time, derivs time, qp time
+        csvFile << optTime << ",";
+        csvFile << costReduction << ",";
+        csvFile << derivsTime << ",";
+        csvFile << qpTime << "\n";
+
+    }
+
 
     return 0;
 }

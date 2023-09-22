@@ -30,6 +30,8 @@ public:
     // This function refreshes SCVX variables for a new run
     void refresh();
 
+    double optTime, costReduction, derivsTime, qpTime;
+
 private:
     /// MuJoCo model
     const mjModel *m;
@@ -44,7 +46,8 @@ private:
     bool *accept, dLTolMet = false, stop = false;
     double *time_derivs;
     double *time_qp;
-    double *time_fp;
+
+
     /// Trajectories
     eigMd XSucc, dX, XTilde;
     eigMd USucc, dU, UTemp;

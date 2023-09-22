@@ -245,9 +245,9 @@ void NumDiff::saveLinearisation(const std::string file_prefix, eigTd Fxd, eigTd 
     projectParentPath = projectParentPath.substr(0, projectParentPath.find_last_of("/\\"));
     projectParentPath = projectParentPath.substr(0, projectParentPath.find_last_of("/\\"));
     projectParentPath = projectParentPath.substr(0, projectParentPath.find_last_of("/\\"));
-    std::string rootPath = projectParentPath + "/savedTrajecInfo/" + file_prefix + "/";
+    std::string rootPath = projectParentPath + "/savedTrajecInfo/" + file_prefix;
 
-    std::string filename = rootPath + "/A_matrices.csv";
+    std::string filename = rootPath + "_A_matrices.csv";
     std::cout << "filename: " << filename << std::endl;
     std::ofstream fileOutput;
     fileOutput.open(filename);

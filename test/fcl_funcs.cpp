@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
     // Evaluate the forward dynamics
     mj_forward(m, d);
     // Parse parameters from the model and the params file
-    Params cp(m);
+    Params cp(m, -1);
 
     // Create collision geometries and objects from the model
     std::unordered_map<int, fcl::CollisionObjectd*> fclObjects;

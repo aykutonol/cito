@@ -31,7 +31,6 @@ SCVX::SCVX(const mjModel *m_, Params *cp_, Control *cc_) : m(m_), cp(cp_), cc(cc
     accept = new bool[maxIter];
     time_derivs = new double[maxIter];
     time_qp = new double[maxIter];
-    time_fp = new double[maxIter];
     // set initial trust-region radius
     r[0] = r0;
     // set bounds
@@ -93,8 +92,16 @@ trajectory SCVX::runSimulation(const eigMd &U, bool linearize, int save, double 
 
     std::vector<double> jerkThresholds = {0.1, 0.1};
     std::vector<double> velChange_thresholds = {0.1, 0.1};
-    derivative_interpolator interpolator = {"set_interval", 1, 0, jerkThresholds, velChange_thresholds, 0};
-    std::vector<int> keypoints = nd.generateKeypoints(interpolator, XSucc, cp->N);
+    derivative_interpolator interpolator = {"set_interval", 2, 0, jerkThresholds, velChange_thresholds, 0};
+//    derivative_interpolator baseline = {"set_interval", 1, 0, jerkThresholds, velChange_thresholds, 0};
+    std::vector<int> keypoints = nd.generateKeypoints(interpolator, XSucc, cp->N - 1);
+//    std::vector<int> baseline_keypoints = nd.generateKeypoints(baseline, XSucc, cp->N - 1);
+
+    for(int i = 0; i < keypoints.size(); i++){
+        std::cout << keypoints[i] << " ";
+    }
+    std::cout << std::endl;
+
     int keypoint_counter = 0;
     // rollout (and linearize) the dynamics
     for (int i = 0; i < cp->N; i++)
@@ -118,16 +125,61 @@ trajectory SCVX::runSimulation(const eigMd &U, bool linearize, int save, double 
         cc->takeStep(d, U.col(i), save, compensateBias);
     }
 
-    // Interpolate the derivatives - unless the baseline case is used
-    if(!(interpolator.keyPoint_method == "set_interval" && interpolator.min_n == 1)){
-        nd.interpolateDerivs(keypoints, Fx, Fu, cp->N);
-    }
-
-    // Save the linearisation
     if (linearize)
     {
-        nd.saveLinearisation("temp", Fx, Fu, cp->N);
+        nd.saveLinearisation("before", Fx, Fu, cp->N);
     }
+
+    if(linearize){
+        if(!(interpolator.keyPoint_method == "set_interval" && interpolator.min_n == 1)){
+            nd.interpolateDerivs(keypoints, Fx, Fu, cp->N);
+        }
+    }
+
+    if (linearize)
+    {
+        nd.saveLinearisation("after", Fx, Fu, cp->N);
+    }
+
+    // initialize d
+//    mju_copy(d->qpos, m->key_qpos, m->nq);
+//    mj_forward(m, d);
+//    cc->setControl(d, U.col(0), compensateBias);
+
+    // -------------------- temp -----------------------------
+//    keypoint_counter = 0;
+//    // rollout (and linearize) the dynamics
+//    for (int i = 0; i < cp->N; i++)
+//    {
+//        mj_forward(m, d);
+//        // get the current state values
+//        XSucc.col(i).setZero();
+//        XSucc.col(i) = cp->getState(d);
+//        // linearization
+//        if (linearize)
+//        {
+//            Fx[i].setZero();
+//            Fu[i].setZero();
+//            // Only linearize the dynamics when a keypoint is reached
+//            if(i == baseline_keypoints[keypoint_counter]){
+//                keypoint_counter++;
+//                nd.linDyn(d, U.col(i), Fx[i].data(), Fu[i].data(), compensateBias);
+//            }
+//        }
+//        // take tc/dt steps
+//        cc->takeStep(d, U.col(i), save, compensateBias);
+//    }
+//
+//    // Interpolate the derivatives - unless the baseline case is used
+//    if(!(baseline.keyPoint_method == "set_interval" && baseline.min_n == 1)){
+//        nd.interpolateDerivs(baseline_keypoints, Fx, Fu, cp->N);
+//    }
+//
+//    // Save the linearisation
+//    if (linearize)
+//    {
+//        nd.saveLinearisation("baseline", Fx, Fu, cp->N);
+//    }
 
     XSucc.col(cp->N).setZero();
     XSucc.col(cp->N) = cp->getState(d);
@@ -211,11 +263,7 @@ eigMd SCVX::solveSCVX(const eigMd &U0)
         }
         // evaluate the dynamics for the change and get the cost values ========
         trajTemp = {};
-        auto fp_start = std::chrono::system_clock::now();
         trajTemp = this->runSimulation(UTemp, false, 0, 1);
-        auto fp_end = std::chrono::system_clock::now();
-        auto fp_dur = std::chrono::duration<double>(fp_end - fp_start).count();
-        time_fp[iter] = fp_dur;
         // get the linear and nonlinear costs
         JTilde[iter] = this->getCost(XTilde, UTemp);
         JTemp[iter] = this->getCost(trajTemp.X, UTemp);
@@ -287,21 +335,24 @@ eigMd SCVX::solveSCVX(const eigMd &U0)
     {
         if (i % 10 == 0)
         {
-            printf("%-12s%-12s%-12s%-12s%-12s%-12s%-12s%-12s%-12s%-12s%-12s\n",
-                   "Iteration", "L", "J", "dL", "dJ", "rho", "r", "accept", "derivs time", "qp time", "fp time");
+            printf("%-12s%-12s%-12s%-12s%-12s%-12s%-12s%-12s%-12s%-12s\n",
+                   "Iteration", "L", "J", "dL", "dJ", "rho", "r", "accept", "derivs time", "qp time");
         }
-        printf("%-12d%-12.6g%-12.6g%-12.3g%-12.3g%-12.3g%-12.3g%-12d%-12.6g%-12.6g%-12.6g\n",
-               i + 1, JTilde[i], JTemp[i], dL[i], dJ[i], rho[i], r[i], accept[i], time_derivs[i], time_qp[i], time_fp[i]);
+        printf("%-12d%-12.6g%-12.6g%-12.3g%-12.3g%-12.3g%-12.3g%-12d%-12.6g%-12.6g\n",
+               i + 1, JTilde[i], JTemp[i], dL[i], dJ[i], rho[i], r[i], accept[i], time_derivs[i], time_qp[i]);
     }
-    double derivsTime = 0.0f;
-    double qpTime = 0.0f;
-    double opt_time = 0.0f;
+
+    optTime = 0.0f;
+    derivsTime = 0.0f;
+    qpTime = 0.0f;
+    costReduction = 1 - (J[iter - 1]) / J[0];
+
     for(int i = 0; i < iter; i++){
         derivsTime += time_derivs[i];
         qpTime += time_qp[i];
-        opt_time += time_derivs[i] + time_qp[i] + time_fp[i];
+        optTime += time_derivs[i] + time_qp[i];
     }
-    std::cout << "\n\nOptimization time: " << opt_time << " seconds\n\n";
+    std::cout << "\n\nOptimization time: " << optTime << " seconds\n\n";
     std::cout << "Derivatives time: " << derivsTime << " seconds\n\n";
     std::cout << "QP time: " << qpTime << " seconds\n\n";
     return USucc;
@@ -321,7 +372,6 @@ void SCVX::refresh()
     delete[] accept;
     delete[] time_derivs;
     delete[] time_qp;
-    delete[] time_fp;
     // create new variables
     J = new double[maxIter + 1];
     JTemp = new double[maxIter + 1];
@@ -333,7 +383,6 @@ void SCVX::refresh()
     accept = new bool[maxIter];
     time_derivs = new double[maxIter];
     time_qp = new double[maxIter];
-    time_fp = new double[maxIter];
     // set initial trust-region radius
     r[0] = r0;
     // reset flags
