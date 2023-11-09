@@ -2,20 +2,20 @@
 model: "iiwa_workcell.xml"
 
 # Penalty loop
-penaltyLoop: true
+penaltyLoop: false
 taskType: 0 # 0: manipulation, 1: locomotion
 
 # Simulation
 tf: 1.00	# [s] final time
-tc: 5e-2 	# [s] control sampling period
+tc: 1e-1 	# [s] control sampling period
 
 # Contact pairs
 ## number of contact pairs
-npair: 4
+npair: 1
 ## indices of the sites on the robot
-spair1: [4,4,4,4]
+spair1: [4]
 ## indices of the corresponding sites in the environment
-spair2: [0,1,2,3]
+spair2: [0]
 
 # Task
 ## desired final pose of the control joint
@@ -26,5 +26,5 @@ controlJointDOF0: 0
 # Weights
 w1: 1e4  	  # weight on deviations in x and y directions
 w2: 1e0  	  # weight on deviations in z and orientation
-w3: 0e-2  	# weight on final velocities
-w4: 5e-1  	# weight on virtual stiffness
+w3: 2e-3  	# weight on final velocities
+w4: 2e-0  	# weight on virtual stiffness

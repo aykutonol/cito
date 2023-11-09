@@ -1,7 +1,7 @@
 #include <stdio.h>
 
-#include "mujoco.h"
-#include "glfw3.h"
+#include "mujoco/mujoco.h"
+#include "GLFW/glfw3.h"
 
 #include "cito/params.h"
 
@@ -176,9 +176,6 @@ void setFrame(void)
 /// load model, init simulation and rendering
 void initMuJoCo(const char *modelFilePath, const char *logFilePath)
 {
-    // activate MuJoCo license
-    const char *mjKeyPath = std::getenv("MJ_KEY");
-    mj_activate(mjKeyPath);
     // load and compile model
     if (strlen(modelFilePath) > 4 && !strcmp(modelFilePath + strlen(modelFilePath) - 4, ".mjb"))
         m = mj_loadModel(modelFilePath, NULL);
@@ -732,12 +729,12 @@ void render(GLFWwindow *window)
             mjLABELSTRING[vopt.label]);
 
     // print the current state
-    std::cout << "t: " << d->time << " s\n\tqpos: ";
-    for (int i = 0; i < m->nq; i++)
-    {
-        std::cout << d->qpos[i] << " ";
-    }
-    std::cout << std::endl;
+//    std::cout << "t: " << d->time << " s\n\tqpos: ";
+//    for (int i = 0; i < m->nq; i++)
+//    {
+//        std::cout << d->qpos[i] << " ";
+//    }
+//    std::cout << std::endl;
 
     // get current framebuffer rectangle
     mjrRect rectfull = {0, 0, 0, 0};

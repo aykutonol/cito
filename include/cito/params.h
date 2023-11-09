@@ -19,7 +19,7 @@
 
 #include <Eigen/Dense>
 #include <yaml-cpp/yaml.h>
-#include "mujoco.h"
+#include "mujoco/mujoco.h"
 
 /// Types
 typedef Eigen::VectorXd eigVd;
@@ -46,7 +46,7 @@ class Params
 {
 public:
     /// Constructor
-    Params(const mjModel *model_);
+    Params(const mjModel *model_, int testNumber);
     /// Destructor
     ~Params();
     /// Simulation and model parameters

@@ -30,6 +30,8 @@ public:
     // This function refreshes SCVX variables for a new run
     void refresh();
 
+    double optTime, costReduction, derivsTime, qpTime;
+
 private:
     /// MuJoCo model
     const mjModel *m;
@@ -42,6 +44,10 @@ private:
         beta_expand, beta_shrink, // trust-region expand and shrink factors
         r0, rMin, rMax;           // initial, min, and max trust-region radius
     bool *accept, dLTolMet = false, stop = false;
+    double *time_derivs;
+    double *time_qp;
+
+
     /// Trajectories
     eigMd XSucc, dX, XTilde;
     eigMd USucc, dU, UTemp;

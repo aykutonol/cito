@@ -29,6 +29,8 @@ SCVX::SCVX(const mjModel *m_, Params *cp_, Control *cc_) : m(m_), cp(cp_), cc(cc
     rho = new double[maxIter + 1];
     r = new double[maxIter + 1];
     accept = new bool[maxIter];
+    time_derivs = new double[maxIter];
+    time_qp = new double[maxIter];
     // set initial trust-region radius
     r[0] = r0;
     // set bounds
@@ -87,6 +89,20 @@ trajectory SCVX::runSimulation(const eigMd &U, bool linearize, int save, double 
     mju_copy(d->qpos, m->key_qpos, m->nq);
     mj_forward(m, d);
     cc->setControl(d, U.col(0), compensateBias);
+
+    std::vector<double> jerkThresholds = {0.1, 0.1};
+    std::vector<double> velChange_thresholds = {0.1, 0.1};
+    derivative_interpolator interpolator = {"set_interval", 2, 0, jerkThresholds, velChange_thresholds, 0};
+//    derivative_interpolator baseline = {"set_interval", 1, 0, jerkThresholds, velChange_thresholds, 0};
+    std::vector<int> keypoints = nd.generateKeypoints(interpolator, XSucc, cp->N - 1);
+//    std::vector<int> baseline_keypoints = nd.generateKeypoints(baseline, XSucc, cp->N - 1);
+
+    for(int i = 0; i < keypoints.size(); i++){
+        std::cout << keypoints[i] << " ";
+    }
+    std::cout << std::endl;
+
+    int keypoint_counter = 0;
     // rollout (and linearize) the dynamics
     for (int i = 0; i < cp->N; i++)
     {
@@ -99,11 +115,72 @@ trajectory SCVX::runSimulation(const eigMd &U, bool linearize, int save, double 
         {
             Fx[i].setZero();
             Fu[i].setZero();
-            nd.linDyn(d, U.col(i), Fx[i].data(), Fu[i].data(), compensateBias);
+            // Only linearize the dynamics when a keypoint is reached
+            if(i == keypoints[keypoint_counter]){
+                keypoint_counter++;
+                nd.linDyn(d, U.col(i), Fx[i].data(), Fu[i].data(), compensateBias);
+            }
         }
         // take tc/dt steps
         cc->takeStep(d, U.col(i), save, compensateBias);
     }
+
+    if (linearize)
+    {
+        nd.saveLinearisation("before", Fx, Fu, cp->N);
+    }
+
+    if(linearize){
+        if(!(interpolator.keyPoint_method == "set_interval" && interpolator.min_n == 1)){
+            nd.interpolateDerivs(keypoints, Fx, Fu, cp->N);
+        }
+    }
+
+    if (linearize)
+    {
+        nd.saveLinearisation("after", Fx, Fu, cp->N);
+    }
+
+    // initialize d
+//    mju_copy(d->qpos, m->key_qpos, m->nq);
+//    mj_forward(m, d);
+//    cc->setControl(d, U.col(0), compensateBias);
+
+    // -------------------- temp -----------------------------
+//    keypoint_counter = 0;
+//    // rollout (and linearize) the dynamics
+//    for (int i = 0; i < cp->N; i++)
+//    {
+//        mj_forward(m, d);
+//        // get the current state values
+//        XSucc.col(i).setZero();
+//        XSucc.col(i) = cp->getState(d);
+//        // linearization
+//        if (linearize)
+//        {
+//            Fx[i].setZero();
+//            Fu[i].setZero();
+//            // Only linearize the dynamics when a keypoint is reached
+//            if(i == baseline_keypoints[keypoint_counter]){
+//                keypoint_counter++;
+//                nd.linDyn(d, U.col(i), Fx[i].data(), Fu[i].data(), compensateBias);
+//            }
+//        }
+//        // take tc/dt steps
+//        cc->takeStep(d, U.col(i), save, compensateBias);
+//    }
+//
+//    // Interpolate the derivatives - unless the baseline case is used
+//    if(!(baseline.keyPoint_method == "set_interval" && baseline.min_n == 1)){
+//        nd.interpolateDerivs(baseline_keypoints, Fx, Fu, cp->N);
+//    }
+//
+//    // Save the linearisation
+//    if (linearize)
+//    {
+//        nd.saveLinearisation("baseline", Fx, Fu, cp->N);
+//    }
+
     XSucc.col(cp->N).setZero();
     XSucc.col(cp->N) = cp->getState(d);
     // delete data
@@ -122,6 +199,7 @@ trajectory SCVX::runSimulation(const eigMd &U, bool linearize, int save, double 
 // solveSCVX: executes the successive convexification algorithm
 eigMd SCVX::solveSCVX(const eigMd &U0)
 {
+    auto optStart = std::chrono::system_clock::now();
     // initialize USucc for the first succession
     USucc = U0;
     // start the SCVX algorithm
@@ -137,7 +215,12 @@ eigMd SCVX::solveSCVX(const eigMd &U0)
             trajS = {};
             trajS = this->runSimulation(USucc, true, 0, 1);
             auto tDiffEnd = std::chrono::system_clock::now();
-            std::cout << "INFO: convexification took " << std::chrono::duration<double>(tDiffEnd - tDiffStart).count() << " s \n";
+            auto tDiff = std::chrono::duration<double>(tDiffEnd - tDiffStart).count();
+            time_derivs[iter] = tDiff;
+            std::cout << "INFO: convexification took " << tDiff << " s \n";
+        }
+        else{
+            time_derivs[iter] = 0.0f;
         }
         // get the nonlinear cost if the first iteration
         if (iter == 0)
@@ -151,7 +234,10 @@ eigMd SCVX::solveSCVX(const eigMd &U0)
         sq.solveCvx(dTraj, r[iter], trajS.X, USucc, trajS.Fx, trajS.Fu, cc->isJFree, cc->isAFree,
                     cc->qposLB, cc->qposUB, cc->tauLB, cc->tauUB);
         auto tQPEnd = std::chrono::system_clock::now();
-        std::cout << "\nINFO: QP solver took " << std::chrono::duration<double>(tQPEnd - tQPStart).count() << " s \n\n";
+        auto tQP = std::chrono::duration<double>(tQPEnd - tQPStart).count();
+        std::cout << "\nINFO: QP solver took " << tQP << " s \n\n";
+        time_qp[iter] = tQP;
+
         // apply the change
         for (int i = 0; i < cp->N + 1; i++)
         {
@@ -249,12 +335,26 @@ eigMd SCVX::solveSCVX(const eigMd &U0)
     {
         if (i % 10 == 0)
         {
-            printf("%-12s%-12s%-12s%-12s%-12s%-12s%-12s%-12s\n",
-                   "Iteration", "L", "J", "dL", "dJ", "rho", "r", "accept");
+            printf("%-12s%-12s%-12s%-12s%-12s%-12s%-12s%-12s%-12s%-12s\n",
+                   "Iteration", "L", "J", "dL", "dJ", "rho", "r", "accept", "derivs time", "qp time");
         }
-        printf("%-12d%-12.6g%-12.6g%-12.3g%-12.3g%-12.3g%-12.3g%-12d\n",
-               i + 1, JTilde[i], JTemp[i], dL[i], dJ[i], rho[i], r[i], accept[i]);
+        printf("%-12d%-12.6g%-12.6g%-12.3g%-12.3g%-12.3g%-12.3g%-12d%-12.6g%-12.6g\n",
+               i + 1, JTilde[i], JTemp[i], dL[i], dJ[i], rho[i], r[i], accept[i], time_derivs[i], time_qp[i]);
     }
+
+    optTime = 0.0f;
+    derivsTime = 0.0f;
+    qpTime = 0.0f;
+    costReduction = 1 - (J[iter - 1]) / J[0];
+
+    for(int i = 0; i < iter; i++){
+        derivsTime += time_derivs[i];
+        qpTime += time_qp[i];
+        optTime += time_derivs[i] + time_qp[i];
+    }
+    std::cout << "\n\nOptimization time: " << optTime << " seconds\n\n";
+    std::cout << "Derivatives time: " << derivsTime << " seconds\n\n";
+    std::cout << "QP time: " << qpTime << " seconds\n\n";
     return USucc;
 }
 
@@ -270,6 +370,8 @@ void SCVX::refresh()
     delete[] rho;
     delete[] r;
     delete[] accept;
+    delete[] time_derivs;
+    delete[] time_qp;
     // create new variables
     J = new double[maxIter + 1];
     JTemp = new double[maxIter + 1];
@@ -279,6 +381,8 @@ void SCVX::refresh()
     rho = new double[maxIter + 1];
     r = new double[maxIter + 1];
     accept = new bool[maxIter];
+    time_derivs = new double[maxIter];
+    time_qp = new double[maxIter];
     // set initial trust-region radius
     r[0] = r0;
     // reset flags
